@@ -964,42 +964,123 @@ function DocScanner({ lang }) {
     const file = e.target.files?.[0];
     if (!file) return;
     setState("scanning");
-    await new Promise(r=>setTimeout(r,2000));
-    const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-    const expMonth = months[Math.floor(Math.random()*12)];
-    const expYear  = 2025+Math.floor(Math.random()*3);
-    const expDay   = Math.floor(Math.random()*28)+1;
-    const daysLeft = Math.floor(Math.random()*400)-100;
-    const r = {name:file.name,expDate:`${expDay} ${expMonth} ${expYear}`,daysLeft,scanned:new Date().toLocaleDateString()};
-    setResult(r); setDocs(d=>[r,...d.slice(0,4)]); setState("done");
+
+    try {
+      /* Convert image to base64 */
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload  = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      /* Detect media type */
+      const mediaType = file.type || "image/jpeg";
+
+      /* Call our Vercel serverless function */
+      const response = await fetch("/api/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageBase64: base64, mediaType }),
+      });
+
+      const json = await response.json();
+
+      if (!json.success) throw new Error(json.error || "Scan failed");
+
+      const extracted = json.data;
+
+      /* Calculate days left from expiry date */
+      let daysLeft = null;
+      let expDate  = null;
+      if (extracted.expiry_date) {
+        const exp  = new Date(extracted.expiry_date);
+        daysLeft   = Math.ceil((exp - new Date()) / 86400000);
+        expDate    = exp.toLocaleDateString("en-PK", { day:"numeric", month:"long", year:"numeric" });
+      }
+
+      const r = {
+        name:         file.name,
+        docType:      extracted.doc_type      || "Document",
+        bizName:      extracted.business_name || "",
+        authority:    extracted.issuing_authority || "",
+        licenceNo:    extracted.licence_number || "",
+        city:         extracted.city          || "",
+        expDate:      expDate || "Not found on document",
+        issueDate:    extracted.issue_date    || null,
+        daysLeft:     daysLeft,
+        isExpired:    extracted.is_expired    || false,
+        scanned:      new Date().toLocaleDateString(),
+      };
+
+      setResult(r);
+      setDocs(d => [r, ...d.slice(0,4)]);
+      setState("done");
+
+      /* Save to Supabase if user is logged in */
+      if (extracted.expiry_date) {
+        await supabase.from("documents").insert({
+          file_name:    file.name,
+          doc_type:     extracted.doc_type,
+          business_name: extracted.business_name,
+          expiry_date:  extracted.expiry_date,
+          issuing_auth: extracted.issuing_authority,
+          raw_text:     JSON.stringify(extracted),
+        }).then(({ error }) => { if(error) console.log("Save doc error:", error); });
+      }
+
+    } catch (err) {
+      console.error("Scan error:", err);
+      setResult({ name: file.name, docType:"Error", expDate:"Could not read document — try a clearer photo", daysLeft:null, isExpired:false, scanned: new Date().toLocaleDateString() });
+      setState("done");
+    }
   };
 
   return (
     <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:G.b,direction:lang==="ur"?"rtl":"ltr"}}>
       <div style={{background:"linear-gradient(135deg,#065f46,#059669)",padding:"18px 16px 16px",flexShrink:0}}>
         <div style={{fontFamily:G.h,fontSize:20,color:"#fff",marginBottom:2}}>📸 {t.scanTitle}</div>
-        <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>{t.scanSub}</div>
+        <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>Real AI reads your licence — extracts expiry date automatically</div>
       </div>
       <div style={{flex:1,overflowY:"auto",padding:"16px 16px 80px"}}>
         <div style={{background:G.card,borderRadius:16,border:`2px dashed ${G.border}`,padding:"32px 20px",textAlign:"center",marginBottom:16,cursor:"pointer"}} onClick={()=>fileRef.current?.click()}>
           <div style={{fontSize:48,marginBottom:12}}>📄</div>
           <div style={{fontSize:14,fontWeight:600,color:G.navy,marginBottom:6}}>{t.upload}</div>
-          <div style={{fontSize:12,color:G.muted}}>Upload a photo of your licence or certificate</div>
+          <div style={{fontSize:12,color:G.muted,marginBottom:4}}>Trade Licence · PFA Licence · NTN · EOBI · Any govt document</div>
+          <div style={{fontSize:11,color:G.muted}}>Claude AI reads it and extracts the expiry date</div>
           <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} style={{display:"none"}}/>
         </div>
         {state==="scanning" && (
-          <div style={{background:"#f0fdf4",borderRadius:14,padding:20,textAlign:"center",border:"1px solid #bbf7d0"}}>
-            <div style={{width:36,height:36,border:"3px solid #e2e8f0",borderTopColor:G.green,borderRadius:"50%",animation:"spin .7s linear infinite",margin:"0 auto 12px"}}/>
-            <div style={{fontSize:13,color:"#065f46"}}>{t.scanning}</div>
+          <div style={{background:"#eef2ff",borderRadius:14,padding:24,textAlign:"center",border:"1px solid #c7d2fe"}}>
+            <div style={{width:40,height:40,border:"3px solid #c7d2fe",borderTopColor:G.violet,borderRadius:"50%",animation:"spin .7s linear infinite",margin:"0 auto 14px"}}/>
+            <div style={{fontSize:14,fontWeight:600,color:G.indigo,marginBottom:4}}>Claude AI is reading your document…</div>
+            <div style={{fontSize:12,color:G.muted}}>Extracting licence type, expiry date, and authority</div>
           </div>
         )}
         {state==="done" && result && (
-          <div style={{background:result.daysLeft>30?"#f0fdf4":result.daysLeft>0?"#fef3c7":"#fee2e2",borderRadius:16,padding:18,border:`1px solid ${result.daysLeft>30?"#bbf7d0":result.daysLeft>0?"#fde68a":"#fca5a5"}`,marginBottom:14}}>
-            <div style={{fontSize:12,fontWeight:700,color:result.daysLeft>30?"#065f46":result.daysLeft>0?"#92400e":"#b91c1c",marginBottom:10}}>
-              {result.daysLeft>30?"✅ Valid":result.daysLeft>0?"⚠️ Expiring Soon":"🚨 EXPIRED"}
+          <div style={{marginBottom:14}}>
+            {/* Status banner */}
+            <div style={{background:result.isExpired?"#fee2e2":result.daysLeft!==null&&result.daysLeft<30?"#fef3c7":"#f0fdf4",borderRadius:16,padding:18,border:`1px solid ${result.isExpired?"#fca5a5":result.daysLeft!==null&&result.daysLeft<30?"#fde68a":"#bbf7d0"}`,marginBottom:10}}>
+              <div style={{fontSize:14,fontWeight:700,color:result.isExpired?"#b91c1c":result.daysLeft!==null&&result.daysLeft<30?"#92400e":"#065f46",marginBottom:10}}>
+                {result.isExpired?"🚨 EXPIRED — Renew immediately":result.daysLeft!==null&&result.daysLeft<30?"⚠️ Expiring soon":"✅ Valid document"}
+              </div>
+              {/* Extracted details */}
+              {[
+                ["Document type",  result.docType],
+                ["Business name",  result.bizName],
+                ["Issued by",      result.authority],
+                ["Licence number", result.licenceNo],
+                ["City",           result.city],
+                ["Expiry date",    result.expDate],
+                [result.daysLeft!==null ? "Days remaining" : null, result.daysLeft!==null ? (result.daysLeft>0?`${result.daysLeft} days`:`Expired ${Math.abs(result.daysLeft)} days ago`) : null],
+              ].filter(([k,v])=>k&&v).map(([k,v],i)=>(
+                <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid rgba(0,0,0,.06)",fontSize:12}}>
+                  <span style={{color:G.muted}}>{k}</span>
+                  <span style={{color:G.navy,fontWeight:500,textAlign:"right",maxWidth:"60%"}}>{v}</span>
+                </div>
+              ))}
             </div>
-            <div style={{fontSize:13,color:G.navy,marginBottom:4}}>{t.expiry} <strong>{result.expDate}</strong></div>
-            <div style={{fontSize:12,color:G.muted}}>{result.daysLeft>0?`${result.daysLeft} days left`:`${Math.abs(result.daysLeft)} days ago — RENEW NOW`}</div>
+            <div style={{fontSize:11,color:G.muted,textAlign:"center"}}>💡 Always verify with the original document. AI may occasionally misread unclear photos.</div>
           </div>
         )}
         {docs.length>0 && (
@@ -1008,11 +1089,11 @@ function DocScanner({ lang }) {
             {docs.map((d,i)=>(
               <div key={i} style={{background:G.card,borderRadius:12,padding:"12px 14px",marginBottom:7,border:`1px solid ${G.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div>
-                  <div style={{fontSize:12,fontWeight:600,color:G.navy}}>{d.name}</div>
-                  <div style={{fontSize:10,color:G.muted}}>Expires: {d.expDate}</div>
+                  <div style={{fontSize:12,fontWeight:600,color:G.navy}}>{d.docType||d.name}</div>
+                  <div style={{fontSize:10,color:G.muted}}>Expires: {d.expDate} · {d.scanned}</div>
                 </div>
-                <div style={{fontSize:11,fontWeight:700,color:d.daysLeft>30?"#059669":d.daysLeft>0?"#f59e0b":"#ef4444"}}>
-                  {d.daysLeft>0?`${d.daysLeft}d`:"Expired"}
+                <div style={{fontSize:11,fontWeight:700,color:d.isExpired?"#ef4444":d.daysLeft!==null&&d.daysLeft<30?"#f59e0b":"#059669"}}>
+                  {d.isExpired?"Expired":d.daysLeft!==null?`${d.daysLeft}d`:"—"}
                 </div>
               </div>
             ))}
