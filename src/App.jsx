@@ -1,4 +1,11 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+/* ── SUPABASE CLIENT ──────────────────────────────────────── */
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 /* ── TRANSLATIONS ─────────────────────────────────────────── */
 const T = {
@@ -380,7 +387,7 @@ function Onboarding({ onDone, lang, setLang }) {
 }
 
 /* ── DASHBOARD ────────────────────────────────────────────── */
-function Dashboard({ biz, laws, news, onNav, onLaw, onNews, lang, setLang }) {
+function Dashboard({ biz, laws, news, onNav, onLaw, onNews, lang, setLang, user, signOut }) {
   const t = T[lang];
   const urgent = laws.filter(l=>{const d=daysUntil(l.deadline);return d!==null&&d<60;});
   const comp = laws.length ? Math.max(0,100-Math.round((urgent.length/laws.length)*50)) : 100;
@@ -399,12 +406,23 @@ function Dashboard({ biz, laws, news, onNav, onLaw, onNews, lang, setLang }) {
             <div style={{fontFamily:G.h,fontSize:18,color:"#fff",lineHeight:1.2,marginBottom:2}}>{biz.name.length>22?biz.name.slice(0,22)+"…":biz.name}</div>
             <div style={{fontSize:11,color:"rgba(255,255,255,.4)"}}>{bi(biz.type)} {bl(biz.type,lang)} · {biz.city}</div>
           </div>
-          <div style={{display:"flex",gap:6}}>
-            {["en","ur"].map(l=>(
-              <button key={l} onClick={()=>setLang(l)} style={{padding:"3px 9px",borderRadius:8,border:`1px solid ${lang===l?"#fff":"rgba(255,255,255,.25)"}`,background:lang===l?"rgba(255,255,255,.15)":"transparent",color:"#fff",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:G.b}}>
-                {l==="en"?"EN":"اردو"}
-              </button>
-            ))}
+          <div style={{display:"flex",flexDirection:"column",gap:6,alignItems:"flex-end"}}>
+            <div style={{display:"flex",gap:6}}>
+              {["en","ur"].map(l=>(
+                <button key={l} onClick={()=>setLang(l)} style={{padding:"3px 9px",borderRadius:8,border:`1px solid ${lang===l?"#fff":"rgba(255,255,255,.25)"}`,background:lang===l?"rgba(255,255,255,.15)":"transparent",color:"#fff",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:G.b}}>
+                  {l==="en"?"EN":"اردو"}
+                </button>
+              ))}
+            </div>
+            {user ? (
+              <div style={{display:"flex",alignItems:"center",gap:6}}>
+                <img src={user.user_metadata?.avatar_url} alt="" style={{width:22,height:22,borderRadius:"50%",border:"1.5px solid rgba(255,255,255,.3)"}} onError={e=>e.target.style.display="none"}/>
+                <span style={{fontSize:10,color:"#6ee7b7",maxWidth:80,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.user_metadata?.name?.split(" ")[0] || "Saved"}</span>
+                <button onClick={signOut} style={{fontSize:9,color:"rgba(255,255,255,.4)",background:"none",border:"none",cursor:"pointer",fontFamily:G.b}}>Sign out</button>
+              </div>
+            ) : (
+              <div style={{fontSize:10,color:"rgba(255,255,255,.35)"}}>Not saved</div>
+            )}
           </div>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8}}>
@@ -643,19 +661,20 @@ function NewsDetail({ news: n, biz, onBack, lang }) {
 }
 
 /* ── LAW BOOK ─────────────────────────────────────────────── */
-function LawBook({ biz, onSelect, lang }) {
+function LawBook({ biz, onSelect, lang, allLaws }) {
+  const LAWS_TO_USE = allLaws || ALL_LAWS;
   const t = T[lang];
   const [search, setSearch] = useState("");
   const [cat, setCat] = useState("All");
   const [view, setView] = useState("mine");
-  const myLaws = ALL_LAWS.filter(l=>matchLaw(l,biz));
-  const source  = view==="mine" ? myLaws : ALL_LAWS;
+  const myLaws  = LAWS_TO_USE.filter(l=>matchLaw(l,biz));
+  const source  = view==="mine" ? myLaws : LAWS_TO_USE;
   const filtered = source.filter(l=>{
     const mCat = cat==="All" || l.cat===cat;
-    const mSearch = !search || l.title.toLowerCase().includes(search.toLowerCase()) || l.summaryEn.toLowerCase().includes(search.toLowerCase());
+    const mSearch = !search || l.title.toLowerCase().includes(search.toLowerCase()) || (l.summaryEn||"").toLowerCase().includes(search.toLowerCase());
     return mCat && mSearch;
   });
-  const cats = ["All",...[...new Set(ALL_LAWS.map(l=>l.cat))]];
+  const cats = ["All",...[...new Set(LAWS_TO_USE.map(l=>l.cat))]];
   const catColors = {Tax:"#1e40af",Labour:"#7c3aed",Operations:"#059669",Licensing:"#d97706","Food Safety":"#dc2626",Medical:"#0891b2"};
 
   return (
@@ -1202,35 +1221,258 @@ function BottomNav({ active, onNav, urgentCount, newsCount, lang }) {
 /* ── ROOT ─────────────────────────────────────────────────── */
 export default function App() {
   injectFonts();
-  const [lang, setLang]     = useState("en");
-  const [biz, setBiz]       = useState(null);
-  const [screen, setScreen] = useState("dash");
-  const [selLaw, setSelLaw] = useState(null);
+  const [lang, setLang]       = useState("en");
+  const [biz, setBiz]         = useState(null);
+  const [screen, setScreen]   = useState("dash");
+  const [selLaw, setSelLaw]   = useState(null);
   const [selNews, setSelNews] = useState(null);
 
-  const myLaws = biz ? ALL_LAWS.filter(l=>matchLaw(l,biz)) : [];
-  const myNews = biz ? NEWS.filter(n=>matchNews(n,biz)) : [];
+  /* ── Auth state ── */
+  const [user, setUser]       = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    /* Check if user is already logged in */
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+    /* Listen for login/logout */
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  /* Google login */
+  const signInWithGoogle = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin },
+    });
+  };
+
+  /* Logout */
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
+
+  /* Save profile to Supabase when user completes onboarding */
+  const saveProfile = async (bizData) => {
+    if (!user) return;
+    await supabase.from("user_profiles").upsert({
+      id:          user.id,
+      name:        bizData.name,
+      owner_name:  bizData.ownerName,
+      designation: bizData.designation,
+      phone:       bizData.phone,
+      type:        bizData.type,
+      province:    bizData.province,
+      city:        bizData.city,
+      address:     bizData.address,
+      reg_type:    bizData.regType,
+      ntn:         bizData.ntn,
+      rev_m:       bizData.revM,
+      emp:         bizData.emp,
+      licences:    bizData.licences,
+      products:    bizData.products,
+      updated_at:  new Date().toISOString(),
+    });
+  };
+
+  /* Load saved profile when user logs in */
+  useEffect(() => {
+    if (!user || biz) return;
+    supabase.from("user_profiles").select("*").eq("id", user.id).single()
+      .then(({ data }) => {
+        if (data) {
+          setBiz({
+            name:        data.name        || "",
+            ownerName:   data.owner_name  || "",
+            designation: data.designation || "Owner",
+            phone:       data.phone       || "",
+            type:        data.type        || "",
+            province:    data.province    || "",
+            city:        data.city        || "",
+            address:     data.address     || "",
+            regType:     data.reg_type    || "sole",
+            ntn:         data.ntn         || "",
+            revM:        data.rev_m       || 3,
+            emp:         data.emp         || 3,
+            licences:    data.licences    || [],
+            products:    data.products    || "",
+            typeLabel:   data.type ? bl(data.type,"en") : "",
+            revLabel:    REV_BANDS.find(b=>b.v===data.rev_m)?.l || "",
+            empLabel:    EMP_BANDS.find(b=>b.v===data.emp)?.l  || "",
+          });
+          setScreen("dash");
+        }
+      });
+  }, [user]);
+
+  /* Fetch laws from Supabase ── */
+  const [dbLaws, setDbLaws]     = useState([]);
+  const [lawsLoading, setLawsLoading] = useState(true);
+  const [lawsError, setLawsError]     = useState(null);
+
+  useEffect(() => {
+    async function fetchLaws() {
+      try {
+        const { data, error } = await supabase
+          .from("laws")
+          .select("*")
+          .eq("active", true)
+          .order("cat");
+        if (error) throw error;
+        /* Map snake_case DB columns → camelCase used in components */
+        const mapped = (data || []).map(l => ({
+          id:            l.id,
+          title:         l.title,
+          titleUr:       l.title_ur,
+          cat:           l.cat,
+          sub:           l.sub,
+          icon:          l.icon,
+          color:         l.color,
+          bg:            l.bg,
+          provinces:     l.provinces || ["All"],
+          types:         l.types     || [],
+          minRevM:       l.min_rev_m || 0,
+          minEmp:        l.min_emp   || 1,
+          badge:         l.badge,
+          deadline:      l.deadline,
+          penalty:       l.penalty   || 0,
+          penaltyPerDay: l.penalty_per_day || 0,
+          summaryEn:     l.summary_en,
+          summaryUr:     l.summary_ur,
+          steps:         l.steps     || [],
+          authority:     l.authority,
+          phone:         l.phone,
+          url:           l.url,
+          /* Re-create the letter function from the template stored in DB */
+          letter: l.letter_template ? (b) =>
+            l.letter_template
+              .replace(/\[BUSINESS_NAME\]/g, b.name || "")
+              .replace(/\[OWNER_NAME\]/g,    b.ownerName || "")
+              .replace(/\[DESIGNATION\]/g,   b.designation || "")
+              .replace(/\[PHONE\]/g,         b.phone || "[PHONE]")
+              .replace(/\[ADDRESS\]/g,       b.address || "")
+              .replace(/\[CITY\]/g,          b.city || "")
+              .replace(/\[PROVINCE\]/g,      b.province || "")
+              .replace(/\[NTN\]/g,           b.ntn || "[NTN]")
+              .replace(/\[TYPE\]/g,          b.typeLabel || "")
+              .replace(/\[STRN\]/g,          "[ENTER STRN]")
+          : null,
+        }));
+        setDbLaws(mapped);
+      } catch (err) {
+        console.error("Supabase fetch error:", err);
+        setLawsError(err.message);
+        /* Fall back to ALL_LAWS so app still works */
+        setDbLaws(ALL_LAWS);
+      } finally {
+        setLawsLoading(false);
+      }
+    }
+    fetchLaws();
+  }, []);
+
+  /* Use DB laws if loaded, otherwise fall back to hardcoded */
+  const LAWS_SOURCE = dbLaws.length > 0 ? dbLaws : ALL_LAWS;
+
+  const myLaws = biz ? LAWS_SOURCE.filter(l => matchLaw(l, biz)) : [];
+  const myNews = biz ? NEWS.filter(n => matchNews(n, biz))       : [];
 
   const nav = s => { setSelLaw(null); setSelNews(null); setScreen(s); };
-  const inDetail = selLaw || selNews;
+  const inDetail    = selLaw || selNews;
   const mainScreens = ["dash","news","laws","profile"];
 
-  if (!biz) return <Onboarding onDone={b=>{ setBiz(b); setScreen("dash"); }} lang={lang} setLang={setLang}/>;
+  /* Loading spinner */
+  if (authLoading || lawsLoading) return (
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:G.night,fontFamily:G.b,gap:16}}>
+      <div style={{fontFamily:G.h,fontSize:28,color:"#fff",letterSpacing:"-1px"}}>Verifill</div>
+      <div style={{width:36,height:36,border:"3px solid #1c1c3a",borderTopColor:"#059669",borderRadius:"50%",animation:"spin .7s linear infinite"}}/>
+      <div style={{fontSize:12,color:"rgba(255,255,255,.4)"}}>Loading…</div>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
+
+  /* Not logged in — show sign in screen */
+  if (!user && !biz) return (
+    <div style={{height:"100vh",overflowY:"auto",background:`radial-gradient(ellipse at 20% 10%,#01411C,#070714 60%)`,fontFamily:G.b}}>
+      <style>{`@keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}`}</style>
+      <div style={{maxWidth:480,margin:"0 auto",padding:"40px 20px 60px",animation:"up .5s ease",textAlign:"center"}}>
+        <div style={{display:"inline-flex",alignItems:"center",gap:12,background:"rgba(255,255,255,.07)",border:"1px solid rgba(255,255,255,.12)",borderRadius:16,padding:"10px 22px",marginBottom:16}}>
+          <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#01411C,#059669)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>✓</div>
+          <div>
+            <div style={{fontFamily:G.h,fontSize:26,color:"#fff",letterSpacing:"-1px",lineHeight:1}}>Verifill</div>
+            <div style={{fontSize:9,color:"rgba(255,255,255,.3)",letterSpacing:".15em",textTransform:"uppercase",marginTop:1}}>Pakistan Compliance AI 🇵🇰</div>
+          </div>
+        </div>
+        <p style={{color:"rgba(255,255,255,.35)",fontSize:12,lineHeight:1.9,marginBottom:28}}>
+          Every law that applies to your business.<br/>
+          Specific to your city, province, and business type.<br/>
+          Never get fined for missing a deadline again.
+        </p>
+        <div style={{background:G.card,borderRadius:20,padding:"28px 22px",boxShadow:"0 32px 80px rgba(0,0,0,.5)"}}>
+          <div style={{fontSize:24,marginBottom:10}}>👋</div>
+          <div style={{fontFamily:G.h,fontSize:20,color:G.navy,marginBottom:6}}>Welcome to Verifill</div>
+          <div style={{fontSize:12,color:G.muted,marginBottom:22,lineHeight:1.7}}>
+            Sign in with Google to save your profile permanently. Your laws, documents, and progress are always there when you come back.
+          </div>
+          {/* Google Sign In Button */}
+          <button onClick={signInWithGoogle} style={{width:"100%",padding:"13px 16px",borderRadius:12,border:"1.5px solid #e2e8f0",background:"#fff",color:"#3c4043",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:G.b,display:"flex",alignItems:"center",justifyContent:"center",gap:12,marginBottom:14,boxShadow:"0 2px 8px rgba(0,0,0,.1)"}}>
+            <svg width="20" height="20" viewBox="0 0 48 48">
+              <path fill="#4285F4" d="M44.5 20H24v8.5h11.8C34.7 33.9 29.8 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/>
+              <path fill="#34A853" d="M6.3 14.7l7 5.1C15 16.1 19.2 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16.3 2 9.7 7.4 6.3 14.7z"/>
+              <path fill="#FBBC05" d="M24 46c5.6 0 10.6-1.9 14.5-5.1l-6.7-5.5C29.8 37 27 38 24 38c-5.8 0-10.7-3.1-11.8-7.5l-7 5.4C9.7 42.6 16.3 46 24 46z"/>
+              <path fill="#EA4335" d="M44.5 20H24v8.5h11.8c-1 3-3.5 5.5-6.8 7l6.7 5.5C40.8 37.3 44.5 31 44.5 24c0-1.3-.2-2.7-.5-4z"/>
+            </svg>
+            Continue with Google
+          </button>
+          <div style={{display:"flex",alignItems:"center",gap:10,margin:"4px 0 14px"}}>
+            <div style={{flex:1,height:"0.5px",background:G.border}}/>
+            <span style={{fontSize:11,color:G.muted}}>or</span>
+            <div style={{flex:1,height:"0.5px",background:G.border}}/>
+          </div>
+          {/* Continue without saving */}
+          <button onClick={()=>setBiz("onboard")} style={{width:"100%",padding:"12px",borderRadius:12,border:"none",background:`linear-gradient(135deg,${G.pk},${G.green})`,color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:G.b}}>
+            Continue without saving →
+          </button>
+          <div style={{fontSize:11,color:G.muted,marginTop:14,lineHeight:1.6}}>
+            🔒 Your data is private and never shared.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  /* Logged in or skipped — show onboarding if no profile yet */
+  if (!biz || biz === "onboard") return (
+    <Onboarding
+      onDone={async b => {
+        setBiz(b);
+        if (user) await saveProfile(b);
+        setScreen("dash");
+      }}
+      lang={lang}
+      setLang={setLang}
+    />
+  );
 
   const renderScreen = () => {
-    if (selLaw)  return <LawDetail  law={selLaw}  biz={biz} onBack={()=>setSelLaw(null)}  lang={lang}/>;
-    if (selNews) return <NewsDetail news={selNews} biz={biz} onBack={()=>setSelNews(null)} lang={lang}/>;
+    if (selLaw)  return <LawDetail  law={selLaw}  biz={biz} onBack={() => setSelLaw(null)}  lang={lang}/>;
+    if (selNews) return <NewsDetail news={selNews} biz={biz} onBack={() => setSelNews(null)} lang={lang}/>;
     switch (screen) {
-      case "dash":     return <Dashboard     biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang}/>;
+      case "dash":     return <Dashboard     biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut}/>;
       case "news":     return <NewsFeed      biz={biz} onSelect={setSelNews} lang={lang}/>;
-      case "laws":     return <LawBook       biz={biz} onSelect={setSelLaw} lang={lang}/>;
-      case "profile":  return <ProfileScreen biz={biz} onUpdate={b=>{ setBiz(b); nav("dash"); }} lang={lang}/>;
+      case "laws":     return <LawBook       biz={biz} onSelect={setSelLaw}  lang={lang} allLaws={LAWS_SOURCE}/>;
+      case "profile":  return <ProfileScreen biz={biz} onUpdate={async b => { setBiz(b); if(user) await saveProfile(b); nav("dash"); }} lang={lang}/>;
       case "calendar": return <ComplianceCalendar laws={myLaws} lang={lang}/>;
       case "finecalc": return <FineCalculator     laws={myLaws} lang={lang}/>;
       case "scandoc":  return <DocScanner         lang={lang}/>;
       case "findca":   return <FindCA             biz={biz} lang={lang}/>;
       case "kit":      return <ComplianceKit      laws={myLaws} biz={biz} lang={lang}/>;
-      default:         return <Dashboard          biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang}/>;
+      default:         return <Dashboard          biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut}/>;
     }
   };
 
@@ -1249,8 +1491,8 @@ export default function App() {
       {!inDetail && mainScreens.includes(screen) && (
         <BottomNav
           active={screen} onNav={nav}
-          urgentCount={myLaws.filter(l=>{ const d=daysUntil(l.deadline); return d!==null&&d<60; }).length}
-          newsCount={myNews.filter(n=>n.mag==="high").length}
+          urgentCount={myLaws.filter(l => { const d = daysUntil(l.deadline); return d !== null && d < 60; }).length}
+          newsCount={myNews.filter(n => n.mag === "high").length}
           lang={lang}
         />
       )}
