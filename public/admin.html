@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Verifill Admin Panel</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0a0a14; color: #e2e8f0; min-height: 100vh; }
+
+    /* LOGIN */
+    #login-screen {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 20px;
+    }
+    .login-card {
+      background: #111827; border: 1px solid #1f2937;
+      border-radius: 16px; padding: 40px 32px;
+      width: 100%; max-width: 400px; text-align: center;
+    }
+    .login-logo { font-size: 40px; margin-bottom: 12px; }
+    .login-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; color: #fff; }
+    .login-sub { font-size: 13px; color: #6b7280; margin-bottom: 28px; }
+    .login-input {
+      width: 100%; padding: 12px 14px; border-radius: 10px;
+      border: 1px solid #374151; background: #1f2937; color: #fff;
+      font-size: 14px; margin-bottom: 14px; outline: none;
+    }
+    .login-btn {
+      width: 100%; padding: 13px; border-radius: 10px; border: none;
+      background: linear-gradient(135deg, #059669, #01411C);
+      color: #fff; font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+    .login-error { color: #f87171; font-size: 13px; margin-top: 10px; }
+
+    /* MAIN */
+    #main-screen { display: none; }
+    .topbar {
+      background: #111827; border-bottom: 1px solid #1f2937;
+      padding: 14px 24px; display: flex; align-items: center;
+      justify-content: space-between; position: sticky; top: 0; z-index: 100;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-logo { font-size: 20px; font-weight: 700; color: #fff; }
+    .topbar-badge {
+      font-size: 10px; background: #059669; color: #fff;
+      padding: 2px 8px; border-radius: 8px; font-weight: 700;
+    }
+    .topbar-right { display: flex; gap: 10px; align-items: center; }
+    .btn {
+      padding: 8px 16px; border-radius: 8px; border: none;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      font-family: inherit;
+    }
+    .btn-primary { background: #059669; color: #fff; }
+    .btn-secondary { background: #1f2937; color: #e2e8f0; border: 1px solid #374151; }
+    .btn-danger { background: #dc2626; color: #fff; }
+    .btn-warning { background: #d97706; color: #fff; }
+
+    .container { padding: 24px; max-width: 1400px; margin: 0 auto; }
+
+    /* STATS */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 14px; margin-bottom: 24px;
+    }
+    .stat-card {
+      background: #111827; border: 1px solid #1f2937;
+      border-radius: 12px; padding: 16px;
+    }
+    .stat-num { font-size: 28px; font-weight: 700; color: #059669; }
+    .stat-label { font-size: 12px; color: #6b7280; margin-top: 4px; }
+
+    /* SEARCH + FILTER */
+    .toolbar {
+      display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
+      align-items: center;
+    }
+    .search-input {
+      flex: 1; min-width: 200px; padding: 9px 14px; border-radius: 8px;
+      border: 1px solid #374151; background: #1f2937; color: #fff;
+      font-size: 13px; outline: none;
+    }
+    .filter-select {
+      padding: 9px 14px; border-radius: 8px; border: 1px solid #374151;
+      background: #1f2937; color: #fff; font-size: 13px; outline: none;
+      cursor: pointer;
+    }
+
+    /* TABLE */
+    .table-wrap {
+      background: #111827; border: 1px solid #1f2937;
+      border-radius: 14px; overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      background: #0f172a; padding: 11px 14px; text-align: left;
+      font-size: 11px; font-weight: 700; color: #6b7280;
+      text-transform: uppercase; letter-spacing: .06em;
+      border-bottom: 1px solid #1f2937;
+    }
+    td {
+      padding: 11px 14px; font-size: 13px; color: #e2e8f0;
+      border-bottom: 1px solid #1a2234; vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #1a2234; }
+    .cat-badge {
+      font-size: 10px; padding: 2px 8px; border-radius: 8px;
+      font-weight: 600; white-space: nowrap;
+    }
+    .status-active { background: #064e3b; color: #6ee7b7; }
+    .status-inactive { background: #7f1d1d; color: #fca5a5; }
+    .deadline-urgent { color: #f87171; font-weight: 600; }
+    .deadline-ok { color: #6ee7b7; }
+    .deadline-none { color: #4b5563; }
+    .actions { display: flex; gap: 6px; }
+
+    /* MODAL */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.7); z-index: 200;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #111827; border: 1px solid #1f2937;
+      border-radius: 16px; width: 100%; max-width: 680px;
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal-header {
+      padding: 18px 22px; border-bottom: 1px solid #1f2937;
+      display: flex; justify-content: space-between; align-items: center;
+      position: sticky; top: 0; background: #111827; z-index: 10;
+    }
+    .modal-title { font-size: 16px; font-weight: 700; color: #fff; }
+    .modal-close {
+      background: none; border: none; color: #6b7280;
+      font-size: 20px; cursor: pointer; padding: 0 4px;
+    }
+    .modal-body { padding: 22px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-label { font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: .06em; }
+    .form-input {
+      padding: 9px 12px; border-radius: 8px; border: 1px solid #374151;
+      background: #1f2937; color: #fff; font-size: 13px; outline: none;
+      font-family: inherit;
+    }
+    .form-input:focus { border-color: #059669; }
+    textarea.form-input { min-height: 80px; resize: vertical; }
+    .modal-footer {
+      padding: 16px 22px; border-top: 1px solid #1f2937;
+      display: flex; justify-content: flex-end; gap: 10px;
+      position: sticky; bottom: 0; background: #111827;
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: #059669; color: #fff; padding: 12px 20px;
+      border-radius: 10px; font-size: 13px; font-weight: 600;
+      z-index: 300; display: none; animation: slideUp .3s ease;
+    }
+    .toast.error { background: #dc2626; }
+    @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+    .loading { text-align: center; padding: 60px; color: #6b7280; font-size: 14px; }
+    .spinner {
+      width: 32px; height: 32px; border: 3px solid #1f2937;
+      border-top-color: #059669; border-radius: 50%;
+      animation: spin .7s linear infinite; margin: 0 auto 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      th:nth-child(4), td:nth-child(4),
+      th:nth-child(5), td:nth-child(5) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">🇵🇰</div>
+    <div class="login-title">Verifill Admin</div>
+    <div class="login-sub">Enter your admin password to manage laws</div>
+    <input type="password" id="password-input" class="login-input" placeholder="Admin password" onkeydown="if(event.key==='Enter')login()"/>
+    <button class="login-btn" onclick="login()">Sign In →</button>
+    <div id="login-error" class="login-error"></div>
+  </div>
+</div>
+
+<!-- MAIN PANEL -->
+<div id="main-screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">✓ Verifill</div>
+      <div class="topbar-badge">ADMIN</div>
+    </div>
+    <div class="topbar-right">
+      <span id="last-updated" style="font-size:11px;color:#6b7280;"></span>
+      <button class="btn btn-primary" onclick="openAddModal()">+ Add Law</button>
+      <button class="btn btn-secondary" onclick="logout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-total">—</div>
+        <div class="stat-label">Total Laws</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-active" style="color:#6ee7b7">—</div>
+        <div class="stat-label">Active Laws</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-urgent" style="color:#f87171">—</div>
+        <div class="stat-label">Urgent (< 60 days)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-cats" style="color:#a78bfa">—</div>
+        <div class="stat-label">Categories</div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <input type="text" class="search-input" placeholder="🔍 Search laws..." oninput="renderTable()"/>
+      <select class="filter-select" onchange="renderTable()">
+        <option value="">All Categories</option>
+        <option>Tax</option>
+        <option>Labour</option>
+        <option>Operations</option>
+        <option>Licensing</option>
+        <option>Food Safety</option>
+        <option>Medical</option>
+      </select>
+      <select class="filter-select" onchange="renderTable()">
+        <option value="">All Status</option>
+        <option value="true">Active</option>
+        <option value="false">Inactive</option>
+      </select>
+      <button class="btn btn-secondary" onclick="loadLaws()">↻ Refresh</button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <div id="table-loading" class="loading">
+        <div class="spinner"></div>
+        Loading laws from database…
+      </div>
+      <table id="laws-table" style="display:none">
+        <thead>
+          <tr>
+            <th>Icon</th>
+            <th>Law Title</th>
+            <th>Category</th>
+            <th>Deadline</th>
+            <th>Penalty (PKR)</th>
+            <th>Provinces</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="laws-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT / ADD MODAL -->
+<div class="modal-overlay" id="law-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Edit Law</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-id"/>
+      <div class="form-grid">
+        <div class="form-group full">
+          <div class="form-label">Title (English) *</div>
+          <input type="text" id="edit-title" class="form-input" placeholder="e.g. Annual Income Tax Return"/>
+        </div>
+        <div class="form-group full">
+          <div class="form-label">Title (Urdu)</div>
+          <input type="text" id="edit-title-ur" class="form-input" placeholder="اردو عنوان" dir="rtl"/>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Category *</div>
+          <select id="edit-cat" class="form-input">
+            <option>Tax</option>
+            <option>Labour</option>
+            <option>Operations</option>
+            <option>Licensing</option>
+            <option>Food Safety</option>
+            <option>Medical</option>
+            <option>Construction</option>
+            <option>Education</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Sub-title</div>
+          <input type="text" id="edit-sub" class="form-input" placeholder="e.g. Federal · All businesses"/>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Icon (emoji)</div>
+          <input type="text" id="edit-icon" class="form-input" placeholder="e.g. 📊"/>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Badge text</div>
+          <input type="text" id="edit-badge" class="form-input" placeholder="e.g. Deadline: 30 Sep"/>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Deadline date</div>
+          <input type="date" id="edit-deadline" class="form-input"/>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Penalty (PKR)</div>
+          <input type="number" id="edit-penalty" class="form-input" placeholder="e.g. 50000"/>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Daily penalty (PKR)</div>
+          <input type="number" id="edit-penalty-day" class="form-input" placeholder="e.g. 1000"/>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Authority name</div>
+          <input type="text" id="edit-authority" class="form-input" placeholder="e.g. FBR"/>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Authority phone</div>
+          <input type="text" id="edit-phone" class="form-input" placeholder="e.g. 051-111-772-772"/>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Authority URL</div>
+          <input type="text" id="edit-url" class="form-input" placeholder="e.g. https://fbr.gov.pk"/>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Min revenue (millions PKR)</div>
+          <input type="number" id="edit-rev" class="form-input" placeholder="0 = applies to all"/>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Min employees</div>
+          <input type="number" id="edit-emp" class="form-input" placeholder="1 = applies to all"/>
+        </div>
+        <div class="form-group full">
+          <div class="form-label">Provinces (comma separated)</div>
+          <input type="text" id="edit-provinces" class="form-input" placeholder="All  OR  Punjab,Sindh  OR  Punjab"/>
+        </div>
+        <div class="form-group full">
+          <div class="form-label">Business types (comma separated)</div>
+          <input type="text" id="edit-types" class="form-input" placeholder="retail,wholesale,food,manufacturing,services,it,medical,pharmacy,education,construction,trading"/>
+        </div>
+        <div class="form-group full">
+          <div class="form-label">Summary (English) *</div>
+          <textarea id="edit-summary-en" class="form-input" placeholder="Plain English explanation of what this law requires…"></textarea>
+        </div>
+        <div class="form-group full">
+          <div class="form-label">Summary (Urdu)</div>
+          <textarea id="edit-summary-ur" class="form-input" placeholder="اردو خلاصہ…" dir="rtl"></textarea>
+        </div>
+        <div class="form-group full">
+          <div class="form-label">Steps (one per line)</div>
+          <textarea id="edit-steps" class="form-input" style="min-height:100px" placeholder="Register at iris.fbr.gov.pk&#10;Obtain NTN certificate&#10;Use NTN on all invoices"></textarea>
+        </div>
+        <div class="form-group full">
+          <div class="form-label">Active</div>
+          <select id="edit-active" class="form-input">
+            <option value="true">Active — shown to users</option>
+            <option value="false">Inactive — hidden from users</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveLaw()">💾 Save Law</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  let PASSWORD = "";
+  let ALL_LAWS = [];
+
+  // ── AUTH ──────────────────────────────────────────────────
+  async function login() {
+    const pw = document.getElementById("password-input").value.trim();
+    if (!pw) return;
+    document.getElementById("login-error").textContent = "";
+
+    // Test the password by making an API call
+    const res = await fetch("/api/admin", {
+      headers: { Authorization: `Bearer ${pw}` }
+    });
+
+    if (res.status === 401) {
+      document.getElementById("login-error").textContent = "Wrong password. Try again.";
+      return;
+    }
+
+    PASSWORD = pw;
+    sessionStorage.setItem("vf_admin_pw", pw);
+    const data = await res.json();
+    ALL_LAWS = data;
+    showMain();
+  }
+
+  function logout() {
+    sessionStorage.removeItem("vf_admin_pw");
+    PASSWORD = "";
+    document.getElementById("main-screen").style.display = "none";
+    document.getElementById("login-screen").style.display = "flex";
+    document.getElementById("password-input").value = "";
+  }
+
+  function showMain() {
+    document.getElementById("login-screen").style.display  = "none";
+    document.getElementById("main-screen").style.display   = "block";
+    document.getElementById("last-updated").textContent = "Last updated: " + new Date().toLocaleTimeString();
+    renderStats();
+    renderTable();
+  }
+
+  // Auto-login if session stored
+  window.addEventListener("load", async () => {
+    const saved = sessionStorage.getItem("vf_admin_pw");
+    if (saved) {
+      document.getElementById("password-input").value = saved;
+      await login();
+    }
+  });
+
+  // ── LOAD LAWS ─────────────────────────────────────────────
+  async function loadLaws() {
+    document.getElementById("table-loading").style.display = "block";
+    document.getElementById("laws-table").style.display    = "none";
+    const res  = await fetch("/api/admin", { headers: { Authorization: `Bearer ${PASSWORD}` } });
+    ALL_LAWS   = await res.json();
+    document.getElementById("last-updated").textContent = "Last updated: " + new Date().toLocaleTimeString();
+    renderStats();
+    renderTable();
+  }
+
+  // ── STATS ─────────────────────────────────────────────────
+  function renderStats() {
+    const active = ALL_LAWS.filter(l => l.active);
+    const urgent = ALL_LAWS.filter(l => {
+      if (!l.deadline) return false;
+      const d = Math.ceil((new Date(l.deadline) - new Date()) / 86400000);
+      return d >= 0 && d < 60;
+    });
+    const cats = [...new Set(ALL_LAWS.map(l => l.cat))];
+    document.getElementById("stat-total").textContent  = ALL_LAWS.length;
+    document.getElementById("stat-active").textContent = active.length;
+    document.getElementById("stat-urgent").textContent = urgent.length;
+    document.getElementById("stat-cats").textContent   = cats.length;
+  }
+
+  // ── TABLE ─────────────────────────────────────────────────
+  function renderTable() {
+    const search   = document.querySelector(".search-input").value.toLowerCase();
+    const catFilter = document.querySelectorAll(".filter-select")[0].value;
+    const stFilter  = document.querySelectorAll(".filter-select")[1].value;
+
+    let laws = ALL_LAWS.filter(l => {
+      const matchSearch = !search || l.title.toLowerCase().includes(search) || (l.summary_en||"").toLowerCase().includes(search);
+      const matchCat    = !catFilter || l.cat === catFilter;
+      const matchSt     = stFilter === "" || String(l.active) === stFilter;
+      return matchSearch && matchCat && matchSt;
+    });
+
+    document.getElementById("table-loading").style.display = "none";
+    document.getElementById("laws-table").style.display    = "table";
+
+    const tbody = document.getElementById("laws-tbody");
+    tbody.innerHTML = laws.map(l => {
+      const daysLeft = l.deadline ? Math.ceil((new Date(l.deadline) - new Date()) / 86400000) : null;
+      const dlClass  = daysLeft === null ? "deadline-none" : daysLeft < 60 ? "deadline-urgent" : "deadline-ok";
+      const dlText   = daysLeft === null ? "No deadline" : daysLeft < 0 ? "⚠ OVERDUE" : `${daysLeft}d — ${l.deadline}`;
+      const catColors = {Tax:"#1e40af",Labour:"#7c3aed",Operations:"#059669",Licensing:"#d97706","Food Safety":"#dc2626",Medical:"#0891b2"};
+      const cc = catColors[l.cat] || "#6b7280";
+
+      return `<tr>
+        <td style="font-size:20px">${l.icon || "⚖️"}</td>
+        <td>
+          <div style="font-weight:600;color:#fff;margin-bottom:2px">${l.title}</div>
+          <div style="font-size:11px;color:#6b7280">${l.sub || ""}</div>
+        </td>
+        <td><span class="cat-badge" style="background:${cc}22;color:${cc}">${l.cat}</span></td>
+        <td class="${dlClass}">${dlText}</td>
+        <td style="color:#fbbf24">${l.penalty ? "PKR " + l.penalty.toLocaleString() : "—"}</td>
+        <td style="font-size:11px;color:#6b7280">${(l.provinces||[]).join(", ")}</td>
+        <td><span class="cat-badge ${l.active ? 'status-active' : 'status-inactive'}">${l.active ? "Active" : "Inactive"}</span></td>
+        <td>
+          <div class="actions">
+            <button class="btn btn-secondary" onclick='openEditModal(${JSON.stringify(l)})' style="padding:5px 10px;font-size:11px">✏️ Edit</button>
+            <button class="btn ${l.active ? 'btn-warning' : 'btn-primary'}" onclick="toggleLaw('${l.id}',${!l.active})" style="padding:5px 10px;font-size:11px">
+              ${l.active ? "Hide" : "Show"}
+            </button>
+          </div>
+        </td>
+      </tr>`;
+    }).join("");
+
+    if (laws.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:#6b7280">No laws found</td></tr>`;
+    }
+  }
+
+  // ── MODAL ─────────────────────────────────────────────────
+  function openAddModal() {
+    document.getElementById("modal-title").textContent = "Add New Law";
+    document.getElementById("edit-id").value = "";
+    // Clear all fields
+    ["edit-title","edit-title-ur","edit-sub","edit-icon","edit-badge",
+     "edit-deadline","edit-penalty","edit-penalty-day","edit-authority",
+     "edit-phone","edit-url","edit-summary-en","edit-summary-ur","edit-steps"].forEach(id => {
+      document.getElementById(id).value = "";
+    });
+    document.getElementById("edit-cat").value    = "Tax";
+    document.getElementById("edit-rev").value    = "0";
+    document.getElementById("edit-emp").value    = "1";
+    document.getElementById("edit-provinces").value = "All";
+    document.getElementById("edit-types").value  = "retail,wholesale,food,manufacturing,services,it,medical,pharmacy,education,construction,trading";
+    document.getElementById("edit-active").value = "true";
+    document.getElementById("law-modal").classList.add("open");
+  }
+
+  function openEditModal(law) {
+    document.getElementById("modal-title").textContent = "Edit Law";
+    document.getElementById("edit-id").value           = law.id || "";
+    document.getElementById("edit-title").value        = law.title || "";
+    document.getElementById("edit-title-ur").value     = law.title_ur || "";
+    document.getElementById("edit-cat").value          = law.cat || "Tax";
+    document.getElementById("edit-sub").value          = law.sub || "";
+    document.getElementById("edit-icon").value         = law.icon || "";
+    document.getElementById("edit-badge").value        = law.badge || "";
+    document.getElementById("edit-deadline").value     = law.deadline || "";
+    document.getElementById("edit-penalty").value      = law.penalty || "";
+    document.getElementById("edit-penalty-day").value  = law.penalty_per_day || "";
+    document.getElementById("edit-authority").value    = law.authority || "";
+    document.getElementById("edit-phone").value        = law.phone || "";
+    document.getElementById("edit-url").value          = law.url || "";
+    document.getElementById("edit-rev").value          = law.min_rev_m || 0;
+    document.getElementById("edit-emp").value          = law.min_emp || 1;
+    document.getElementById("edit-provinces").value    = (law.provinces || ["All"]).join(",");
+    document.getElementById("edit-types").value        = (law.types || []).join(",");
+    document.getElementById("edit-summary-en").value   = law.summary_en || "";
+    document.getElementById("edit-summary-ur").value   = law.summary_ur || "";
+    document.getElementById("edit-steps").value        = (law.steps || []).join("\n");
+    document.getElementById("edit-active").value       = String(law.active !== false);
+    document.getElementById("law-modal").classList.add("open");
+  }
+
+  function closeModal() {
+    document.getElementById("law-modal").classList.remove("open");
+  }
+
+  // ── SAVE LAW ──────────────────────────────────────────────
+  async function saveLaw() {
+    const id = document.getElementById("edit-id").value;
+    const title = document.getElementById("edit-title").value.trim();
+    if (!title) { showToast("Title is required", true); return; }
+
+    const stepsRaw = document.getElementById("edit-steps").value;
+    const steps    = stepsRaw.split("\n").map(s=>s.trim()).filter(Boolean);
+    const provinces = document.getElementById("edit-provinces").value.split(",").map(s=>s.trim()).filter(Boolean);
+    const types     = document.getElementById("edit-types").value.split(",").map(s=>s.trim()).filter(Boolean);
+
+    const law = {
+      title:          title,
+      title_ur:       document.getElementById("edit-title-ur").value.trim() || null,
+      cat:            document.getElementById("edit-cat").value,
+      sub:            document.getElementById("edit-sub").value.trim() || null,
+      icon:           document.getElementById("edit-icon").value.trim() || null,
+      badge:          document.getElementById("edit-badge").value.trim() || null,
+      deadline:       document.getElementById("edit-deadline").value || null,
+      penalty:        parseInt(document.getElementById("edit-penalty").value) || 0,
+      penalty_per_day: parseInt(document.getElementById("edit-penalty-day").value) || 0,
+      authority:      document.getElementById("edit-authority").value.trim() || null,
+      phone:          document.getElementById("edit-phone").value.trim() || null,
+      url:            document.getElementById("edit-url").value.trim() || null,
+      min_rev_m:      parseFloat(document.getElementById("edit-rev").value) || 0,
+      min_emp:        parseInt(document.getElementById("edit-emp").value) || 1,
+      provinces:      provinces,
+      types:          types,
+      summary_en:     document.getElementById("edit-summary-en").value.trim() || null,
+      summary_ur:     document.getElementById("edit-summary-ur").value.trim() || null,
+      steps:          steps,
+      active:         document.getElementById("edit-active").value === "true",
+    };
+
+    const method = id ? "PUT" : "POST";
+    if (id) law.id = id;
+
+    const res = await fetch("/api/admin", {
+      method,
+      headers: {
+        "Content-Type":  "application/json",
+        "Authorization": `Bearer ${PASSWORD}`,
+      },
+      body: JSON.stringify(law),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      showToast("Error: " + (err.error || "Save failed"), true);
+      return;
+    }
+
+    closeModal();
+    showToast(id ? "✅ Law updated successfully!" : "✅ New law added!");
+    await loadLaws();
+  }
+
+  // ── TOGGLE ACTIVE ─────────────────────────────────────────
+  async function toggleLaw(id, active) {
+    await fetch("/api/admin", {
+      method: "DELETE",
+      headers: {
+        "Content-Type":  "application/json",
+        "Authorization": `Bearer ${PASSWORD}`,
+      },
+      body: JSON.stringify({ id, active }),
+    });
+    showToast(active ? "✅ Law is now visible to users" : "Law hidden from users");
+    await loadLaws();
+  }
+
+  // ── TOAST ─────────────────────────────────────────────────
+  function showToast(msg, isError = false) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.className   = "toast" + (isError ? " error" : "");
+    t.style.display = "block";
+    setTimeout(() => { t.style.display = "none"; }, 3000);
+  }
+
+  // Close modal on overlay click
+  document.getElementById("law-modal").addEventListener("click", e => {
+    if (e.target === document.getElementById("law-modal")) closeModal();
+  });
+</script>
+</body>
+</html>
