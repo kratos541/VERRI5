@@ -764,6 +764,7 @@ function LawDetail({ law, biz, onBack, lang }) {
           </div>
         </div>
         {law.phone && <div style={{marginTop:10,background:"rgba(255,255,255,.1)",borderRadius:8,padding:"6px 11px",fontSize:11,color:"rgba(255,255,255,.75)"}}>📞 {law.phone}{law.url?`  🌐 ${law.url}`:""}</div>}
+        <div style={{marginTop:8,background:"rgba(251,191,36,.12)",border:"1px solid rgba(251,191,36,.25)",borderRadius:8,padding:"6px 11px",fontSize:10,color:"#fbbf24"}}>⚠️ {lang==="ur"?"ہمیشہ اپنے اکاؤنٹنٹ سے تصدیق کریں۔ قوانین بدل سکتے ہیں۔":"Always verify with your accountant. Laws change — Verifill shows best available information."}</div>
       </div>
       <div style={{display:"flex",background:G.card,borderBottom:`1px solid ${G.border}`,flexShrink:0}}>
         {[["about",t.about],["steps",t.steps],["letter",t.letter]].map(([id,lbl])=>(
