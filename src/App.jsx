@@ -191,11 +191,253 @@ function Onboarding({ onDone, lang, setLang }) {
     type:"", province:"", city:"", address:"",
     regType:"sole", ntn:"", revM:3, emp:3,
     licences:[], products:"",
+    /* NEW — business activities */
+    doesImport:false, doesExport:false, handlesFood:false,
+    hasFactory:false, hasWarehouse:false, sellsOnline:false,
+    hasMultipleLocations:false, dealsForeignCurrency:false,
+    /* NEW — specific details */
+    hasLongTermEmployees:false, hasGenerator:false,
+    hasSignboard:false, acceptsDigitalPayments:false,
+    hasBoiler:false, hasVehicles:false,
   });
   const [err, setErr] = useState("");
   const t = T[lang];
   const upd = (k,v) => setForm(p => ({...p, [k]:v}));
   const toggleLic = l => setForm(p => ({...p, licences: p.licences.includes(l) ? p.licences.filter(x=>x!==l) : [...p.licences,l]}));
+  const toggleBool = k => setForm(p => ({...p, [k]:!p[k]}));
+
+  function handleNext() {
+    setErr("");
+    if (step === 0) {
+      if (!form.name.trim() || !form.ownerName.trim() || !form.phone.trim()) { setErr(t.fillAll); return; }
+      setStep(1); return;
+    }
+    if (step === 1) {
+      if (!form.type || !form.province || !form.city || !form.address.trim()) { setErr(t.fillAll); return; }
+      setStep(2); return;
+    }
+    if (step === 2) { setStep(3); return; }
+    if (step === 3) { setStep(4); return; }
+    if (step === 4) { setStep(5); return; }
+    if (step === 5) {
+      const revM  = parseFloat(form.revM) || 3;
+      const emp   = parseInt(form.emp)    || 3;
+      onDone({
+        ...form, revM, emp,
+        typeLabel: bl(form.type,"en"),
+        revLabel:  REV_BANDS.find(b=>b.v===revM)?.l || "",
+        empLabel:  EMP_BANDS.find(b=>b.v===emp)?.l  || "",
+      });
+      return;
+    }
+  }
+
+  const STEP_LABELS = [t.s0, t.s1, t.s2, t.s3,
+    lang==="ur"?"کاروباری سرگرمیاں":"Business Activities",
+    lang==="ur"?"مخصوص تفصیلات":"Specific Details",
+  ];
+
+  /* Reusable toggle button */
+  const ToggleBtn = ({k, label, icon}) => (
+    <div onClick={()=>toggleBool(k)} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:10,border:`1.5px solid ${form[k]?G.green:G.border}`,background:form[k]?"#f0fdf4":"#fff",cursor:"pointer",transition:"all .15s",marginBottom:6}}>
+      <div style={{width:18,height:18,borderRadius:5,border:`2px solid ${form[k]?G.green:G.border}`,background:form[k]?G.green:"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+        {form[k] && <span style={{color:"#fff",fontSize:11}}>✓</span>}
+      </div>
+      <span style={{fontSize:13}}>{icon}</span>
+      <span style={{fontSize:12,color:G.navy,fontWeight:form[k]?600:400}}>{label}</span>
+    </div>
+  );
+
+  return (
+    <div style={{height:"100vh",overflowY:"auto",background:"radial-gradient(ellipse at 20% 10%,#01411C,#070714 60%)",fontFamily:G.b,direction:lang==="ur"?"rtl":"ltr"}}>
+      <style>{`@keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}} @keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <div style={{maxWidth:480,margin:"0 auto",padding:"24px 20px 60px",animation:"up .4s ease"}}>
+
+        {/* Logo */}
+        <div style={{textAlign:"center",marginBottom:24}}>
+          <div style={{display:"inline-flex",alignItems:"center",gap:12,background:"rgba(255,255,255,.07)",border:"1px solid rgba(255,255,255,.12)",borderRadius:16,padding:"10px 20px",marginBottom:10}}>
+            <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#01411C,#059669)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>✓</div>
+            <div>
+              <div style={{fontFamily:G.h,fontSize:26,color:"#fff",letterSpacing:"-1px",lineHeight:1}}>Verifill</div>
+              <div style={{fontSize:9,color:"rgba(255,255,255,.3)",letterSpacing:".15em",textTransform:"uppercase",marginTop:1}}>Pakistan Compliance AI 🇵🇰</div>
+            </div>
+          </div>
+          <div style={{display:"flex",justifyContent:"center",gap:8}}>
+            {["en","ur"].map(l=>(
+              <button key={l} onClick={()=>setLang(l)} style={{padding:"4px 14px",borderRadius:12,border:`1px solid ${lang===l?"#fff":"rgba(255,255,255,.3)"}`,background:lang===l?"rgba(255,255,255,.15)":"transparent",color:"#fff",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:G.b}}>
+                {l==="en"?"English":"اردو"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Progress */}
+        <div style={{display:"flex",gap:3,marginBottom:5}}>
+          {STEP_LABELS.map((_,i)=>(
+            <div key={i} style={{flex:1,height:3,borderRadius:2,background:i<=step?"#059669":"rgba(255,255,255,.1)",transition:"background .3s"}}/>
+          ))}
+        </div>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:16}}>
+          <span style={{fontSize:11,color:"rgba(255,255,255,.3)"}}>{t.step} {step+1} {t.of} 6</span>
+          <span style={{fontSize:11,color:"#6ee7b7",fontWeight:600}}>{STEP_LABELS[step]}</span>
+        </div>
+
+        {/* Card */}
+        <div style={{background:G.card,borderRadius:20,padding:"22px 20px",boxShadow:"0 32px 80px rgba(0,0,0,.5)"}}>
+
+          {/* STEP 0 — Identity */}
+          {step===0 && (
+            <div>
+              <h2 style={{fontFamily:G.h,fontSize:20,color:G.navy,marginBottom:4}}>{t.s0}</h2>
+              <p style={{fontSize:12,color:G.muted,marginBottom:18,lineHeight:1.6}}>We pre-fill government letters using these details.</p>
+              {[{l:t.bizName,k:"name",ph:"e.g. Al-Noor General Store"},{l:t.ownerName,k:"ownerName",ph:"e.g. Muhammad Ahmad"},{l:t.phone,k:"phone",ph:"e.g. 0300-1234567"}].map(f=>(
+                <div key={f.k} style={{marginBottom:12}}>
+                  <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{f.l}</label>
+                  <input value={form[f.k]} onChange={e=>upd(f.k,e.target.value)} placeholder={f.ph} style={IS}/>
+                </div>
+              ))}
+              <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{t.role}</label>
+              <select value={form.designation} onChange={e=>upd("designation",e.target.value)} style={SS}>
+                {DESIGNATIONS.map(d=><option key={d}>{d}</option>)}
+              </select>
+            </div>
+          )}
+
+          {/* STEP 1 — Business type and location */}
+          {step===1 && (
+            <div>
+              <h2 style={{fontFamily:G.h,fontSize:20,color:G.navy,marginBottom:4}}>{t.s1}</h2>
+              <p style={{fontSize:12,color:G.muted,marginBottom:14,lineHeight:1.6}}>Laws differ by province — closing times, wages, and food rules depend on where you are.</p>
+              <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:5}}>{t.bizType}</label>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:14}}>
+                {BIZ_TYPES.map(tp=>(
+                  <button key={tp.v} onClick={()=>upd("type",tp.v)} style={{padding:"8px 8px",borderRadius:10,border:`2px solid ${form.type===tp.v?G.indigo:G.border}`,background:form.type===tp.v?"#eef2ff":"#fff",color:form.type===tp.v?G.indigo:G.navy,fontSize:11,fontWeight:500,cursor:"pointer",textAlign:"left",fontFamily:G.b,display:"flex",alignItems:"center",gap:5,transition:"all .15s"}}>
+                    <span style={{fontSize:14}}>{tp.i}</span>{lang==="ur"?tp.lUr:tp.l}
+                  </button>
+                ))}
+              </div>
+              <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{t.province}</label>
+              <select value={form.province} onChange={e=>{upd("province",e.target.value);upd("city","");}} style={{...SS,marginBottom:10}}>
+                <option value="">Select province…</option>
+                {PROVINCES.map(p=><option key={p}>{p}</option>)}
+              </select>
+              {form.province && (
+                <>
+                  <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{t.city}</label>
+                  <select value={form.city} onChange={e=>upd("city",e.target.value)} style={{...SS,marginBottom:10}}>
+                    <option value="">Select city…</option>
+                    {(CITIES[form.province]||[]).map(c=><option key={c}>{c}</option>)}
+                  </select>
+                </>
+              )}
+              <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{t.address}</label>
+              <input value={form.address} onChange={e=>upd("address",e.target.value)} placeholder="e.g. Shop 5, Main Market, Gulberg" style={IS}/>
+            </div>
+          )}
+
+          {/* STEP 2 — Size and registration */}
+          {step===2 && (
+            <div>
+              <h2 style={{fontFamily:G.h,fontSize:20,color:G.navy,marginBottom:4}}>{t.s2}</h2>
+              <p style={{fontSize:12,color:G.muted,marginBottom:14,lineHeight:1.6}}>Many laws only apply above certain employee or revenue thresholds.</p>
+              <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:5}}>{t.regType}</label>
+              <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:14}}>
+                {REG_TYPES.map(r=>(
+                  <button key={r.v} onClick={()=>upd("regType",r.v)} style={{padding:"9px 12px",borderRadius:10,border:`2px solid ${form.regType===r.v?G.indigo:G.border}`,background:form.regType===r.v?"#eef2ff":"#fff",color:form.regType===r.v?G.indigo:G.navy,fontSize:12,fontWeight:500,cursor:"pointer",textAlign:"left",fontFamily:G.b,transition:"all .15s"}}>
+                    {lang==="ur"?r.lUr:r.l}
+                  </button>
+                ))}
+              </div>
+              <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{t.revenue}</label>
+              <select value={form.revM} onChange={e=>upd("revM",parseFloat(e.target.value))} style={{...SS,marginBottom:10}}>
+                {REV_BANDS.map(b=><option key={b.v} value={b.v}>{lang==="ur"?b.lUr:b.l}</option>)}
+              </select>
+              <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{t.employees}</label>
+              <select value={form.emp} onChange={e=>upd("emp",parseInt(e.target.value))} style={{...SS,marginBottom:10}}>
+                {EMP_BANDS.map(b=><option key={b.v} value={b.v}>{lang==="ur"?b.lUr:b.l}</option>)}
+              </select>
+              <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{t.ntn}</label>
+              <input value={form.ntn} onChange={e=>upd("ntn",e.target.value)} placeholder="e.g. 1234567-8" style={IS}/>
+            </div>
+          )}
+
+          {/* STEP 3 — Licences you already have */}
+          {step===3 && (
+            <div>
+              <h2 style={{fontFamily:G.h,fontSize:20,color:G.navy,marginBottom:4}}>{t.s3}</h2>
+              <p style={{fontSize:12,color:G.muted,marginBottom:14,lineHeight:1.6}}>Tick what you already have — we show you what is MISSING.</p>
+              <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:14}}>
+                {LICENCE_TYPES.map(l=>(
+                  <div key={l} onClick={()=>toggleLic(l)} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:10,border:`1.5px solid ${form.licences.includes(l)?G.green:G.border}`,background:form.licences.includes(l)?"#f0fdf4":"#fff",cursor:"pointer",transition:"all .15s"}}>
+                    <div style={{width:18,height:18,borderRadius:5,border:`2px solid ${form.licences.includes(l)?G.green:G.border}`,background:form.licences.includes(l)?G.green:"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                      {form.licences.includes(l) && <span style={{color:"#fff",fontSize:11}}>✓</span>}
+                    </div>
+                    <span style={{fontSize:12,color:G.navy}}>{l}</span>
+                  </div>
+                ))}
+              </div>
+              <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{t.whatSell}</label>
+              <input value={form.products} onChange={e=>upd("products",e.target.value)} placeholder="e.g. clothing, biryani, web design, medicines" style={IS}/>
+            </div>
+          )}
+
+          {/* STEP 4 — Business activities (NEW) */}
+          {step===4 && (
+            <div>
+              <h2 style={{fontFamily:G.h,fontSize:20,color:G.navy,marginBottom:4}}>
+                {lang==="ur"?"کاروباری سرگرمیاں":"Business Activities"}
+              </h2>
+              <p style={{fontSize:12,color:G.muted,marginBottom:14,lineHeight:1.6}}>
+                {lang==="ur"?"یہ ہمیں آپ پر لاگو مزید قوانین ڈھونڈنے میں مدد کرتا ہے۔":"This helps us find additional laws that apply to you. Tick everything that applies."}
+              </p>
+              <ToggleBtn k="doesImport"            icon="🚢" label={lang==="ur"?"میں سامان درآمد کرتا ہوں":"I import goods from abroad"}/>
+              <ToggleBtn k="doesExport"            icon="📦" label={lang==="ur"?"میں سامان برآمد کرتا ہوں":"I export goods to other countries"}/>
+              <ToggleBtn k="handlesFood"           icon="🍽️" label={lang==="ur"?"میں کھانا بناتا / سنبھالتا ہوں":"I prepare or handle food (even partly)"}/>
+              <ToggleBtn k="hasFactory"            icon="🏭" label={lang==="ur"?"میرے پاس فیکٹری یا پروڈکشن یونٹ ہے":"I have a factory or production unit"}/>
+              <ToggleBtn k="hasWarehouse"          icon="🏗️" label={lang==="ur"?"میرے پاس گودام یا ذخیرہ ہے":"I have a warehouse or storage facility"}/>
+              <ToggleBtn k="sellsOnline"           icon="💻" label={lang==="ur"?"میں آن لائن بیچتا ہوں":"I sell products or services online"}/>
+              <ToggleBtn k="hasMultipleLocations"  icon="📍" label={lang==="ur"?"میرے ایک سے زیادہ مقامات ہیں":"I have more than one business location"}/>
+              <ToggleBtn k="dealsForeignCurrency"  icon="💱" label={lang==="ur"?"میں غیر ملکی کرنسی میں لین دین کرتا ہوں":"I deal in foreign currency or receive payments from abroad"}/>
+            </div>
+          )}
+
+          {/* STEP 5 — Specific details (NEW) */}
+          {step===5 && (
+            <div>
+              <h2 style={{fontFamily:G.h,fontSize:20,color:G.navy,marginBottom:4}}>
+                {lang==="ur"?"مخصوص تفصیلات":"A Few More Details"}
+              </h2>
+              <p style={{fontSize:12,color:G.muted,marginBottom:14,lineHeight:1.6}}>
+                {lang==="ur"?"آخری چند سوالات — یہ بہت ضروری ہیں۔":"Last few questions — these unlock important compliance requirements."}
+              </p>
+              <ToggleBtn k="hasLongTermEmployees" icon="👷" label={lang==="ur"?"کچھ ملازمین 5 سال سے زیادہ سے کام کر رہے ہیں":"Some employees have worked here 5+ years (gratuity applies)"}/>
+              <ToggleBtn k="hasGenerator"         icon="⚡" label={lang==="ur"?"میرے پاس جنریٹر ہے":"I have a generator (200L+ fuel storage)"}/>
+              <ToggleBtn k="hasSignboard"         icon="🪧" label={lang==="ur"?"میرے پاس باہر سائن بورڈ ہے":"I have an outdoor signboard or banner"}/>
+              <ToggleBtn k="acceptsDigitalPayments" icon="📱" label={lang==="ur"?"میں ڈیجیٹل ادائیگیاں قبول کرتا ہوں":"I accept digital payments (Raast, JazzCash, Easypaisa)"}/>
+              <ToggleBtn k="hasBoiler"            icon="♨️" label={lang==="ur"?"میری فیکٹری میں بوائلر ہے":"My factory uses a boiler or pressure vessel"}/>
+              <ToggleBtn k="hasVehicles"          icon="🚛" label={lang==="ur"?"میرے پاس کاروباری گاڑیاں ہیں":"I operate commercial vehicles for business"}/>
+            </div>
+          )}
+
+          {err && <p style={{color:G.red,fontSize:12,marginTop:10,fontWeight:600}}>⚠ {err}</p>}
+
+          <div style={{display:"flex",gap:10,marginTop:20}}>
+            {step > 0 && (
+              <button onClick={()=>setStep(s=>s-1)} style={{...BS,flex:1}}>{t.back}</button>
+            )}
+            <button onClick={handleNext} style={{...BP,flex:2,background:step===5?`linear-gradient(135deg,${G.pk},${G.green})`:`linear-gradient(135deg,${G.indigo},${G.violet})`}}>
+              {step===5 ? t.finish : t.next}
+            </button>
+          </div>
+        </div>
+
+        <p style={{textAlign:"center",color:"rgba(255,255,255,.18)",fontSize:11,marginTop:14}}>
+          🇵🇰 56 Pakistan laws · Free
+        </p>
+      </div>
+    </div>
+  );
+}
 
   /* ── THE FIX: simple, clear step machine ── */
   function handleNext() {
@@ -262,130 +504,6 @@ function Onboarding({ onDone, lang, setLang }) {
             <div key={i} style={{flex:1,height:3,borderRadius:2,background:i<=step?"#059669":"rgba(255,255,255,.1)",transition:"background .3s"}}/>
           ))}
         </div>
-        <div style={{display:"flex",justifyContent:"space-between",marginBottom:18}}>
-          <span style={{fontSize:11,color:"rgba(255,255,255,.3)"}}>{t.step} {step+1} {t.of} 4</span>
-          <span style={{fontSize:11,color:"#6ee7b7",fontWeight:600}}>{STEP_LABELS[step]}</span>
-        </div>
-
-        {/* Card */}
-        <div style={{background:G.card,borderRadius:20,padding:"22px 20px",boxShadow:"0 32px 80px rgba(0,0,0,.5)"}}>
-
-          {/* STEP 0 — Identity */}
-          {step===0 && (
-            <div>
-              <h2 style={{fontFamily:G.h,fontSize:20,color:G.navy,marginBottom:4}}>{t.s0}</h2>
-              <p style={{fontSize:12,color:G.muted,marginBottom:18,lineHeight:1.6}}>We pre-fill government letters using these details.</p>
-              {[{l:t.bizName,k:"name",ph:"e.g. Al-Noor General Store"},{l:t.ownerName,k:"ownerName",ph:"e.g. Muhammad Ahmad"},{l:t.phone,k:"phone",ph:"e.g. 0300-1234567"}].map(f=>(
-                <div key={f.k} style={{marginBottom:12}}>
-                  <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{f.l}</label>
-                  <input value={form[f.k]} onChange={e=>upd(f.k,e.target.value)} placeholder={f.ph} style={IS}/>
-                </div>
-              ))}
-              <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{t.role}</label>
-              <select value={form.designation} onChange={e=>upd("designation",e.target.value)} style={SS}>
-                {DESIGNATIONS.map(d=><option key={d}>{d}</option>)}
-              </select>
-            </div>
-          )}
-
-          {/* STEP 1 — Business type & location */}
-          {step===1 && (
-            <div>
-              <h2 style={{fontFamily:G.h,fontSize:20,color:G.navy,marginBottom:4}}>{t.s1}</h2>
-              <p style={{fontSize:12,color:G.muted,marginBottom:14,lineHeight:1.6}}>Laws differ by province — closing times, wages, and food rules all depend on where you are.</p>
-              <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:5}}>{t.bizType}</label>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:14}}>
-                {BIZ_TYPES.map(tp=>(
-                  <button key={tp.v} onClick={()=>upd("type",tp.v)} style={{padding:"8px 8px",borderRadius:10,border:`2px solid ${form.type===tp.v?G.indigo:G.border}`,background:form.type===tp.v?"#eef2ff":"#fff",color:form.type===tp.v?G.indigo:G.navy,fontSize:11,fontWeight:500,cursor:"pointer",textAlign:"left",fontFamily:G.b,display:"flex",alignItems:"center",gap:5,transition:"all .15s"}}>
-                    <span style={{fontSize:14}}>{tp.i}</span>{lang==="ur"?tp.lUr:tp.l}
-                  </button>
-                ))}
-              </div>
-              <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{t.province}</label>
-              <select value={form.province} onChange={e=>{upd("province",e.target.value);upd("city","");}} style={{...SS,marginBottom:10}}>
-                <option value="">Select province…</option>
-                {PROVINCES.map(p=><option key={p}>{p}</option>)}
-              </select>
-              {form.province && (
-                <>
-                  <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{t.city}</label>
-                  <select value={form.city} onChange={e=>upd("city",e.target.value)} style={{...SS,marginBottom:10}}>
-                    <option value="">Select city…</option>
-                    {(CITIES[form.province]||[]).map(c=><option key={c}>{c}</option>)}
-                  </select>
-                </>
-              )}
-              <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{t.address}</label>
-              <input value={form.address} onChange={e=>upd("address",e.target.value)} placeholder="e.g. Shop 5, Main Market" style={IS}/>
-            </div>
-          )}
-
-          {/* STEP 2 — Size & Registration */}
-          {step===2 && (
-            <div>
-              <h2 style={{fontFamily:G.h,fontSize:20,color:G.navy,marginBottom:4}}>{t.s2}</h2>
-              <p style={{fontSize:12,color:G.muted,marginBottom:14,lineHeight:1.6}}>Many laws have employee and revenue thresholds.</p>
-              <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:5}}>{t.regType}</label>
-              <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:14}}>
-                {REG_TYPES.map(r=>(
-                  <button key={r.v} onClick={()=>upd("regType",r.v)} style={{padding:"9px 12px",borderRadius:10,border:`2px solid ${form.regType===r.v?G.indigo:G.border}`,background:form.regType===r.v?"#eef2ff":"#fff",color:form.regType===r.v?G.indigo:G.navy,fontSize:12,fontWeight:500,cursor:"pointer",textAlign:"left",fontFamily:G.b,transition:"all .15s"}}>
-                    {lang==="ur"?r.lUr:r.l}
-                  </button>
-                ))}
-              </div>
-              <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{t.revenue}</label>
-              <select value={form.revM} onChange={e=>upd("revM",parseFloat(e.target.value))} style={{...SS,marginBottom:10}}>
-                {REV_BANDS.map(b=><option key={b.v} value={b.v}>{lang==="ur"?b.lUr:b.l}</option>)}
-              </select>
-              <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{t.employees}</label>
-              <select value={form.emp} onChange={e=>upd("emp",parseInt(e.target.value))} style={{...SS,marginBottom:10}}>
-                {EMP_BANDS.map(b=><option key={b.v} value={b.v}>{lang==="ur"?b.lUr:b.l}</option>)}
-              </select>
-              <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{t.ntn}</label>
-              <input value={form.ntn} onChange={e=>upd("ntn",e.target.value)} placeholder="e.g. 1234567-8" style={IS}/>
-            </div>
-          )}
-
-          {/* STEP 3 — Licences */}
-          {step===3 && (
-            <div>
-              <h2 style={{fontFamily:G.h,fontSize:20,color:G.navy,marginBottom:4}}>{t.s3}</h2>
-              <p style={{fontSize:12,color:G.muted,marginBottom:14,lineHeight:1.6}}>{t.licences} — we show you what is MISSING.</p>
-              <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:14}}>
-                {LICENCE_TYPES.map(l=>(
-                  <div key={l} onClick={()=>toggleLic(l)} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:10,border:`1.5px solid ${form.licences.includes(l)?G.green:G.border}`,background:form.licences.includes(l)?"#f0fdf4":"#fff",cursor:"pointer",transition:"all .15s"}}>
-                    <div style={{width:18,height:18,borderRadius:5,border:`2px solid ${form.licences.includes(l)?G.green:G.border}`,background:form.licences.includes(l)?G.green:"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                      {form.licences.includes(l) && <span style={{color:"#fff",fontSize:11}}>✓</span>}
-                    </div>
-                    <span style={{fontSize:12,color:G.navy}}>{l}</span>
-                  </div>
-                ))}
-              </div>
-              <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{t.whatSell}</label>
-              <input value={form.products} onChange={e=>upd("products",e.target.value)} placeholder="e.g. clothing / biryani / web design" style={IS}/>
-            </div>
-          )}
-
-          {err && <p style={{color:G.red,fontSize:12,marginTop:10,fontWeight:600}}>⚠ {err}</p>}
-
-          <div style={{display:"flex",gap:10,marginTop:20}}>
-            {step > 0 && (
-              <button onClick={()=>setStep(s=>s-1)} style={{...BS,flex:1}}>{t.back}</button>
-            )}
-            <button onClick={handleNext} style={{...BP,flex:2,background:step===3?`linear-gradient(135deg,${G.pk},${G.green})`:`linear-gradient(135deg,${G.indigo},${G.violet})`}}>
-              {step===3 ? t.finish : t.next}
-            </button>
-          </div>
-        </div>
-
-        <p style={{textAlign:"center",color:"rgba(255,255,255,.18)",fontSize:11,marginTop:14}}>
-          🇵🇰 {ALL_LAWS.length} Pakistan laws · Free
-        </p>
-      </div>
-    </div>
-  );
-}
-
 /* ── DASHBOARD ────────────────────────────────────────────── */
 function Dashboard({ biz, laws, news, onNav, onLaw, onNews, lang, setLang, user, signOut }) {
   const t = T[lang];
