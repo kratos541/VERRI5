@@ -876,7 +876,7 @@ function LawDetail({ law, biz, onBack, lang }) {
 }
 
 /* ── COMPLIANCE CALENDAR ──────────────────────────────────── */
-function ComplianceCalendar({ laws, lang }) {
+function ComplianceCalendar({ laws, lang, onNav }) {
   const t = T[lang];
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth());
@@ -898,6 +898,7 @@ function ComplianceCalendar({ laws, lang }) {
   return (
     <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:G.b,direction:lang==="ur"?"rtl":"ltr"}}>
       <div style={{background:"linear-gradient(135deg,#1e40af,#4f46e5)",padding:"18px 16px 16px",flexShrink:0}}>
+        <button onClick={()=>onNav("dash")} style={{background:"rgba(255,255,255,.18)",border:"none",color:"#fff",borderRadius:8,padding:"5px 12px",cursor:"pointer",fontSize:12,marginBottom:10,fontFamily:G.b}}>← Back</button>
         <div style={{fontFamily:G.h,fontSize:20,color:"#fff",marginBottom:2}}>📅 {t.calTitle}</div>
         <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>{t.calSub}</div>
       </div>
@@ -948,7 +949,7 @@ function ComplianceCalendar({ laws, lang }) {
 }
 
 /* ── FINE CALCULATOR ──────────────────────────────────────── */
-function FineCalculator({ laws, lang }) {
+function FineCalculator({ laws, lang, onNav }) {
   const t = T[lang];
   const [selId, setSelId] = useState("");
   const [days,  setDays]  = useState(0);
@@ -964,6 +965,7 @@ function FineCalculator({ laws, lang }) {
   return (
     <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:G.b,direction:lang==="ur"?"rtl":"ltr"}}>
       <div style={{background:"linear-gradient(135deg,#dc2626,#7f1d1d)",padding:"18px 16px 16px",flexShrink:0}}>
+        <button onClick={()=>onNav("dash")} style={{background:"rgba(255,255,255,.18)",border:"none",color:"#fff",borderRadius:8,padding:"5px 12px",cursor:"pointer",fontSize:12,marginBottom:10,fontFamily:G.b}}>← Back</button>
         <div style={{fontFamily:G.h,fontSize:20,color:"#fff",marginBottom:2}}>🧮 {t.fineTitle}</div>
         <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>{t.fineSub}</div>
       </div>
@@ -1007,7 +1009,7 @@ function FineCalculator({ laws, lang }) {
 }
 
 /* ── DOCUMENT SCANNER ─────────────────────────────────────── */
-function DocScanner({ lang }) {
+function DocScanner({ lang, onNav }) {
   const t = T[lang];
   const [state, setState]   = useState("idle");
   const [result, setResult] = useState(null);
@@ -1093,6 +1095,7 @@ function DocScanner({ lang }) {
   return (
     <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:G.b,direction:lang==="ur"?"rtl":"ltr"}}>
       <div style={{background:"linear-gradient(135deg,#065f46,#059669)",padding:"18px 16px 16px",flexShrink:0}}>
+        <button onClick={()=>onNav("dash")} style={{background:"rgba(255,255,255,.18)",border:"none",color:"#fff",borderRadius:8,padding:"5px 12px",cursor:"pointer",fontSize:12,marginBottom:10,fontFamily:G.b}}>← Back</button>
         <div style={{fontFamily:G.h,fontSize:20,color:"#fff",marginBottom:2}}>📸 {t.scanTitle}</div>
         <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>Real AI reads your licence — extracts expiry date automatically</div>
       </div>
@@ -1159,12 +1162,13 @@ function DocScanner({ lang }) {
 }
 
 /* ── FIND CA ──────────────────────────────────────────────── */
-function FindCA({ biz, lang }) {
+function FindCA({ biz, lang, onNav }) {
   const t = T[lang];
   const nearby = CA_LISTINGS.filter(ca=>ca.city===biz.city).concat(CA_LISTINGS.filter(ca=>ca.city!==biz.city)).slice(0,6);
   return (
     <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:G.b,direction:lang==="ur"?"rtl":"ltr"}}>
       <div style={{background:`linear-gradient(135deg,${G.violet},#5b21b6)`,padding:"18px 16px 16px",flexShrink:0}}>
+        <button onClick={()=>onNav("dash")} style={{background:"rgba(255,255,255,.18)",border:"none",color:"#fff",borderRadius:8,padding:"5px 12px",cursor:"pointer",fontSize:12,marginBottom:10,fontFamily:G.b}}>← Back</button>
         <div style={{fontFamily:G.h,fontSize:20,color:"#fff",marginBottom:2}}>🤝 {t.caTitle}</div>
         <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>{t.caSub} · {biz.city}</div>
       </div>
@@ -1195,7 +1199,7 @@ function FindCA({ biz, lang }) {
 }
 
 /* ── COMPLIANCE KIT ───────────────────────────────────────── */
-function ComplianceKit({ laws, biz, lang }) {
+function ComplianceKit({ laws, biz, lang, onNav }) {
   const t = T[lang];
   const [generated, setGenerated] = useState(false);
   const [copied, setCopied]       = useState(false);
@@ -1205,6 +1209,7 @@ function ComplianceKit({ laws, biz, lang }) {
   return (
     <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:G.b,direction:lang==="ur"?"rtl":"ltr"}}>
       <div style={{background:`linear-gradient(135deg,${G.indigo},${G.violet})`,padding:"18px 16px 16px",flexShrink:0}}>
+        <button onClick={()=>onNav("dash")} style={{background:"rgba(255,255,255,.18)",border:"none",color:"#fff",borderRadius:8,padding:"5px 12px",cursor:"pointer",fontSize:12,marginBottom:10,fontFamily:G.b}}>{t.back}</button>
         <div style={{fontFamily:G.h,fontSize:20,color:"#fff",marginBottom:2}}>📦 {t.kitTitle}</div>
         <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>{t.kitSub}</div>
       </div>
@@ -1602,11 +1607,11 @@ export default function App() {
       case "news":     return <NewsFeed      biz={biz} onSelect={setSelNews} lang={lang}/>;
       case "laws":     return <LawBook       biz={biz} onSelect={setSelLaw}  lang={lang} allLaws={LAWS_SOURCE}/>;
       case "profile":  return <ProfileScreen biz={biz} onUpdate={async b => { setBiz(b); if(user) await saveProfile(b); nav("dash"); }} lang={lang}/>;
-      case "calendar": return <ComplianceCalendar laws={myLaws} lang={lang}/>;
-      case "finecalc": return <FineCalculator     laws={myLaws} lang={lang}/>;
-      case "scandoc":  return <DocScanner         lang={lang}/>;
-      case "findca":   return <FindCA             biz={biz} lang={lang}/>;
-      case "kit":      return <ComplianceKit      laws={myLaws} biz={biz} lang={lang}/>;
+      case "calendar": return <ComplianceCalendar laws={myLaws} lang={lang} onNav={nav}/>;
+      case "finecalc": return <FineCalculator     laws={myLaws} lang={lang} onNav={nav}/>;
+      case "scandoc":  return <DocScanner         lang={lang} onNav={nav}/>;
+      case "findca":   return <FindCA             biz={biz} lang={lang} onNav={nav}/>;
+      case "kit":      return <ComplianceKit      laws={myLaws} biz={biz} lang={lang} onNav={nav}/>;
       default:         return <Dashboard          biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut}/>;
     }
   };
