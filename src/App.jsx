@@ -674,42 +674,232 @@ function Dashboard({ biz, laws, news, onNav, onLaw, onNews, lang, setLang, user,
     </div>
   );
 }
-function NewsFeed({ biz, onSelect, lang }) {
+function PageHeader({ title, sub, icon, onBack, color="#C9A84C" }) {
+  return (
+    <div style={{background:"#060606",padding:"16px 18px 18px",borderBottom:"0.5px solid #111",flexShrink:0}}>
+      <button onClick={onBack} style={{background:"transparent",border:"0.5px solid rgba(201,168,76,.25)",color:"#C9A84C",borderRadius:8,padding:"5px 12px",cursor:"pointer",fontSize:12,marginBottom:12,fontFamily:"inherit",display:"flex",alignItems:"center",gap:5}}>
+        <i className="ti ti-arrow-left" style={{fontSize:14}}/> Back
+      </button>
+      <div style={{display:"flex",alignItems:"center",gap:12}}>
+        <div style={{width:40,height:40,borderRadius:11,border:"0.5px solid rgba(201,168,76,.25)",background:"rgba(201,168,76,.07)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+          <i className={`ti ${icon}`} style={{fontSize:22,color:"#C9A84C"}}/>
+        </div>
+        <div>
+          <div style={{fontSize:18,fontWeight:500,color:"#fff",letterSpacing:"-.3px"}}>{title}</div>
+          {sub && <div style={{fontSize:10,color:"#2a2a2a",marginTop:2}}>{sub}</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── LAW BOOK ─────────────────────────────────────────────── */
+function LawBook({ biz, onSelect, lang, allLaws, onNav }) {
   const t = T[lang];
+  const [search, setSearch] = useState("");
+  const [cat, setCat] = useState("All");
+  const [view, setView] = useState("mine");
+  const myLaws = allLaws.filter(l=>matchLaw(l,biz));
+  const source = view==="mine" ? myLaws : allLaws;
+  const filtered = source.filter(l=>{
+    const mCat = cat==="All" || l.cat===cat;
+    const mSearch = !search || l.title.toLowerCase().includes(search.toLowerCase()) || (l.summaryEn||"").toLowerCase().includes(search.toLowerCase());
+    return mCat && mSearch;
+  });
+  const cats = ["All",...[...new Set(allLaws.map(l=>l.cat))]];
+  const catIcon = {Tax:"ti-receipt-tax",Labour:"ti-moneybag","Food Safety":"ti-tools-kitchen-2",Licensing:"ti-license",Operations:"ti-clock",Medical:"ti-medical-cross"};
+
+  return (
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"#060606",direction:lang==="ur"?"rtl":"ltr"}}>
+      <div style={{background:"#060606",padding:"16px 18px 14px",flexShrink:0,borderBottom:"0.5px solid #111"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+          <div style={{width:36,height:36,borderRadius:10,border:"0.5px solid rgba(201,168,76,.25)",background:"rgba(201,168,76,.07)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <i className="ti ti-scale" style={{fontSize:20,color:"#C9A84C"}}/>
+          </div>
+          <div>
+            <div style={{fontSize:17,fontWeight:500,color:"#fff"}}>{t.lawBook}</div>
+            <div style={{fontSize:9,color:"#2a2a2a"}}>{allLaws.length} laws · tap any to read</div>
+          </div>
+        </div>
+        <div style={{display:"flex",gap:6,marginBottom:10}}>
+          {[["mine",`${t.myLawsTab} (${myLaws.length})`],["all",`All (${allLaws.length})`]].map(([v,l])=>(
+            <button key={v} onClick={()=>setView(v)} style={{padding:"6px 14px",borderRadius:20,border:`0.5px solid ${view===v?"#C9A84C":"#1a1a1a"}`,background:view===v?"rgba(201,168,76,.1)":"transparent",color:view===v?"#C9A84C":"#2a2a2a",fontSize:10,fontWeight:500,cursor:"pointer",fontFamily:"inherit"}}>{l}</button>
+          ))}
+        </div>
+        <div style={{position:"relative"}}>
+          <i className="ti ti-search" style={{position:"absolute",left:11,top:"50%",transform:"translateY(-50%)",fontSize:15,color:"#2a2a2a"}}/>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t.search} style={{width:"100%",padding:"9px 12px 9px 33px",borderRadius:10,border:"0.5px solid #1a1a1a",background:"#0c0c0c",color:"#aaa",fontSize:12,fontFamily:"inherit",outline:"none"}}/>
+        </div>
+      </div>
+      <div style={{display:"flex",gap:5,overflowX:"auto",padding:"10px 16px",background:"#080808",borderBottom:"0.5px solid #111",flexShrink:0}}>
+        {cats.map(c=>(
+          <button key={c} onClick={()=>setCat(c)} style={{padding:"5px 12px",borderRadius:20,border:`0.5px solid ${cat===c?"#C9A84C":"#1a1a1a"}`,background:cat===c?"rgba(201,168,76,.1)":"transparent",color:cat===c?"#C9A84C":"#2a2a2a",fontSize:10,fontWeight:500,cursor:"pointer",whiteSpace:"nowrap",fontFamily:"inherit",flexShrink:0}}>{c}</button>
+        ))}
+      </div>
+      <div style={{flex:1,overflowY:"auto",padding:"12px 16px 20px",background:"#080808"}}>
+        {filtered.map(law=>{
+          const d=daysUntil(law.deadline); const urg=d!==null&&d<60;
+          const isMine=matchLaw(law,biz);
+          const ci = catIcon[law.cat]||"ti-scale";
+          return (
+            <div key={law.id} onClick={()=>onSelect(law)} style={{background:"#0c0c0c",border:urg?`1px solid rgba(239,68,68,.45)`:"0.5px solid #161616",boxShadow:urg?"0 0 0 2px rgba(239,68,68,.07)":"none",borderRadius:12,padding:"12px 14px",marginBottom:8,cursor:"pointer",display:"flex",gap:11,alignItems:"center"}}>
+              <div style={{width:36,height:36,borderRadius:10,background:urg?"rgba(239,68,68,.08)":"rgba(201,168,76,.07)",border:`0.5px solid ${urg?"rgba(239,68,68,.3)":"rgba(201,168,76,.2)"}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <i className={`ti ${ci}`} style={{fontSize:18,color:urg?"#ef4444":"#C9A84C"}}/>
+              </div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{display:"flex",justifyContent:"space-between",gap:6,marginBottom:2}}>
+                  <div style={{fontSize:12,fontWeight:500,color:isMine?"#fff":"#555",lineHeight:1.3}}>{lang==="ur"?law.titleUr:law.title}</div>
+                  {isMine && <span style={{fontSize:8,background:"rgba(201,168,76,.1)",color:"#C9A84C",border:"0.5px solid rgba(201,168,76,.2)",borderRadius:6,padding:"2px 6px",fontWeight:500,flexShrink:0,alignSelf:"flex-start"}}>{t.applies}</span>}
+                </div>
+                <div style={{fontSize:9,color:"#2a2a2a",marginBottom:urg?3:0}}>{law.sub}</div>
+                {urg && <div style={{fontSize:9,color:"#ef4444",fontWeight:500}}><i className="ti ti-alert-triangle" style={{fontSize:9,verticalAlign:"-1px",marginRight:3}}/>{d>0?`${d} days`:"Overdue"} · PKR {(law.penalty||0).toLocaleString()} fine</div>}
+              </div>
+              <i className="ti ti-chevron-right" style={{fontSize:15,color:"#1c1c1c",flexShrink:0}}/>
+            </div>
+          );
+        })}
+        {filtered.length===0 && <div style={{textAlign:"center",padding:"40px 20px",color:"#2a2a2a"}}><i className="ti ti-search" style={{fontSize:32,display:"block",marginBottom:10,color:"#1a1a1a"}}/><div style={{fontSize:13}}>No laws found</div></div>}
+      </div>
+    </div>
+  );
+}
+
+/* ── LAW DETAIL ───────────────────────────────────────────── */
+function LawDetail({ law, biz, onBack, lang }) {
+  const t = T[lang];
+  const [tab, setTab] = useState("about");
+  const [chks, setChks] = useState((law.steps||[]).map(()=>false));
+  const [copied, setCopied] = useState(false);
+  const done = chks.filter(Boolean).length;
+  const total = (law.steps||[]).length;
+  const d = daysUntil(law.deadline);
+  const urg = d!==null&&d<60;
+  const catIcon = {Tax:"ti-receipt-tax",Labour:"ti-moneybag","Food Safety":"ti-tools-kitchen-2",Licensing:"ti-license",Operations:"ti-clock",Medical:"ti-medical-cross"}[law.cat]||"ti-scale";
+
+  return (
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"#060606",direction:lang==="ur"?"rtl":"ltr"}}>
+      {/* Header */}
+      <div style={{background:"#060606",padding:"16px 18px 18px",borderBottom:"0.5px solid #111",flexShrink:0}}>
+        <button onClick={onBack} style={{background:"transparent",border:"0.5px solid rgba(201,168,76,.25)",color:"#C9A84C",borderRadius:8,padding:"5px 12px",cursor:"pointer",fontSize:12,marginBottom:12,fontFamily:"inherit",display:"flex",alignItems:"center",gap:5}}>
+          <i className="ti ti-arrow-left" style={{fontSize:14}}/> {t.back}
+        </button>
+        <div style={{display:"flex",gap:12,alignItems:"flex-start"}}>
+          <div style={{width:44,height:44,borderRadius:12,border:`0.5px solid ${urg?"rgba(239,68,68,.4)":"rgba(201,168,76,.25)"}`,background:urg?"rgba(239,68,68,.08)":"rgba(201,168,76,.07)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+            <i className={`ti ${catIcon}`} style={{fontSize:22,color:urg?"#ef4444":"#C9A84C"}}/>
+          </div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:16,fontWeight:500,color:"#fff",lineHeight:1.3,marginBottom:6}}>{lang==="ur"?law.titleUr:law.title}</div>
+            <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+              {law.penalty>0 && <span style={{fontSize:9,border:"0.5px solid rgba(239,68,68,.3)",color:"#ef4444",borderRadius:6,padding:"2px 8px",fontWeight:500}}>{t.penalty}: PKR {law.penalty.toLocaleString()}</span>}
+              {law.deadline && <span style={{fontSize:9,border:"0.5px solid rgba(201,168,76,.25)",color:"#C9A84C",borderRadius:6,padding:"2px 8px"}}>{d>0?`${d} ${t.daysLeft}`:t.overdue}</span>}
+            </div>
+          </div>
+        </div>
+        {law.phone && <div style={{marginTop:10,background:"#0c0c0c",border:"0.5px solid #1a1a1a",borderRadius:8,padding:"7px 12px",fontSize:11,color:"#444",display:"flex",alignItems:"center",gap:8}}>
+          <i className="ti ti-phone" style={{fontSize:14,color:"#C9A84C"}}/>{law.phone}{law.url && <><i className="ti ti-world" style={{fontSize:14,color:"#C9A84C",marginLeft:8}}/>{law.url}</>}
+        </div>}
+        <div style={{marginTop:8,background:"rgba(201,168,76,.05)",border:"0.5px solid rgba(201,168,76,.15)",borderRadius:8,padding:"6px 12px",fontSize:10,color:"rgba(201,168,76,.6)"}}>
+          <i className="ti ti-info-circle" style={{fontSize:11,verticalAlign:"-1px",marginRight:5}}/>{lang==="ur"?"ہمیشہ اپنے اکاؤنٹنٹ سے تصدیق کریں۔ قوانین بدل سکتے ہیں۔":"Always verify with your accountant. Laws change — Verifill shows best available information."}
+        </div>
+      </div>
+      {/* Tabs */}
+      <div style={{display:"flex",background:"#080808",borderBottom:"0.5px solid #111",flexShrink:0}}>
+        {[["about",t.about,"ti-info-circle"],["steps",t.steps,"ti-list-check"],["letter",t.letter,"ti-file-text"]].map(([id,lbl,ic])=>(
+          <button key={id} onClick={()=>setTab(id)} style={{flex:1,padding:"12px 4px",border:"none",borderBottom:`2px solid ${tab===id?"#C9A84C":"transparent"}`,background:"transparent",color:tab===id?"#C9A84C":"#2a2a2a",fontSize:11,fontWeight:500,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
+            <i className={`ti ${ic}`} style={{fontSize:14}}/>{lbl}
+          </button>
+        ))}
+      </div>
+      <div style={{flex:1,overflowY:"auto",padding:"16px 16px 30px",background:"#080808"}}>
+        {tab==="about" && (
+          <div>
+            <div style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:12,padding:14,marginBottom:14,fontSize:13,color:"#888",lineHeight:1.8}}>{lang==="ur"?law.summaryUr:law.summaryEn}</div>
+            {matchLaw(law,biz) && (
+              <div style={{background:"rgba(201,168,76,.05)",border:"0.5px solid rgba(201,168,76,.15)",borderRadius:12,padding:"12px 14px"}}>
+                <div style={{fontSize:11,fontWeight:500,color:"#C9A84C",marginBottom:8}}>
+                  <i className="ti ti-check" style={{fontSize:12,marginRight:5}}/>{t.whyApplies}
+                </div>
+                {["Business type matches",law.provinces.includes("All")?"Federal — applies nationwide":`${biz.province} is in scope`,biz.revM>=(law.minRevM||0)?"Revenue threshold met":null,biz.emp>=(law.minEmp||1)?"Employee count qualifies":null].filter(Boolean).map((r,i)=>(
+                  <div key={i} style={{fontSize:11,color:"#666",padding:"5px 0",borderBottom:"0.5px solid #111",display:"flex",gap:8,alignItems:"center"}}>
+                    <i className="ti ti-circle-check" style={{fontSize:13,color:"#C9A84C",flexShrink:0}}/>{r}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {tab==="steps" && (
+          <div>
+            <div style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:12,padding:12,marginBottom:14}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+                <span style={{fontSize:11,fontWeight:500,color:"#C9A84C"}}>{done} / {total} {t.done}</span>
+                <span style={{fontSize:11,color:"#2a2a2a"}}>{total?Math.round((done/total)*100):0}%</span>
+              </div>
+              <div style={{height:4,background:"#1a1a1a",borderRadius:2,overflow:"hidden"}}>
+                <div style={{width:`${total?(done/total)*100:0}%`,height:"100%",background:"#C9A84C",borderRadius:2,transition:"width .3s"}}/>
+              </div>
+            </div>
+            {(law.steps||[]).map((step,i)=>(
+              <div key={i} onClick={()=>setChks(c=>{const n=[...c];n[i]=!n[i];return n;})} style={{display:"flex",gap:12,padding:"13px 14px",borderBottom:"0.5px solid #111",cursor:"pointer",background:chks[i]?"rgba(201,168,76,.04)":"transparent",borderRadius:i===0?"12px 12px 0 0":i===(law.steps.length-1)?"0 0 12px 12px":"0",border:"0.5px solid #111",marginBottom:i<(law.steps.length-1)?1:0}}>
+                <div style={{width:22,height:22,borderRadius:6,border:`1px solid ${chks[i]?"#C9A84C":"#1e1e1e"}`,background:chks[i]?"#C9A84C":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>
+                  {chks[i] && <i className="ti ti-check" style={{fontSize:12,color:"#000"}}/>}
+                </div>
+                <span style={{flex:1,fontSize:12,color:chks[i]?"#2a2a2a":"#888",textDecoration:chks[i]?"line-through":"none",lineHeight:1.6}}>{step}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {tab==="letter" && law.letter && (
+          <div>
+            <div style={{background:"rgba(201,168,76,.05)",border:"0.5px solid rgba(201,168,76,.15)",borderRadius:10,padding:12,marginBottom:12,fontSize:11,color:"rgba(201,168,76,.7)"}}>
+              <i className="ti ti-bulb" style={{fontSize:12,marginRight:5,verticalAlign:"-1px"}}/>Pre-filled with your profile. Replace [BRACKETS].
+            </div>
+            <div style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:12,padding:16,marginBottom:12,fontSize:12,color:"#666",lineHeight:1.9,whiteSpace:"pre-wrap",fontFamily:"'DM Mono',monospace"}}>{law.letter(biz)}</div>
+            <button onClick={()=>{navigator.clipboard.writeText(law.letter(biz));setCopied(true);setTimeout(()=>setCopied(false),2000);}} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:copied?"#1a1a1a":"linear-gradient(135deg,#C9A84C,#B8922A)",color:copied?"#C9A84C":"#000",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+              <i className={`ti ${copied?"ti-check":"ti-copy"}`} style={{fontSize:16}}/>{copied?t.copied:t.copy}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── NEWS FEED ────────────────────────────────────────────── */
+function NewsFeed({ biz, onSelect, lang }) {
   const [filter, setFilter] = useState("all");
   const applicable = NEWS.filter(n=>matchNews(n,biz));
   const notAppl = NEWS.filter(n=>!matchNews(n,biz));
   const cats = ["all",...[...new Set(NEWS.map(n=>n.cat))]];
   const shown = filter==="all" ? applicable : applicable.filter(n=>n.cat===filter);
-
   return (
-    <div style={{height:"100vh",overflowY:"auto",fontFamily:G.b,background:"#000",direction:lang==="ur"?"rtl":"ltr"}}>
-      <div style={{background:"#000",padding:"14px 16px 0",position:"sticky",top:0,zIndex:20,borderBottom:"0.5px solid #222"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-          <div style={{fontFamily:G.h,fontSize:18,color:"#fff"}}>📡 {t.newsFeed.replace(" →","")}</div>
-          <div style={{fontSize:11,color:"rgba(255,255,255,.4)"}}>🇵🇰 Pakistan</div>
+    <div style={{height:"100vh",overflowY:"auto",fontFamily:"inherit",background:"#060606",direction:lang==="ur"?"rtl":"ltr"}}>
+      <div style={{background:"#060606",padding:"16px 18px 0",position:"sticky",top:0,zIndex:20,borderBottom:"0.5px solid #111"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <i className="ti ti-news" style={{fontSize:22,color:"#C9A84C"}}/>
+            <div style={{fontSize:17,fontWeight:500,color:"#fff"}}>News Feed</div>
+          </div>
+          <div style={{fontSize:9,color:"#2a2a2a",border:"0.5px solid #1a1a1a",borderRadius:6,padding:"3px 8px"}}>🇵🇰 Pakistan</div>
         </div>
-        <div style={{display:"flex",gap:7,overflowX:"auto",paddingBottom:12}}>
+        <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:12}}>
           {cats.map(c=>(
-            <button key={c} onClick={()=>setFilter(c)} style={{padding:"5px 13px",borderRadius:20,border:`1px solid ${filter===c?"#fff":"rgba(255,255,255,.2)"}`,background:filter===c?"#fff":"transparent",color:filter===c?"#000":"rgba(255,255,255,.7)",fontSize:11,fontWeight:600,cursor:"pointer",whiteSpace:"nowrap",fontFamily:G.b,flexShrink:0}}>
+            <button key={c} onClick={()=>setFilter(c)} style={{padding:"5px 13px",borderRadius:20,border:`0.5px solid ${filter===c?"#C9A84C":"#1a1a1a"}`,background:filter===c?"rgba(201,168,76,.1)":"transparent",color:filter===c?"#C9A84C":"#2a2a2a",fontSize:10,fontWeight:500,cursor:"pointer",whiteSpace:"nowrap",fontFamily:"inherit",flexShrink:0}}>
               {c==="all"?(lang==="ur"?"سب":"All"):c}
             </button>
           ))}
         </div>
       </div>
       <div style={{paddingBottom:80}}>
-        {shown.length===0 && <div style={{textAlign:"center",padding:"40px 20px",color:"rgba(255,255,255,.4)",fontSize:13}}>No news in this category.</div>}
-        {shown.map(n => <InstaPost key={n.id} n={n} biz={biz} onClick={()=>onSelect(n)} lang={lang}/>)}
-        {notAppl.length > 0 && <>
-          <div style={{padding:"12px 16px",fontSize:11,color:"rgba(255,255,255,.3)",fontWeight:600,textTransform:"uppercase",letterSpacing:".08em"}}>
-            {lang==="ur"?"آپ کے کاروبار پر اثر نہیں":"Not affecting your business"}
-          </div>
+        {shown.map(n=><NewsCard key={n.id} n={n} biz={biz} onClick={()=>onSelect(n)} lang={lang}/>)}
+        {notAppl.length>0 && <>
+          <div style={{padding:"12px 18px",fontSize:9,color:"#1e1e1e",fontWeight:500,textTransform:"uppercase",letterSpacing:".1em"}}>Not affecting your business</div>
           {notAppl.map(n=>(
-            <div key={n.id} style={{background:"#111",margin:"0 0 1px",padding:"12px 16px",display:"flex",gap:12,alignItems:"center",opacity:.4}}>
-              <div style={{width:46,height:46,borderRadius:8,background:`url(${n.img}) center/cover`,flexShrink:0}}/>
+            <div key={n.id} style={{background:"#0a0a0a",margin:"0 0 1px",padding:"12px 16px",display:"flex",gap:12,alignItems:"center",opacity:.35}}>
+              <div style={{width:44,height:44,borderRadius:8,background:`url(${n.img}) center/cover`,flexShrink:0}}/>
               <div>
-                <div style={{fontSize:12,fontWeight:600,color:"#fff",marginBottom:1}}>{lang==="ur"?n.headlineUr:n.headline}</div>
-                <div style={{fontSize:10,color:"rgba(255,255,255,.4)"}}>{n.source}</div>
+                <div style={{fontSize:11,fontWeight:500,color:"#fff",marginBottom:1}}>{lang==="ur"?n.headlineUr:n.headline}</div>
+                <div style={{fontSize:9,color:"#2a2a2a"}}>{n.source}</div>
               </div>
             </div>
           ))}
@@ -719,53 +909,50 @@ function NewsFeed({ biz, onSelect, lang }) {
   );
 }
 
-function InstaPost({ n, biz, onClick, lang }) {
+function NewsCard({ n, biz, onClick, lang }) {
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(n.likes);
-  const [exp, setExp] = useState(false);
-  const headline = lang==="ur" ? n.headlineUr : n.headline;
-  const caption  = lang==="ur" ? n.captionUr  : n.caption;
-  const action   = lang==="ur" ? n.actionUr   : n.action;
   return (
-    <div style={{background:"#000",marginBottom:2}}>
-      <div style={{padding:"11px 16px",display:"flex",alignItems:"center",gap:10}}>
-        <div style={{width:34,height:34,borderRadius:"50%",background:`linear-gradient(135deg,${n.catColor},#000)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,border:`2px solid ${n.catColor}`}}>📰</div>
-        <div style={{flex:1}}>
-          <div style={{fontSize:13,fontWeight:600,color:"#fff"}}>{n.source}</div>
-          <div style={{fontSize:10,color:"rgba(255,255,255,.4)"}}>{n.h}h ago · Pakistan</div>
+    <div style={{background:"#060606",marginBottom:1,borderBottom:"0.5px solid #111"}}>
+      <div style={{padding:"12px 16px",display:"flex",alignItems:"center",gap:10}}>
+        <div style={{width:36,height:36,borderRadius:"50%",background:"rgba(201,168,76,.08)",border:"0.5px solid rgba(201,168,76,.2)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+          <i className="ti ti-news" style={{fontSize:16,color:"#C9A84C"}}/>
         </div>
-        <div style={{fontSize:9,background:n.catColor,color:"#fff",padding:"2px 8px",borderRadius:8,fontWeight:700}}>{n.cat}</div>
+        <div style={{flex:1}}>
+          <div style={{fontSize:12,fontWeight:500,color:"#888"}}>{n.source}</div>
+          <div style={{fontSize:9,color:"#2a2a2a"}}>{n.h}h ago · Pakistan</div>
+        </div>
+        <div style={{fontSize:8,background:"rgba(201,168,76,.08)",color:"#C9A84C",border:"0.5px solid rgba(201,168,76,.2)",padding:"2px 8px",borderRadius:6,fontWeight:500}}>{n.cat}</div>
       </div>
-      <div onClick={onClick} style={{width:"100%",aspectRatio:"1/1",background:`url(${n.img}) center/cover`,cursor:"pointer",position:"relative"}}>
-        <div style={{position:"absolute",bottom:0,left:0,right:0,background:"linear-gradient(transparent,rgba(0,0,0,.88))",padding:"28px 16px 16px"}}>
-          <div style={{fontFamily:G.h,fontSize:17,color:"#fff",lineHeight:1.35}}>{headline}</div>
+      <div onClick={onClick} style={{width:"100%",aspectRatio:"16/9",background:`url(${n.img}) center/cover`,cursor:"pointer",position:"relative"}}>
+        <div style={{position:"absolute",bottom:0,left:0,right:0,background:"linear-gradient(transparent,rgba(0,0,0,.9)",padding:"24px 16px 14px"}}>
+          <div style={{fontSize:16,fontWeight:500,color:"#fff",lineHeight:1.35}}>{lang==="ur"?n.headlineUr:n.headline}</div>
         </div>
       </div>
       <div style={{padding:"10px 16px 4px",display:"flex",gap:14,alignItems:"center"}}>
-        <button onClick={e=>{e.stopPropagation();setLiked(l=>!l);setLikes(l=>liked?l-1:l+1);}} style={{background:"none",border:"none",cursor:"pointer",padding:0,fontSize:22}}>{liked?"❤️":"🤍"}</button>
-        <button onClick={onClick} style={{background:"none",border:"none",cursor:"pointer",padding:0,fontSize:22}}>💬</button>
-        <button style={{background:"none",border:"none",cursor:"pointer",padding:0,fontSize:22}}>📤</button>
+        <button onClick={e=>{e.stopPropagation();setLiked(l=>!l);setLikes(l=>liked?l-1:l+1);}} style={{background:"none",border:"none",cursor:"pointer",padding:0,color:liked?"#C9A84C":"#2a2a2a"}}>
+          <i className={`ti ${liked?"ti-heart-filled":"ti-heart"}`} style={{fontSize:22}}/>
+        </button>
+        <button onClick={onClick} style={{background:"none",border:"none",cursor:"pointer",padding:0,color:"#2a2a2a"}}>
+          <i className="ti ti-message-circle" style={{fontSize:22}}/>
+        </button>
+        <button style={{background:"none",border:"none",cursor:"pointer",padding:0,color:"#2a2a2a"}}>
+          <i className="ti ti-share" style={{fontSize:22}}/>
+        </button>
       </div>
-      <div style={{padding:"2px 16px 8px",fontSize:12,fontWeight:700,color:"#fff"}}>{likes.toLocaleString()} {lang==="ur"?"دلچسپی":"interested"}</div>
-      <div style={{padding:"0 16px",display:"flex",gap:7,marginBottom:8}}>
+      <div style={{padding:"2px 16px 8px",fontSize:11,fontWeight:500,color:"#444"}}>{likes.toLocaleString()} interested</div>
+      <div style={{padding:"0 16px",display:"flex",gap:6,marginBottom:10}}>
         {n.stats.map((s,i)=>(
-          <div key={i} style={{background:"rgba(255,255,255,.08)",borderRadius:8,padding:"6px 8px",flex:1,textAlign:"center"}}>
-            <div style={{fontSize:12,fontWeight:700,color:n.catColor}}>{s.n}</div>
-            <div style={{fontSize:9,color:"rgba(255,255,255,.5)",marginTop:1}}>{s.l}</div>
+          <div key={i} style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:8,padding:"6px 8px",flex:1,textAlign:"center"}}>
+            <div style={{fontSize:11,fontWeight:500,color:"#C9A84C"}}>{s.n}</div>
+            <div style={{fontSize:8,color:"#2a2a2a",marginTop:1}}>{s.l}</div>
           </div>
         ))}
       </div>
-      <div style={{padding:"2px 16px 8px",fontSize:12,color:"rgba(255,255,255,.7)",lineHeight:1.6}}>
-        <span style={{fontWeight:600,color:"#fff"}}>{n.source} </span>
-        {exp ? caption : caption.slice(0,80)+"…"}
-        {!exp && <span onClick={()=>setExp(true)} style={{color:"rgba(255,255,255,.35)",cursor:"pointer"}}> {lang==="ur"?"مزید":"more"}</span>}
-      </div>
-      <div onClick={onClick} style={{margin:"0 16px 14px",background:"rgba(255,255,255,.07)",borderRadius:12,padding:"10px 13px",cursor:"pointer",border:`1px solid ${n.catColor}25`}}>
-        <div style={{fontSize:9,color:"rgba(255,255,255,.4)",textTransform:"uppercase",letterSpacing:".07em",marginBottom:4}}>
-          {lang==="ur"?"آپ کے لیے کیا کریں":"What to do — "}{lang!=="ur"&&biz.name}
-        </div>
-        <div style={{fontSize:12,color:"#fff",lineHeight:1.6}}>{action}</div>
-        <div style={{fontSize:10,color:n.catColor,marginTop:5,fontWeight:600}}>{lang==="ur"?"مکمل پڑھیں →":"Read full article →"}</div>
+      <div onClick={onClick} style={{margin:"0 16px 14px",background:"#0c0c0c",border:"0.5px solid rgba(201,168,76,.15)",borderRadius:10,padding:"10px 13px",cursor:"pointer"}}>
+        <div style={{fontSize:8,color:"#2a2a2a",textTransform:"uppercase",letterSpacing:".08em",marginBottom:4}}>What to do — {biz.name}</div>
+        <div style={{fontSize:11,color:"#888",lineHeight:1.6}}>{lang==="ur"?n.actionUr:n.action}</div>
+        <div style={{fontSize:9,color:"#C9A84C",marginTop:5,fontWeight:500}}>Read full article <i className="ti ti-arrow-right" style={{fontSize:9,verticalAlign:"-1px"}}/></div>
       </div>
     </div>
   );
@@ -773,193 +960,35 @@ function InstaPost({ n, biz, onClick, lang }) {
 
 /* ── NEWS DETAIL ──────────────────────────────────────────── */
 function NewsDetail({ news: n, biz, onBack, lang }) {
-  const t = T[lang];
   return (
-    <div style={{height:"100vh",overflowY:"auto",fontFamily:G.b,background:"#000",direction:lang==="ur"?"rtl":"ltr"}}>
-      <div style={{height:260,background:`url(${n.img}) center/cover`,position:"relative"}}>
-        <div style={{position:"absolute",inset:0,background:"linear-gradient(transparent 40%,#000)"}}/>
-        <button onClick={onBack} style={{position:"absolute",top:16,left:16,background:"rgba(0,0,0,.5)",border:"none",color:"#fff",borderRadius:20,padding:"6px 14px",cursor:"pointer",fontSize:13,fontFamily:G.b}}>{t.back}</button>
-        <div style={{position:"absolute",bottom:16,left:16,right:16}}>
-          <div style={{fontFamily:G.h,fontSize:20,color:"#fff",lineHeight:1.35}}>{lang==="ur"?n.headlineUr:n.headline}</div>
-          <div style={{fontSize:11,color:"rgba(255,255,255,.5)",marginTop:5}}>{n.source} · {n.h}h ago</div>
+    <div style={{height:"100vh",overflowY:"auto",fontFamily:"inherit",background:"#060606",direction:lang==="ur"?"rtl":"ltr"}}>
+      <div style={{height:240,background:`url(${n.img}) center/cover`,position:"relative"}}>
+        <div style={{position:"absolute",inset:0,background:"linear-gradient(transparent 30%,#060606)"}}/>
+        <button onClick={onBack} style={{position:"absolute",top:16,left:16,background:"rgba(0,0,0,.6)",border:"0.5px solid rgba(201,168,76,.3)",color:"#C9A84C",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontSize:12,fontFamily:"inherit",display:"flex",alignItems:"center",gap:5}}>
+          <i className="ti ti-arrow-left" style={{fontSize:14}}/> Back
+        </button>
+        <div style={{position:"absolute",bottom:16,left:18,right:18}}>
+          <div style={{fontSize:8,background:"rgba(201,168,76,.15)",color:"#C9A84C",border:"0.5px solid rgba(201,168,76,.3)",borderRadius:6,padding:"2px 8px",display:"inline-block",marginBottom:8,fontWeight:500}}>{n.cat}</div>
+          <div style={{fontSize:18,fontWeight:500,color:"#fff",lineHeight:1.35}}>{lang==="ur"?n.headlineUr:n.headline}</div>
+          <div style={{fontSize:10,color:"#444",marginTop:5}}>{n.source} · {n.h}h ago</div>
         </div>
       </div>
-      <div style={{padding:"16px 16px 100px",background:"#0a0a0a"}}>
-        <div style={{display:"grid",gridTemplateColumns:`repeat(${n.stats.length},1fr)`,gap:10,marginBottom:16}}>
+      <div style={{padding:"16px 18px 100px"}}>
+        <div style={{display:"grid",gridTemplateColumns:`repeat(${n.stats.length},1fr)`,gap:8,marginBottom:16}}>
           {n.stats.map((s,i)=>(
-            <div key={i} style={{background:"rgba(255,255,255,.07)",borderRadius:12,padding:"12px",textAlign:"center"}}>
-              <div style={{fontSize:18,fontWeight:700,color:n.catColor}}>{s.n}</div>
-              <div style={{fontSize:10,color:"rgba(255,255,255,.5)",marginTop:3}}>{s.l}</div>
+            <div key={i} style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:10,padding:"11px",textAlign:"center"}}>
+              <div style={{fontSize:17,fontWeight:500,color:"#C9A84C"}}>{s.n}</div>
+              <div style={{fontSize:9,color:"#2a2a2a",marginTop:3}}>{s.l}</div>
             </div>
           ))}
         </div>
-        <div style={{fontSize:13,color:"rgba(255,255,255,.8)",lineHeight:1.8,marginBottom:16}}>{lang==="ur"?n.captionUr:n.caption}</div>
-        <div style={{background:"rgba(5,150,105,.15)",border:"1px solid rgba(5,150,105,.3)",borderRadius:14,padding:"14px"}}>
-          <div style={{fontSize:12,fontWeight:700,color:"#6ee7b7",marginBottom:7}}>✅ {t.done} — {biz.name}</div>
-          <div style={{fontSize:13,color:"#fff",lineHeight:1.75}}>{lang==="ur"?n.actionUr:n.action}</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── LAW BOOK ─────────────────────────────────────────────── */
-function LawBook({ biz, onSelect, lang, allLaws }) {
-  const LAWS_TO_USE = allLaws || ALL_LAWS;
-  const t = T[lang];
-  const [search, setSearch] = useState("");
-  const [cat, setCat] = useState("All");
-  const [view, setView] = useState("mine");
-  const myLaws  = LAWS_TO_USE.filter(l=>matchLaw(l,biz));
-  const source  = view==="mine" ? myLaws : LAWS_TO_USE;
-  const filtered = source.filter(l=>{
-    const mCat = cat==="All" || l.cat===cat;
-    const mSearch = !search || l.title.toLowerCase().includes(search.toLowerCase()) || (l.summaryEn||"").toLowerCase().includes(search.toLowerCase());
-    return mCat && mSearch;
-  });
-  const cats = ["All",...[...new Set(LAWS_TO_USE.map(l=>l.cat))]];
-  const catColors = {Tax:"#1e40af",Labour:"#7c3aed",Operations:"#059669",Licensing:"#d97706","Food Safety":"#dc2626",Medical:"#0891b2"};
-
-  return (
-    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:G.b,direction:lang==="ur"?"rtl":"ltr"}}>
-      <div style={{background:`linear-gradient(135deg,${G.pk},#0a3d1f)`,padding:"18px 16px 14px",flexShrink:0}}>
-        <div style={{fontFamily:G.h,fontSize:20,color:"#fff",marginBottom:3}}>📚 {t.lawBook}</div>
-        <div style={{fontSize:11,color:"rgba(255,255,255,.45)",marginBottom:10}}>{ALL_LAWS.length} laws · all categories · tap any to read</div>
-        <div style={{display:"flex",gap:8,marginBottom:10}}>
-          {[["mine",`${t.myLawsTab} (${myLaws.length})`],["all",`${t.allLaws} (${ALL_LAWS.length})`]].map(([v,l])=>(
-            <button key={v} onClick={()=>setView(v)} style={{padding:"6px 14px",borderRadius:12,border:`1.5px solid ${view===v?"#fff":"rgba(255,255,255,.25)"}`,background:view===v?"rgba(255,255,255,.15)":"transparent",color:"#fff",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:G.b}}>{l}</button>
-          ))}
-        </div>
-        <div style={{position:"relative"}}>
-          <span style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",fontSize:14,color:G.muted}}>🔍</span>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t.search} style={{...IS,paddingLeft:35,background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.2)",color:"#fff",fontSize:12}}/>
-        </div>
-      </div>
-      <div style={{display:"flex",gap:6,overflowX:"auto",padding:"10px 16px",background:G.card,borderBottom:`1px solid ${G.border}`,flexShrink:0}}>
-        {cats.map(c=>(
-          <button key={c} onClick={()=>setCat(c)} style={{padding:"5px 12px",borderRadius:12,border:`1px solid ${cat===c?G.pk:G.border}`,background:cat===c?G.pk:G.card,color:cat===c?"#fff":G.muted,fontSize:11,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap",fontFamily:G.b,flexShrink:0}}>{c}</button>
-        ))}
-      </div>
-      <div style={{flex:1,overflowY:"auto",padding:"12px 16px 20px"}}>
-        {cats.filter(c=>c!=="All"&&(cat==="All"||cat===c)).map(category=>{
-          const cl = filtered.filter(l=>l.cat===category);
-          if (!cl.length) return null;
-          const cc = catColors[category]||G.muted;
-          return (
-            <div key={category} style={{marginBottom:20}}>
-              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-                <div style={{width:4,height:20,borderRadius:2,background:cc}}/>
-                <span style={{fontSize:12,fontWeight:700,color:G.navy}}>{category}</span>
-                <span style={{fontSize:10,color:G.muted}}>({cl.length})</span>
-              </div>
-              {cl.map(law=>{
-                const isMine = matchLaw(law,biz);
-                return (
-                  <div key={law.id} onClick={()=>onSelect(law)} style={{background:G.card,borderRadius:14,padding:"12px 14px",marginBottom:8,boxShadow:"0 1px 8px rgba(0,0,0,.06)",cursor:"pointer",borderLeft:`4px solid ${isMine?cc:"#e2e8f0"}`,opacity:isMine?1:.7}}>
-                    <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
-                      <div style={{width:36,height:36,borderRadius:10,background:law.bg||"#f1f5f9",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>{law.icon}</div>
-                      <div style={{flex:1,minWidth:0}}>
-                        <div style={{display:"flex",justifyContent:"space-between",gap:6,marginBottom:2}}>
-                          <div style={{fontSize:13,fontWeight:600,color:G.navy,lineHeight:1.35}}>{lang==="ur"?law.titleUr:law.title}</div>
-                          {isMine && <span style={{fontSize:9,background:"#d1fae5",color:"#065f46",borderRadius:8,padding:"2px 6px",fontWeight:700,flexShrink:0,alignSelf:"flex-start"}}>{t.applies}</span>}
-                        </div>
-                        <div style={{fontSize:10,color:cc,fontWeight:600,marginBottom:2}}>{law.sub}</div>
-                        <div style={{fontSize:11,color:G.muted,lineHeight:1.5}}>{(lang==="ur"?law.summaryUr:law.summaryEn).slice(0,80)}…</div>
-                        <div style={{display:"flex",gap:5,marginTop:5,flexWrap:"wrap"}}>
-                          {law.badge && <span style={{fontSize:9,background:law.bg||"#f1f5f9",color:cc,borderRadius:7,padding:"2px 7px",fontWeight:600}}>{law.badge}</span>}
-                          {law.penalty && <span style={{fontSize:9,background:"#fee2e2",color:"#b91c1c",borderRadius:7,padding:"2px 7px",fontWeight:600}}>Fine: PKR {law.penalty.toLocaleString()}</span>}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })}
-        {filtered.length===0 && <div style={{textAlign:"center",padding:"40px 20px",color:G.muted}}><div style={{fontSize:32,marginBottom:10}}>🔍</div><div style={{fontSize:13}}>No laws found</div></div>}
-      </div>
-    </div>
-  );
-}
-
-/* ── LAW DETAIL ───────────────────────────────────────────── */
-function LawDetail({ law, biz, onBack, lang }) {
-  const t = T[lang];
-  const [tab, setTab]   = useState("about");
-  const [chks, setChks] = useState((law.steps||[]).map(()=>false));
-  const [copied, setCopied] = useState(false);
-  const done  = chks.filter(Boolean).length;
-  const total = (law.steps||[]).length;
-
-  return (
-    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:G.b,direction:lang==="ur"?"rtl":"ltr"}}>
-      <div style={{background:`linear-gradient(135deg,${law.color||G.pk},${G.night})`,padding:"14px 16px 18px",flexShrink:0}}>
-        <button onClick={onBack} style={{background:"rgba(255,255,255,.18)",border:"none",color:"#fff",borderRadius:8,padding:"5px 12px",cursor:"pointer",fontSize:12,marginBottom:10,fontFamily:G.b}}>{t.back}</button>
-        <div style={{display:"flex",gap:12,alignItems:"flex-start"}}>
-          <div style={{width:42,height:42,borderRadius:12,background:law.bg||"rgba(255,255,255,.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{law.icon}</div>
-          <div style={{flex:1}}>
-            <div style={{fontFamily:G.h,fontSize:16,color:"#fff",lineHeight:1.3,marginBottom:4}}>{lang==="ur"?law.titleUr:law.title}</div>
-            <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-              {law.penalty && <span style={{fontSize:10,background:"rgba(0,0,0,.3)",color:"#fbbf24",borderRadius:7,padding:"2px 8px",fontWeight:700}}>{t.penalty}: PKR {law.penalty.toLocaleString()}</span>}
-              {law.deadline && <span style={{fontSize:10,background:"rgba(0,0,0,.25)",color:"#fff",borderRadius:7,padding:"2px 8px"}}>{daysUntil(law.deadline)>0?`${daysUntil(law.deadline)} ${t.daysLeft}`:t.overdue}</span>}
-            </div>
+        <div style={{fontSize:13,color:"#666",lineHeight:1.8,marginBottom:16}}>{lang==="ur"?n.captionUr:n.caption}</div>
+        <div style={{background:"rgba(201,168,76,.05)",border:"0.5px solid rgba(201,168,76,.2)",borderRadius:12,padding:"14px"}}>
+          <div style={{fontSize:11,fontWeight:500,color:"#C9A84C",marginBottom:7}}>
+            <i className="ti ti-circle-check" style={{fontSize:13,marginRight:5,verticalAlign:"-1px"}}/>Action for {biz.name}
           </div>
+          <div style={{fontSize:13,color:"#888",lineHeight:1.75}}>{lang==="ur"?n.actionUr:n.action}</div>
         </div>
-        {law.phone && <div style={{marginTop:10,background:"rgba(255,255,255,.1)",borderRadius:8,padding:"6px 11px",fontSize:11,color:"rgba(255,255,255,.75)"}}>📞 {law.phone}{law.url?`  🌐 ${law.url}`:""}</div>}
-        <div style={{marginTop:8,background:"rgba(251,191,36,.12)",border:"1px solid rgba(251,191,36,.25)",borderRadius:8,padding:"6px 11px",fontSize:10,color:"#fbbf24"}}>⚠️ {lang==="ur"?"ہمیشہ اپنے اکاؤنٹنٹ سے تصدیق کریں۔ قوانین بدل سکتے ہیں۔":"Always verify with your accountant. Laws change — Verifill shows best available information."}</div>
-      </div>
-      <div style={{display:"flex",background:G.card,borderBottom:`1px solid ${G.border}`,flexShrink:0}}>
-        {[["about",t.about],["steps",t.steps],["letter",t.letter]].map(([id,lbl])=>(
-          <button key={id} onClick={()=>setTab(id)} style={{flex:1,padding:"12px 4px",border:"none",borderBottom:`3px solid ${tab===id?G.violet:"transparent"}`,background:"transparent",color:tab===id?G.violet:G.muted,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:G.b}}>{lbl}</button>
-        ))}
-      </div>
-      <div style={{flex:1,overflowY:"auto",padding:"16px 16px 30px"}}>
-        {tab==="about" && (
-          <div>
-            <div style={{background:"#eef2ff",border:"1px solid #c7d2fe",borderRadius:14,padding:14,marginBottom:14,fontSize:13,color:"#1e40af",lineHeight:1.8}}>{lang==="ur"?law.summaryUr:law.summaryEn}</div>
-            {matchLaw(law,biz) && (
-              <div style={{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:12,padding:"12px 14px"}}>
-                <div style={{fontSize:12,fontWeight:700,color:"#065f46",marginBottom:8}}>✅ {t.whyApplies}</div>
-                {[`Business type applies`,law.provinces.includes("All")?"Federal — all Pakistan":`${biz.province} in scope`,biz.revM>=(law.minRevM||0)?"Revenue threshold met":null,biz.emp>=(law.minEmp||1)?"Employee count qualifies":null].filter(Boolean).map((r,i)=>(
-                  <div key={i} style={{fontSize:12,color:"#065f46",padding:"4px 0",borderBottom:"1px solid #dcfce7",display:"flex",gap:7}}><span>✓</span>{r}</div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-        {tab==="steps" && (
-          <div>
-            <div style={{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:14,padding:12,marginBottom:14}}>
-              <div style={{display:"flex",justifyContent:"space-between",marginBottom:7}}>
-                <span style={{fontSize:12,fontWeight:700,color:"#065f46"}}>{done} / {total} {t.done}</span>
-                <span style={{fontSize:12,color:G.muted}}>{total?Math.round((done/total)*100):0}%</span>
-              </div>
-              <div style={{height:5,background:"#dcfce7",borderRadius:3,overflow:"hidden"}}>
-                <div style={{width:`${total?(done/total)*100:0}%`,height:"100%",background:G.green,borderRadius:3,transition:"width .3s"}}/>
-              </div>
-            </div>
-            <div style={{background:G.card,borderRadius:14,border:`1px solid ${G.border}`,overflow:"hidden"}}>
-              {(law.steps||[]).map((step,i)=>(
-                <div key={i} onClick={()=>setChks(c=>{const n=[...c];n[i]=!n[i];return n;})} style={{display:"flex",gap:12,padding:"13px 14px",borderBottom:i<(law.steps.length-1)?`1px solid ${G.border}`:"none",cursor:"pointer",background:chks[i]?"#f0fdf4":G.card}}>
-                  <div style={{width:22,height:22,borderRadius:6,border:`2px solid ${chks[i]?G.green:G.border}`,background:chks[i]?G.green:G.card,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>
-                    {chks[i] && <span style={{color:"#fff",fontSize:12}}>✓</span>}
-                  </div>
-                  <span style={{flex:1,fontSize:12,color:chks[i]?G.muted:G.navy,textDecoration:chks[i]?"line-through":"none",lineHeight:1.6}}>{step}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        {tab==="letter" && law.letter && (
-          <div>
-            <div style={{background:"#fefce8",border:"1px solid #fde68a",borderRadius:12,padding:12,marginBottom:12,fontSize:12,color:"#92400e"}}>💡 Pre-filled with your profile. Replace [BRACKETS].</div>
-            <div style={{background:G.card,border:`1px solid ${G.border}`,borderRadius:12,padding:16,marginBottom:12,fontSize:12,color:G.navy,lineHeight:1.85,whiteSpace:"pre-wrap",fontFamily:G.mono}}>{law.letter(biz)}</div>
-            <button onClick={()=>{navigator.clipboard.writeText(law.letter(biz));setCopied(true);setTimeout(()=>setCopied(false),2000);}} style={{...BP,background:copied?`linear-gradient(135deg,#0d9488,#10b981)`:`linear-gradient(135deg,${G.indigo},${G.violet})`}}>
-              {copied?t.copied:t.copy}
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -970,66 +999,57 @@ function ComplianceCalendar({ laws, lang, onNav }) {
   const t = T[lang];
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth());
-  const [year,  setYear]  = useState(now.getFullYear());
-  const deadlines = laws.filter(l=>l.deadline).map(l=>{
-    const d = new Date(l.deadline);
-    return {...l, date:d, day:d.getDate(), month:d.getMonth(), year:d.getFullYear()};
-  });
+  const [year, setYear] = useState(now.getFullYear());
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const deadlines = laws.filter(l=>l.deadline).map(l=>{const d=new Date(l.deadline);return{...l,date:d,day:d.getDate(),month:d.getMonth(),year:d.getFullYear()};});
   const thisMonth = deadlines.filter(d=>d.month===month&&d.year===year);
   const daysInMonth = new Date(year,month+1,0).getDate();
-  const firstDay   = new Date(year,month,1).getDay();
-
-  const gcalLink = l => {
-    const d = new Date(l.deadline);
-    const f = dt => dt.toISOString().replace(/[-:]/g,"").split(".")[0]+"Z";
-    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(l.title)}&dates=${f(d)}/${f(d)}`;
-  };
+  const firstDay = new Date(year,month,1).getDay();
+  const gcalLink = l=>{const d=new Date(l.deadline);const f=dt=>dt.toISOString().replace(/[-:]/g,"").split(".")[0]+"Z";return`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(l.title)}&dates=${f(d)}/${f(d)}`;};
 
   return (
-    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:G.b,direction:lang==="ur"?"rtl":"ltr"}}>
-      <div style={{background:"linear-gradient(135deg,#1e40af,#4f46e5)",padding:"18px 16px 16px",flexShrink:0}}>
-        <button onClick={()=>onNav("dash")} style={{background:"rgba(255,255,255,.18)",border:"none",color:"#fff",borderRadius:8,padding:"5px 12px",cursor:"pointer",fontSize:12,marginBottom:10,fontFamily:G.b}}>← Back</button>
-        <div style={{fontFamily:G.h,fontSize:20,color:"#fff",marginBottom:2}}>📅 {t.calTitle}</div>
-        <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>{t.calSub}</div>
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"#060606",direction:lang==="ur"?"rtl":"ltr"}}>
+      <PageHeader title={t.calTitle} sub={t.calSub} icon="ti-calendar-event" onBack={()=>onNav("dash")}/>
+      <div style={{background:"#080808",padding:"12px 16px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:"0.5px solid #111",flexShrink:0}}>
+        <button onClick={()=>{if(month===0){setMonth(11);setYear(y=>y-1);}else setMonth(m=>m-1);}} style={{background:"#0c0c0c",border:"0.5px solid #1a1a1a",color:"#C9A84C",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontSize:14,fontFamily:"inherit"}}>‹</button>
+        <span style={{fontSize:14,fontWeight:500,color:"#fff"}}>{MONTHS[month]} {year}</span>
+        <button onClick={()=>{if(month===11){setMonth(0);setYear(y=>y+1);}else setMonth(m=>m+1);}} style={{background:"#0c0c0c",border:"0.5px solid #1a1a1a",color:"#C9A84C",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontSize:14,fontFamily:"inherit"}}>›</button>
       </div>
-      <div style={{background:G.card,padding:"12px 16px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:`1px solid ${G.border}`,flexShrink:0}}>
-        <button onClick={()=>{if(month===0){setMonth(11);setYear(y=>y-1);}else setMonth(m=>m-1);}} style={{...BS,width:"auto",padding:"6px 14px",fontSize:13}}>‹</button>
-        <span style={{fontSize:15,fontWeight:600,color:G.navy}}>{MONTHS[month]} {year}</span>
-        <button onClick={()=>{if(month===11){setMonth(0);setYear(y=>y+1);}else setMonth(m=>m+1);}} style={{...BS,width:"auto",padding:"6px 14px",fontSize:13}}>›</button>
-      </div>
-      <div style={{flex:1,overflowY:"auto",padding:"12px 16px 80px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"12px 16px 80px",background:"#080808"}}>
         <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2,marginBottom:16}}>
-          {["S","M","T","W","T","F","S"].map((d,i)=><div key={i} style={{textAlign:"center",fontSize:10,fontWeight:700,color:G.muted,padding:"4px 0"}}>{d}</div>)}
+          {["S","M","T","W","T","F","S"].map((d,i)=><div key={i} style={{textAlign:"center",fontSize:9,fontWeight:500,color:"#1e1e1e",padding:"4px 0"}}>{d}</div>)}
           {Array.from({length:firstDay}).map((_,i)=><div key={`e${i}`}/>)}
           {Array.from({length:daysInMonth}).map((_,i)=>{
             const day=i+1;
             const hasDeadline=thisMonth.some(d=>d.day===day);
             const isToday=day===now.getDate()&&month===now.getMonth()&&year===now.getFullYear();
             return (
-              <div key={day} style={{textAlign:"center",padding:"6px 2px",borderRadius:8,background:hasDeadline?"#fee2e2":isToday?"#dbeafe":"transparent"}}>
-                <span style={{fontSize:12,fontWeight:isToday||hasDeadline?700:400,color:hasDeadline?"#b91c1c":isToday?G.indigo:G.navy}}>{day}</span>
-                {hasDeadline&&<div style={{width:5,height:5,borderRadius:"50%",background:"#ef4444",margin:"1px auto 0"}}/>}
+              <div key={day} style={{textAlign:"center",padding:"7px 2px",borderRadius:8,background:hasDeadline?"rgba(239,68,68,.1)":isToday?"rgba(201,168,76,.1)":"transparent",border:hasDeadline?"0.5px solid rgba(239,68,68,.3)":isToday?"0.5px solid rgba(201,168,76,.3)":"none"}}>
+                <span style={{fontSize:11,fontWeight:isToday||hasDeadline?500:400,color:hasDeadline?"#ef4444":isToday?"#C9A84C":"#2a2a2a"}}>{day}</span>
+                {hasDeadline&&<div style={{width:4,height:4,borderRadius:"50%",background:"#ef4444",margin:"2px auto 0"}}/>}
               </div>
             );
           })}
         </div>
-        <div style={{fontSize:12,fontWeight:700,color:G.navy,marginBottom:10}}>
-          {deadlines.length===0 ? t.noDeadlines : `${deadlines.length} deadlines`}
-        </div>
+        <div style={{fontSize:9,fontWeight:500,color:"#2a2a2a",marginBottom:10,textTransform:"uppercase",letterSpacing:".1em"}}>{deadlines.length===0?t.noDeadlines:`${deadlines.length} deadlines`}</div>
         {deadlines.sort((a,b)=>a.date-b.date).map(law=>{
           const d=daysUntil(law.deadline);
           const passed=d!==null&&d<0; const near=d!==null&&d>=0&&d<=14;
           return (
-            <div key={law.id} style={{background:G.card,borderRadius:14,padding:"13px 14px",marginBottom:8,borderLeft:`4px solid ${passed?"#ef4444":near?"#f59e0b":G.green}`,boxShadow:"0 1px 8px rgba(0,0,0,.06)",display:"flex",gap:12,alignItems:"center"}}>
-              <div style={{width:34,height:34,borderRadius:10,background:law.bg||"#eef2ff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>{law.icon}</div>
+            <div key={law.id} style={{background:"#0c0c0c",border:passed||near?`1px solid ${passed?"rgba(239,68,68,.4)":"rgba(201,168,76,.25)"}`:"0.5px solid #161616",borderRadius:12,padding:"13px 14px",marginBottom:8,display:"flex",gap:12,alignItems:"center"}}>
+              <div style={{width:36,height:36,borderRadius:10,background:passed?"rgba(239,68,68,.08)":near?"rgba(201,168,76,.08)":"#111",border:`0.5px solid ${passed?"rgba(239,68,68,.3)":near?"rgba(201,168,76,.2)":"#1a1a1a"}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <i className="ti ti-calendar-event" style={{fontSize:18,color:passed?"#ef4444":near?"#C9A84C":"#2a2a2a"}}/>
+              </div>
               <div style={{flex:1}}>
-                <div style={{fontSize:12,fontWeight:600,color:G.navy,marginBottom:2}}>{lang==="ur"?law.titleUr:law.title}</div>
-                <div style={{fontSize:10,color:G.muted}}>{new Date(law.deadline).toLocaleDateString("en-PK",{day:"numeric",month:"long",year:"numeric"})}</div>
-                <div style={{fontSize:10,fontWeight:700,color:passed?"#ef4444":near?"#f59e0b":"#059669",marginTop:2}}>
-                  {passed?t.overdue:d===0?"Today!!":`${d} ${t.daysLeft}`}
+                <div style={{fontSize:12,fontWeight:500,color:"#ccc",marginBottom:2}}>{lang==="ur"?law.titleUr:law.title}</div>
+                <div style={{fontSize:9,color:"#2a2a2a"}}>{new Date(law.deadline).toLocaleDateString("en-PK",{day:"numeric",month:"long",year:"numeric"})}</div>
+                <div style={{fontSize:9,fontWeight:500,color:passed?"#ef4444":near?"#C9A84C":"#2a2a2a",marginTop:2}}>
+                  {passed?"Overdue":d===0?"Today!!!":`${d} days left`}
                 </div>
               </div>
-              <a href={gcalLink(law)} target="_blank" rel="noreferrer" style={{fontSize:10,background:"#dbeafe",color:"#1e40af",borderRadius:8,padding:"4px 8px",textDecoration:"none",fontWeight:600,flexShrink:0}}>📅 Google</a>
+              <a href={gcalLink(law)} target="_blank" rel="noreferrer" style={{fontSize:9,background:"rgba(201,168,76,.08)",color:"#C9A84C",border:"0.5px solid rgba(201,168,76,.2)",borderRadius:7,padding:"4px 9px",textDecoration:"none",fontWeight:500,flexShrink:0,display:"flex",alignItems:"center",gap:4}}>
+                <i className="ti ti-brand-google" style={{fontSize:11}}/>Google
+              </a>
             </div>
           );
         })}
@@ -1042,53 +1062,48 @@ function ComplianceCalendar({ laws, lang, onNav }) {
 function FineCalculator({ laws, lang, onNav }) {
   const t = T[lang];
   const [selId, setSelId] = useState("");
-  const [days,  setDays]  = useState(0);
+  const [days, setDays] = useState(0);
   const [history, setHistory] = useState([]);
   const lawsWithPenalty = laws.filter(l=>l.penalty>0);
-  const sel  = lawsWithPenalty.find(l=>l.id===selId);
+  const sel = lawsWithPenalty.find(l=>l.id===selId);
   const fine = sel ? Math.round(sel.penalty + (sel.penaltyPerDay||0)*days) : 0;
-
-  const calc = () => {
-    if (sel && days>0) setHistory(h=>[{law:lang==="ur"?sel.titleUr:sel.title,days,fine,date:new Date().toLocaleDateString()},...h.slice(0,4)]);
-  };
+  const calc = () => { if(sel&&days>0) setHistory(h=>[{law:lang==="ur"?sel.titleUr:sel.title,days,fine,date:new Date().toLocaleDateString()},...h.slice(0,4)]); };
 
   return (
-    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:G.b,direction:lang==="ur"?"rtl":"ltr"}}>
-      <div style={{background:"linear-gradient(135deg,#dc2626,#7f1d1d)",padding:"18px 16px 16px",flexShrink:0}}>
-        <button onClick={()=>onNav("dash")} style={{background:"rgba(255,255,255,.18)",border:"none",color:"#fff",borderRadius:8,padding:"5px 12px",cursor:"pointer",fontSize:12,marginBottom:10,fontFamily:G.b}}>← Back</button>
-        <div style={{fontFamily:G.h,fontSize:20,color:"#fff",marginBottom:2}}>🧮 {t.fineTitle}</div>
-        <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>{t.fineSub}</div>
-      </div>
-      <div style={{flex:1,overflowY:"auto",padding:"16px 16px 80px"}}>
-        <div style={{background:G.card,borderRadius:16,padding:18,border:`1px solid ${G.border}`,marginBottom:14}}>
-          <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:6}}>{t.selectLaw}</label>
-          <select value={selId} onChange={e=>setSelId(e.target.value)} style={SS}>
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"#060606",direction:lang==="ur"?"rtl":"ltr"}}>
+      <PageHeader title={t.fineTitle} sub={t.fineSub} icon="ti-calculator" onBack={()=>onNav("dash")}/>
+      <div style={{flex:1,overflowY:"auto",padding:"16px 16px 80px",background:"#080808"}}>
+        <div style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:14,padding:18,marginBottom:14}}>
+          <label style={{fontSize:10,fontWeight:500,color:"#2a2a2a",display:"block",marginBottom:6,textTransform:"uppercase",letterSpacing:".08em"}}>{t.selectLaw}</label>
+          <select value={selId} onChange={e=>setSelId(e.target.value)} style={{width:"100%",padding:"11px 13px",borderRadius:10,border:"0.5px solid #1a1a1a",background:"#111",color:"#aaa",fontSize:12,fontFamily:"inherit",outline:"none",appearance:"none",marginBottom:14}}>
             <option value="">{lang==="ur"?"قانون منتخب کریں…":"Select a law…"}</option>
             {lawsWithPenalty.map(l=><option key={l.id} value={l.id}>{lang==="ur"?l.titleUr:l.title}</option>)}
           </select>
-          <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:6,marginTop:14}}>{t.daysOverdue}</label>
-          <input type="number" min="0" max="1825" value={days} onChange={e=>setDays(Math.max(0,parseInt(e.target.value)||0))} style={IS}/>
-          <button onClick={calc} style={{...BP,marginTop:14}}>{lang==="ur"?"جرمانہ حساب کریں":"Calculate Fine"}</button>
+          <label style={{fontSize:10,fontWeight:500,color:"#2a2a2a",display:"block",marginBottom:6,textTransform:"uppercase",letterSpacing:".08em"}}>{t.daysOverdue}</label>
+          <input type="number" min="0" max="1825" value={days} onChange={e=>setDays(Math.max(0,parseInt(e.target.value)||0))} style={{width:"100%",padding:"11px 13px",borderRadius:10,border:"0.5px solid #1a1a1a",background:"#111",color:"#fff",fontSize:12,fontFamily:"inherit",outline:"none",marginBottom:14}}/>
+          <button onClick={calc} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#C9A84C,#B8922A)",color:"#000",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+            <i className="ti ti-calculator" style={{fontSize:16}}/>{lang==="ur"?"جرمانہ حساب کریں":"Calculate Fine"}
+          </button>
         </div>
         {sel && days>0 && (
-          <div style={{background:fine>100000?"linear-gradient(135deg,#7f1d1d,#dc2626)":"linear-gradient(135deg,#78350f,#d97706)",borderRadius:16,padding:"20px 18px",marginBottom:14,textAlign:"center"}}>
-            <div style={{fontSize:12,color:"rgba(255,255,255,.7)",marginBottom:8}}>{t.yourFine}</div>
-            <div style={{fontFamily:G.h,fontSize:34,color:"#fff",letterSpacing:"-1px"}}>PKR {fine.toLocaleString()}</div>
-            <div style={{fontSize:11,color:"rgba(255,255,255,.6)",marginTop:6}}>{lang==="ur"?sel.titleUr:sel.title} · {days} days overdue</div>
-            {sel.penaltyPerDay>0 && <div style={{fontSize:10,color:"rgba(255,255,255,.5)",marginTop:4}}>Daily penalty: PKR {sel.penaltyPerDay.toLocaleString()}</div>}
+          <div style={{background:"#0c0c0c",border:`1px solid ${fine>100000?"rgba(239,68,68,.4)":"rgba(201,168,76,.3)"}`,borderRadius:14,padding:"20px 18px",marginBottom:14,textAlign:"center"}}>
+            <div style={{fontSize:10,color:"#2a2a2a",marginBottom:8,textTransform:"uppercase",letterSpacing:".1em"}}>{t.yourFine}</div>
+            <div style={{fontSize:36,fontWeight:500,color:fine>100000?"#ef4444":"#C9A84C",letterSpacing:"-1px"}}>PKR {fine.toLocaleString()}</div>
+            <div style={{fontSize:10,color:"#2a2a2a",marginTop:6}}>{lang==="ur"?sel.titleUr:sel.title} · {days} days overdue</div>
+            {sel.penaltyPerDay>0 && <div style={{fontSize:9,color:"#1e1e1e",marginTop:4}}>Daily penalty: PKR {sel.penaltyPerDay.toLocaleString()}</div>}
           </div>
         )}
-        {sel && days===0 && <div style={{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:14,padding:16,textAlign:"center",fontSize:13,color:"#065f46"}}>✅ {t.notOverdue}</div>}
+        {sel && days===0 && <div style={{background:"rgba(201,168,76,.05)",border:"0.5px solid rgba(201,168,76,.15)",borderRadius:12,padding:16,textAlign:"center",fontSize:12,color:"#C9A84C"}}><i className="ti ti-circle-check" style={{fontSize:18,display:"block",marginBottom:6}}/>{t.notOverdue}</div>}
         {history.length>0 && (
           <div>
-            <div style={{fontSize:12,fontWeight:700,color:G.navy,marginBottom:8,marginTop:10}}>Recent calculations</div>
+            <div style={{fontSize:9,fontWeight:500,color:"#2a2a2a",marginBottom:8,marginTop:10,textTransform:"uppercase",letterSpacing:".1em"}}>Recent calculations</div>
             {history.map((h,i)=>(
-              <div key={i} style={{background:G.card,borderRadius:12,padding:"11px 14px",marginBottom:7,border:`1px solid ${G.border}`,display:"flex",justifyContent:"space-between"}}>
+              <div key={i} style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:11,padding:"11px 14px",marginBottom:7,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div>
-                  <div style={{fontSize:12,fontWeight:600,color:G.navy}}>{h.law}</div>
-                  <div style={{fontSize:10,color:G.muted}}>{h.days} days · {h.date}</div>
+                  <div style={{fontSize:11,fontWeight:500,color:"#888"}}>{h.law}</div>
+                  <div style={{fontSize:9,color:"#2a2a2a"}}>{h.days} days · {h.date}</div>
                 </div>
-                <div style={{fontSize:14,fontWeight:700,color:"#dc2626"}}>PKR {h.fine.toLocaleString()}</div>
+                <div style={{fontSize:14,fontWeight:500,color:"#ef4444"}}>PKR {h.fine.toLocaleString()}</div>
               </div>
             ))}
           </div>
@@ -1101,145 +1116,81 @@ function FineCalculator({ laws, lang, onNav }) {
 /* ── DOCUMENT SCANNER ─────────────────────────────────────── */
 function DocScanner({ lang, onNav }) {
   const t = T[lang];
-  const [state, setState]   = useState("idle");
+  const [state, setState] = useState("idle");
   const [result, setResult] = useState(null);
-  const [docs, setDocs]     = useState([]);
+  const [docs, setDocs] = useState([]);
   const fileRef = useRef();
 
   const handleFile = async e => {
     const file = e.target.files?.[0];
     if (!file) return;
     setState("scanning");
-
     try {
-      /* Convert image to base64 */
-      const base64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload  = () => resolve(reader.result.split(",")[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-
-      /* Detect media type */
-      const mediaType = file.type || "image/jpeg";
-
-      /* Call our Vercel serverless function */
-      const response = await fetch("/api/scan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: base64, mediaType }),
-      });
-
+      const base64 = await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result.split(",")[1]);r.onerror=reject;r.readAsDataURL(file);});
+      const mediaType = file.type||"image/jpeg";
+      const response = await fetch("/api/scan",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({imageBase64:base64,mediaType})});
       const json = await response.json();
-
-      if (!json.success) throw new Error(json.error || "Scan failed");
-
-      const extracted = json.data;
-
-      /* Calculate days left from expiry date */
-      let daysLeft = null;
-      let expDate  = null;
-      if (extracted.expiry_date) {
-        const exp  = new Date(extracted.expiry_date);
-        daysLeft   = Math.ceil((exp - new Date()) / 86400000);
-        expDate    = exp.toLocaleDateString("en-PK", { day:"numeric", month:"long", year:"numeric" });
-      }
-
-      const r = {
-        name:         file.name,
-        docType:      extracted.doc_type      || "Document",
-        bizName:      extracted.business_name || "",
-        authority:    extracted.issuing_authority || "",
-        licenceNo:    extracted.licence_number || "",
-        city:         extracted.city          || "",
-        expDate:      expDate || "Not found on document",
-        issueDate:    extracted.issue_date    || null,
-        daysLeft:     daysLeft,
-        isExpired:    extracted.is_expired    || false,
-        scanned:      new Date().toLocaleDateString(),
-      };
-
-      setResult(r);
-      setDocs(d => [r, ...d.slice(0,4)]);
-      setState("done");
-
-      /* Save to Supabase if user is logged in */
-      if (extracted.expiry_date) {
-        await supabase.from("documents").insert({
-          file_name:    file.name,
-          doc_type:     extracted.doc_type,
-          business_name: extracted.business_name,
-          expiry_date:  extracted.expiry_date,
-          issuing_auth: extracted.issuing_authority,
-          raw_text:     JSON.stringify(extracted),
-        }).then(({ error }) => { if(error) console.log("Save doc error:", error); });
-      }
-
-    } catch (err) {
-      console.error("Scan error:", err);
-      setResult({ name: file.name, docType:"Error", expDate:"Could not read document — try a clearer photo", daysLeft:null, isExpired:false, scanned: new Date().toLocaleDateString() });
+      if(!json.success) throw new Error(json.error||"Scan failed");
+      const ex = json.data;
+      let daysLeft=null,expDate=null;
+      if(ex.expiry_date){const exp=new Date(ex.expiry_date);daysLeft=Math.ceil((exp-new Date())/86400000);expDate=exp.toLocaleDateString("en-PK",{day:"numeric",month:"long",year:"numeric"});}
+      const r={name:file.name,docType:ex.doc_type||"Document",bizName:ex.business_name||"",authority:ex.issuing_authority||"",licenceNo:ex.licence_number||"",city:ex.city||"",expDate:expDate||"Not found",daysLeft,isExpired:ex.is_expired||false,scanned:new Date().toLocaleDateString()};
+      setResult(r);setDocs(d=>[r,...d.slice(0,4)]);setState("done");
+    } catch(err){
+      setResult({name:file.name,docType:"Error",expDate:"Could not read — try a clearer photo",daysLeft:null,isExpired:false,scanned:new Date().toLocaleDateString()});
       setState("done");
     }
   };
 
   return (
-    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:G.b,direction:lang==="ur"?"rtl":"ltr"}}>
-      <div style={{background:"linear-gradient(135deg,#065f46,#059669)",padding:"18px 16px 16px",flexShrink:0}}>
-        <button onClick={()=>onNav("dash")} style={{background:"rgba(255,255,255,.18)",border:"none",color:"#fff",borderRadius:8,padding:"5px 12px",cursor:"pointer",fontSize:12,marginBottom:10,fontFamily:G.b}}>← Back</button>
-        <div style={{fontFamily:G.h,fontSize:20,color:"#fff",marginBottom:2}}>📸 {t.scanTitle}</div>
-        <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>Real AI reads your licence — extracts expiry date automatically</div>
-      </div>
-      <div style={{flex:1,overflowY:"auto",padding:"16px 16px 80px"}}>
-        <div style={{background:G.card,borderRadius:16,border:`2px dashed ${G.border}`,padding:"32px 20px",textAlign:"center",marginBottom:16,cursor:"pointer"}} onClick={()=>fileRef.current?.click()}>
-          <div style={{fontSize:48,marginBottom:12}}>📄</div>
-          <div style={{fontSize:14,fontWeight:600,color:G.navy,marginBottom:6}}>{t.upload}</div>
-          <div style={{fontSize:12,color:G.muted,marginBottom:4}}>Trade Licence · PFA Licence · NTN · EOBI · Any govt document</div>
-          <div style={{fontSize:11,color:G.muted}}>Claude AI reads it and extracts the expiry date</div>
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"#060606",direction:lang==="ur"?"rtl":"ltr"}}>
+      <PageHeader title={t.scanTitle} sub="Claude AI reads your licence automatically" icon="ti-scan" onBack={()=>onNav("dash")}/>
+      <div style={{flex:1,overflowY:"auto",padding:"16px 16px 80px",background:"#080808"}}>
+        <div onClick={()=>fileRef.current?.click()} style={{background:"#0c0c0c",border:"1px dashed #1a1a1a",borderRadius:14,padding:"32px 20px",textAlign:"center",marginBottom:16,cursor:"pointer"}}>
+          <i className="ti ti-cloud-upload" style={{fontSize:44,color:"#1e1e1e",display:"block",marginBottom:12}}/>
+          <div style={{fontSize:14,fontWeight:500,color:"#555",marginBottom:6}}>{t.upload}</div>
+          <div style={{fontSize:11,color:"#2a2a2a",marginBottom:4}}>Trade Licence · PFA · NTN · EOBI · Any govt doc</div>
+          <div style={{fontSize:10,color:"#1e1e1e"}}>Claude AI extracts the expiry date</div>
           <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} style={{display:"none"}}/>
         </div>
         {state==="scanning" && (
-          <div style={{background:"#eef2ff",borderRadius:14,padding:24,textAlign:"center",border:"1px solid #c7d2fe"}}>
-            <div style={{width:40,height:40,border:"3px solid #c7d2fe",borderTopColor:G.violet,borderRadius:"50%",animation:"spin .7s linear infinite",margin:"0 auto 14px"}}/>
-            <div style={{fontSize:14,fontWeight:600,color:G.indigo,marginBottom:4}}>Claude AI is reading your document…</div>
-            <div style={{fontSize:12,color:G.muted}}>Extracting licence type, expiry date, and authority</div>
+          <div style={{background:"#0c0c0c",border:"0.5px solid rgba(201,168,76,.2)",borderRadius:12,padding:24,textAlign:"center"}}>
+            <div style={{width:40,height:40,border:"2px solid #1a1a1a",borderTopColor:"#C9A84C",borderRadius:"50%",animation:"spin .7s linear infinite",margin:"0 auto 14px"}}/>
+            <div style={{fontSize:14,fontWeight:500,color:"#C9A84C",marginBottom:4}}>Claude AI is reading your document…</div>
+            <div style={{fontSize:11,color:"#2a2a2a"}}>Extracting licence type, expiry date, and authority</div>
           </div>
         )}
         {state==="done" && result && (
           <div style={{marginBottom:14}}>
-            {/* Status banner */}
-            <div style={{background:result.isExpired?"#fee2e2":result.daysLeft!==null&&result.daysLeft<30?"#fef3c7":"#f0fdf4",borderRadius:16,padding:18,border:`1px solid ${result.isExpired?"#fca5a5":result.daysLeft!==null&&result.daysLeft<30?"#fde68a":"#bbf7d0"}`,marginBottom:10}}>
-              <div style={{fontSize:14,fontWeight:700,color:result.isExpired?"#b91c1c":result.daysLeft!==null&&result.daysLeft<30?"#92400e":"#065f46",marginBottom:10}}>
-                {result.isExpired?"🚨 EXPIRED — Renew immediately":result.daysLeft!==null&&result.daysLeft<30?"⚠️ Expiring soon":"✅ Valid document"}
+            <div style={{background:"#0c0c0c",border:`1px solid ${result.isExpired?"rgba(239,68,68,.4)":result.daysLeft!==null&&result.daysLeft<30?"rgba(201,168,76,.3)":"rgba(201,168,76,.2)"}`,borderRadius:14,padding:18,marginBottom:10}}>
+              <div style={{fontSize:13,fontWeight:500,color:result.isExpired?"#ef4444":result.daysLeft!==null&&result.daysLeft<30?"#C9A84C":"#C9A84C",marginBottom:12,display:"flex",alignItems:"center",gap:6}}>
+                <i className={`ti ${result.isExpired?"ti-alert-circle":"ti-circle-check"}`} style={{fontSize:16}}/>
+                {result.isExpired?"EXPIRED — Renew immediately":result.daysLeft!==null&&result.daysLeft<30?"Expiring soon":"Valid document"}
               </div>
-              {/* Extracted details */}
-              {[
-                ["Document type",  result.docType],
-                ["Business name",  result.bizName],
-                ["Issued by",      result.authority],
-                ["Licence number", result.licenceNo],
-                ["City",           result.city],
-                ["Expiry date",    result.expDate],
-                [result.daysLeft!==null ? "Days remaining" : null, result.daysLeft!==null ? (result.daysLeft>0?`${result.daysLeft} days`:`Expired ${Math.abs(result.daysLeft)} days ago`) : null],
-              ].filter(([k,v])=>k&&v).map(([k,v],i)=>(
-                <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid rgba(0,0,0,.06)",fontSize:12}}>
-                  <span style={{color:G.muted}}>{k}</span>
-                  <span style={{color:G.navy,fontWeight:500,textAlign:"right",maxWidth:"60%"}}>{v}</span>
+              {[["Document type",result.docType],["Business name",result.bizName],["Issued by",result.authority],["Licence number",result.licenceNo],["City",result.city],["Expiry date",result.expDate],[result.daysLeft!==null?"Days remaining":null,result.daysLeft!==null?(result.daysLeft>0?`${result.daysLeft} days`:`Expired ${Math.abs(result.daysLeft)} days ago`):null]].filter(([k,v])=>k&&v).map(([k,v],i)=>(
+                <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:"0.5px solid #111",fontSize:12}}>
+                  <span style={{color:"#2a2a2a"}}>{k}</span>
+                  <span style={{color:"#aaa",fontWeight:500,textAlign:"right",maxWidth:"60%"}}>{v}</span>
                 </div>
               ))}
             </div>
-            <div style={{fontSize:11,color:G.muted,textAlign:"center"}}>💡 Always verify with the original document. AI may occasionally misread unclear photos.</div>
+            <div style={{fontSize:10,color:"#1e1e1e",textAlign:"center"}}>
+              <i className="ti ti-info-circle" style={{fontSize:10,marginRight:4,verticalAlign:"-1px"}}/>Always verify with the original document.
+            </div>
           </div>
         )}
         {docs.length>0 && (
           <div>
-            <div style={{fontSize:12,fontWeight:700,color:G.navy,marginBottom:8}}>🗂️ Scanned documents</div>
+            <div style={{fontSize:9,fontWeight:500,color:"#2a2a2a",marginBottom:8,textTransform:"uppercase",letterSpacing:".1em"}}>
+              <i className="ti ti-files" style={{fontSize:11,color:"#C9A84C",marginRight:5,verticalAlign:"-1px"}}/>Scanned documents
+            </div>
             {docs.map((d,i)=>(
-              <div key={i} style={{background:G.card,borderRadius:12,padding:"12px 14px",marginBottom:7,border:`1px solid ${G.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div key={i} style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:11,padding:"11px 13px",marginBottom:7,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div>
-                  <div style={{fontSize:12,fontWeight:600,color:G.navy}}>{d.docType||d.name}</div>
-                  <div style={{fontSize:10,color:G.muted}}>Expires: {d.expDate} · {d.scanned}</div>
+                  <div style={{fontSize:11,fontWeight:500,color:"#888"}}>{d.docType||d.name}</div>
+                  <div style={{fontSize:9,color:"#2a2a2a"}}>Expires: {d.expDate} · {d.scanned}</div>
                 </div>
-                <div style={{fontSize:11,fontWeight:700,color:d.isExpired?"#ef4444":d.daysLeft!==null&&d.daysLeft<30?"#f59e0b":"#059669"}}>
+                <div style={{fontSize:10,fontWeight:500,color:d.isExpired?"#ef4444":d.daysLeft!==null&&d.daysLeft<30?"#C9A84C":"#444"}}>
                   {d.isExpired?"Expired":d.daysLeft!==null?`${d.daysLeft}d`:"—"}
                 </div>
               </div>
@@ -1256,31 +1207,34 @@ function FindCA({ biz, lang, onNav }) {
   const t = T[lang];
   const nearby = CA_LISTINGS.filter(ca=>ca.city===biz.city).concat(CA_LISTINGS.filter(ca=>ca.city!==biz.city)).slice(0,6);
   return (
-    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:G.b,direction:lang==="ur"?"rtl":"ltr"}}>
-      <div style={{background:`linear-gradient(135deg,${G.violet},#5b21b6)`,padding:"18px 16px 16px",flexShrink:0}}>
-        <button onClick={()=>onNav("dash")} style={{background:"rgba(255,255,255,.18)",border:"none",color:"#fff",borderRadius:8,padding:"5px 12px",cursor:"pointer",fontSize:12,marginBottom:10,fontFamily:G.b}}>← Back</button>
-        <div style={{fontFamily:G.h,fontSize:20,color:"#fff",marginBottom:2}}>🤝 {t.caTitle}</div>
-        <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>{t.caSub} · {biz.city}</div>
-      </div>
-      <div style={{flex:1,overflowY:"auto",padding:"14px 16px 80px"}}>
-        <div style={{background:"#fef3c7",border:"1px solid #fde68a",borderRadius:12,padding:"10px 13px",marginBottom:14,fontSize:12,color:"#92400e"}}>
-          💡 Confirm fees before engaging. City-matched professionals shown first.
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"#060606",direction:lang==="ur"?"rtl":"ltr"}}>
+      <PageHeader title={t.caTitle} sub={`${t.caSub} · ${biz.city}`} icon="ti-user-check" onBack={()=>onNav("dash")}/>
+      <div style={{flex:1,overflowY:"auto",padding:"14px 16px 80px",background:"#080808"}}>
+        <div style={{background:"rgba(201,168,76,.05)",border:"0.5px solid rgba(201,168,76,.15)",borderRadius:10,padding:"10px 13px",marginBottom:14,fontSize:11,color:"rgba(201,168,76,.7)"}}>
+          <i className="ti ti-info-circle" style={{fontSize:12,marginRight:5,verticalAlign:"-1px"}}/>Confirm fees before engaging. City-matched shown first.
         </div>
         {nearby.map((ca,i)=>(
-          <div key={i} style={{background:G.card,borderRadius:16,padding:"15px 16px",marginBottom:10,border:`1px solid ${G.border}`,boxShadow:"0 2px 8px rgba(0,0,0,.06)"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-              <div>
-                <div style={{fontSize:13,fontWeight:700,color:G.navy,marginBottom:2}}>{ca.name}</div>
-                <div style={{fontSize:11,color:G.muted}}>{ca.area}, {ca.city}</div>
+          <div key={i} style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:14,padding:"15px 16px",marginBottom:10}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <div style={{width:38,height:38,borderRadius:10,background:"rgba(201,168,76,.08)",border:"0.5px solid rgba(201,168,76,.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <i className="ti ti-user-tie" style={{fontSize:19,color:"#C9A84C"}}/>
+                </div>
+                <div>
+                  <div style={{fontSize:12,fontWeight:500,color:"#ccc",marginBottom:1}}>{ca.name}</div>
+                  <div style={{fontSize:9,color:"#2a2a2a"}}>{ca.area}, {ca.city}</div>
+                </div>
               </div>
-              <span style={{fontSize:9,background:"#d1fae5",color:"#065f46",borderRadius:8,padding:"2px 8px",fontWeight:700}}>✓ Verified</span>
+              <span style={{fontSize:8,background:"rgba(201,168,76,.08)",color:"#C9A84C",border:"0.5px solid rgba(201,168,76,.2)",borderRadius:6,padding:"2px 7px",fontWeight:500}}>Verified</span>
             </div>
-            <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
-              <span style={{fontSize:10,background:"#eef2ff",color:"#3730a3",borderRadius:8,padding:"2px 8px",fontWeight:600}}>{ca.speciality}</span>
-              <span style={{fontSize:10,background:"#fef3c7",color:"#92400e",borderRadius:8,padding:"2px 8px",fontWeight:600}}>{ca.fee}</span>
-              <span style={{fontSize:10,background:"#f1f5f9",color:G.muted,borderRadius:8,padding:"2px 8px"}}>⭐ {ca.rating} ({ca.reviews})</span>
+            <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:12}}>
+              <span style={{fontSize:9,background:"#111",color:"#555",border:"0.5px solid #1a1a1a",borderRadius:6,padding:"2px 8px"}}>{ca.speciality}</span>
+              <span style={{fontSize:9,background:"#111",color:"#555",border:"0.5px solid #1a1a1a",borderRadius:6,padding:"2px 8px"}}>{ca.fee}</span>
+              <span style={{fontSize:9,background:"#111",color:"#555",border:"0.5px solid #1a1a1a",borderRadius:6,padding:"2px 8px"}}>⭐ {ca.rating} ({ca.reviews})</span>
             </div>
-            <a href={`tel:${ca.phone}`} style={{display:"block",textAlign:"center",background:`linear-gradient(135deg,${G.pk},${G.green})`,color:"#fff",borderRadius:10,padding:"9px",fontSize:13,fontWeight:600,textDecoration:"none"}}>📞 {ca.phone}</a>
+            <a href={`tel:${ca.phone}`} style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,textAlign:"center",background:"linear-gradient(135deg,#C9A84C,#B8922A)",color:"#000",borderRadius:10,padding:"10px",fontSize:12,fontWeight:600,textDecoration:"none"}}>
+              <i className="ti ti-phone" style={{fontSize:15}}/>{ca.phone}
+            </a>
           </div>
         ))}
       </div>
@@ -1292,48 +1246,48 @@ function FindCA({ biz, lang, onNav }) {
 function ComplianceKit({ laws, biz, lang, onNav }) {
   const t = T[lang];
   const [generated, setGenerated] = useState(false);
-  const [copied, setCopied]       = useState(false);
+  const [copied, setCopied] = useState(false);
   const lawsWithLetters = laws.filter(l=>l.letter);
   const kit = lawsWithLetters.map(l=>`════════════════════\n${lang==="ur"?l.titleUr:l.title}\n════════════════════\n\n${l.letter(biz)}\n\n`).join("\n");
 
   return (
-    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:G.b,direction:lang==="ur"?"rtl":"ltr"}}>
-      <div style={{background:`linear-gradient(135deg,${G.indigo},${G.violet})`,padding:"18px 16px 16px",flexShrink:0}}>
-        <button onClick={()=>onNav("dash")} style={{background:"rgba(255,255,255,.18)",border:"none",color:"#fff",borderRadius:8,padding:"5px 12px",cursor:"pointer",fontSize:12,marginBottom:10,fontFamily:G.b}}>{t.back}</button>
-        <div style={{fontFamily:G.h,fontSize:20,color:"#fff",marginBottom:2}}>📦 {t.kitTitle}</div>
-        <div style={{fontSize:11,color:"rgba(255,255,255,.5)"}}>{t.kitSub}</div>
-      </div>
-      <div style={{flex:1,overflowY:"auto",padding:"16px 16px 80px"}}>
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"#060606",direction:lang==="ur"?"rtl":"ltr"}}>
+      <PageHeader title={t.kitTitle} sub={t.kitSub} icon="ti-package" onBack={()=>onNav("dash")}/>
+      <div style={{flex:1,overflowY:"auto",padding:"16px 16px 80px",background:"#080808"}}>
         {!generated ? (
           <div>
-            <div style={{background:G.card,borderRadius:16,padding:18,border:`1px solid ${G.border}`,marginBottom:14}}>
-              <div style={{fontSize:12,fontWeight:700,color:G.navy,marginBottom:10}}>This kit will include:</div>
+            <div style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:14,padding:18,marginBottom:14}}>
+              <div style={{fontSize:10,fontWeight:500,color:"#2a2a2a",marginBottom:12,textTransform:"uppercase",letterSpacing:".1em"}}>This kit includes</div>
               {lawsWithLetters.map((l,i)=>(
-                <div key={i} style={{display:"flex",gap:10,alignItems:"center",padding:"8px 0",borderBottom:i<lawsWithLetters.length-1?`1px solid ${G.border}`:"none"}}>
-                  <span style={{fontSize:18}}>{l.icon}</span>
+                <div key={i} style={{display:"flex",gap:10,alignItems:"center",padding:"9px 0",borderBottom:i<lawsWithLetters.length-1?"0.5px solid #111":"none"}}>
+                  <div style={{width:30,height:30,borderRadius:8,background:"rgba(201,168,76,.07)",border:"0.5px solid rgba(201,168,76,.15)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                    <i className="ti ti-file-text" style={{fontSize:15,color:"#C9A84C"}}/>
+                  </div>
                   <div>
-                    <div style={{fontSize:12,fontWeight:600,color:G.navy}}>{lang==="ur"?l.titleUr:l.title}</div>
-                    <div style={{fontSize:10,color:G.muted}}>Pre-filled compliance letter</div>
+                    <div style={{fontSize:11,fontWeight:500,color:"#888"}}>{lang==="ur"?l.titleUr:l.title}</div>
+                    <div style={{fontSize:9,color:"#2a2a2a"}}>Pre-filled compliance letter</div>
                   </div>
                 </div>
               ))}
             </div>
-            <button onClick={()=>setGenerated(true)} style={BP}>{t.generate}</button>
+            <button onClick={()=>setGenerated(true)} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#C9A84C,#B8922A)",color:"#000",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+              <i className="ti ti-package" style={{fontSize:16}}/>{t.generate}
+            </button>
           </div>
         ) : (
           <div>
-            <div style={{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:14,padding:14,marginBottom:14,display:"flex",gap:10,alignItems:"center"}}>
-              <span style={{fontSize:24}}>✅</span>
+            <div style={{background:"rgba(201,168,76,.05)",border:"0.5px solid rgba(201,168,76,.2)",borderRadius:12,padding:14,marginBottom:14,display:"flex",gap:10,alignItems:"center"}}>
+              <i className="ti ti-circle-check" style={{fontSize:24,color:"#C9A84C"}}/>
               <div>
-                <div style={{fontSize:13,fontWeight:700,color:"#065f46"}}>{t.kitReady}</div>
-                <div style={{fontSize:11,color:"#27500a"}}>{lawsWithLetters.length} letters · {biz.name}</div>
+                <div style={{fontSize:12,fontWeight:500,color:"#C9A84C"}}>{t.kitReady}</div>
+                <div style={{fontSize:10,color:"#2a2a2a"}}>{lawsWithLetters.length} letters · {biz.name}</div>
               </div>
             </div>
-            <button onClick={()=>{navigator.clipboard.writeText(kit);setCopied(true);setTimeout(()=>setCopied(false),2500);}} style={{...BP,marginBottom:10,background:copied?`linear-gradient(135deg,#0d9488,#10b981)`:`linear-gradient(135deg,${G.indigo},${G.violet})`}}>
-              {copied?`✓ ${lang==="ur"?"کاپی ہو گئی!":"Copied!"}`:`📋 ${t.copyAll}`}
+            <button onClick={()=>{navigator.clipboard.writeText(kit);setCopied(true);setTimeout(()=>setCopied(false),2500);}} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:copied?"#1a1a1a":"linear-gradient(135deg,#C9A84C,#B8922A)",color:copied?"#C9A84C":"#000",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+              <i className={`ti ${copied?"ti-check":"ti-copy"}`} style={{fontSize:16}}/>{copied?`${lang==="ur"?"کاپی ہو گئی!":"Copied!"}`:t.copyAll}
             </button>
-            <div style={{background:G.night,borderRadius:14,padding:"14px 16px",maxHeight:300,overflowY:"auto"}}>
-              <pre style={{fontSize:10,color:"#e2e8f0",lineHeight:1.8,whiteSpace:"pre-wrap",fontFamily:G.mono,margin:0}}>{kit}</pre>
+            <div style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:12,padding:"14px 16px",maxHeight:300,overflowY:"auto"}}>
+              <pre style={{fontSize:10,color:"#444",lineHeight:1.8,whiteSpace:"pre-wrap",fontFamily:"'DM Mono',monospace",margin:0}}>{kit}</pre>
             </div>
           </div>
         )}
@@ -1345,105 +1299,84 @@ function ComplianceKit({ laws, biz, lang, onNav }) {
 /* ── PROFILE ──────────────────────────────────────────────── */
 function ProfileScreen({ biz, onUpdate, lang }) {
   const t = T[lang];
-  const [d, setD]         = useState({...biz});
+  const [d, setD] = useState({...biz});
   const [saved, setSaved] = useState(false);
   const upd = (k,v) => setD(p=>({...p,[k]:v}));
   const toggleLic = l => setD(p=>({...p,licences:p.licences.includes(l)?p.licences.filter(x=>x!==l):[...p.licences,l]}));
-
   const save = () => {
-    onUpdate({
-      ...d,
-      typeLabel: bl(d.type,"en"),
-      revLabel:  REV_BANDS.find(b=>b.v===d.revM)?.l || "",
-      empLabel:  EMP_BANDS.find(b=>b.v===d.emp)?.l  || "",
-    });
-    setSaved(true);
-    setTimeout(()=>setSaved(false), 2200);
+    onUpdate({...d,typeLabel:bl(d.type,"en"),revLabel:REV_BANDS.find(b=>b.v===d.revM)?.l||"",empLabel:EMP_BANDS.find(b=>b.v===d.emp)?.l||""});
+    setSaved(true);setTimeout(()=>setSaved(false),2200);
   };
+  const inp = {width:"100%",padding:"11px 13px",borderRadius:10,border:"0.5px solid #1a1a1a",background:"#0c0c0c",color:"#aaa",fontSize:12,fontFamily:"inherit",outline:"none",marginBottom:12};
+  const sel = {...inp,appearance:"none",cursor:"pointer"};
 
   return (
-    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:G.b,direction:lang==="ur"?"rtl":"ltr"}}>
-      <div style={{background:"linear-gradient(135deg,#7c2d12,#4c0519)",padding:"18px 16px 20px",flexShrink:0}}>
-        <div style={{fontFamily:G.h,fontSize:20,color:"#fff",marginBottom:2}}>👤 {lang==="ur"?"کاروباری پروفائل":"Business Profile"}</div>
-        <div style={{fontSize:11,color:"rgba(255,255,255,.45)"}}>{lang==="ur"?"اپ ڈیٹ کریں":"Update to re-filter all laws"}</div>
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"#060606",direction:lang==="ur"?"rtl":"ltr"}}>
+      <div style={{background:"#060606",padding:"16px 18px 18px",borderBottom:"0.5px solid #111",flexShrink:0}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <div style={{width:38,height:38,borderRadius:10,border:"0.5px solid rgba(201,168,76,.25)",background:"rgba(201,168,76,.07)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <i className="ti ti-user" style={{fontSize:20,color:"#C9A84C"}}/>
+          </div>
+          <div>
+            <div style={{fontSize:17,fontWeight:500,color:"#fff"}}>Business Profile</div>
+            <div style={{fontSize:9,color:"#2a2a2a"}}>Update to re-filter all laws</div>
+          </div>
+        </div>
       </div>
-      <div style={{flex:1,overflowY:"auto",padding:"14px 16px 100px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"14px 16px 100px",background:"#080808"}}>
         {/* Summary */}
-        <div style={{background:G.card,borderRadius:14,padding:14,border:`1px solid ${G.border}`,marginBottom:12}}>
-          {[["Business",biz.name],["Owner",`${biz.ownerName} (${biz.designation})`],["Type",`${bi(biz.type)} ${bl(biz.type,lang)}`],["Location",`${biz.city}, ${biz.province}`],["Revenue",biz.revLabel||"–"],["Employees",biz.empLabel||"–"],["NTN",biz.ntn||"Not registered"]].map(([k,v])=>(
-            <div key={k} style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid #f8fafc",fontSize:12}}>
-              <span style={{color:G.muted}}>{k}</span>
-              <span style={{color:G.navy,fontWeight:500,textAlign:"right",maxWidth:"65%",fontSize:11}}>{v}</span>
+        <div style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:12,padding:14,marginBottom:14}}>
+          {[["Business",biz.name],["Owner",`${biz.ownerName} (${biz.designation})`],["Type",bl(biz.type,lang)],["Location",`${biz.city}, ${biz.province}`],["Revenue",biz.revLabel||"—"],["Employees",biz.empLabel||"—"],["NTN",biz.ntn||"Not registered"]].map(([k,v])=>(
+            <div key={k} style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:"0.5px solid #111",fontSize:12}}>
+              <span style={{color:"#2a2a2a"}}>{k}</span>
+              <span style={{color:"#888",fontWeight:500,textAlign:"right",maxWidth:"65%",fontSize:11}}>{v}</span>
             </div>
           ))}
         </div>
         {/* Edit */}
-        <div style={{background:G.card,borderRadius:14,padding:16,border:`1px solid ${G.border}`}}>
+        <div style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:12,padding:16}}>
           {[{l:"Business name",k:"name"},{l:"Owner name",k:"ownerName"},{l:"Phone",k:"phone"},{l:"NTN",k:"ntn"}].map(f=>(
-            <div key={f.k} style={{marginBottom:11}}>
-              <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{f.l}</label>
-              <input value={d[f.k]||""} onChange={e=>upd(f.k,e.target.value)} style={IS}/>
+            <div key={f.k} style={{marginBottom:0}}>
+              <label style={{fontSize:9,fontWeight:500,color:"#2a2a2a",display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{f.l}</label>
+              <input value={d[f.k]||""} onChange={e=>upd(f.k,e.target.value)} style={inp}/>
             </div>
           ))}
-          <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{t.bizType}</label>
-          <select value={d.type} onChange={e=>upd("type",e.target.value)} style={{...SS,marginBottom:11}}>
-            {BIZ_TYPES.map(tp=><option key={tp.v} value={tp.v}>{tp.i} {lang==="ur"?tp.lUr:tp.l}</option>)}
+          <label style={{fontSize:9,fontWeight:500,color:"#2a2a2a",display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{t.bizType}</label>
+          <select value={d.type} onChange={e=>upd("type",e.target.value)} style={sel}>
+            {BIZ_TYPES.map(tp=><option key={tp.v} value={tp.v}>{lang==="ur"?tp.lUr:tp.l}</option>)}
           </select>
-          <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{t.province}</label>
-          <select value={d.province} onChange={e=>{upd("province",e.target.value);upd("city","");}} style={{...SS,marginBottom:11}}>
+          <label style={{fontSize:9,fontWeight:500,color:"#2a2a2a",display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{t.province}</label>
+          <select value={d.province} onChange={e=>{upd("province",e.target.value);upd("city","");}} style={sel}>
             {PROVINCES.map(p=><option key={p}>{p}</option>)}
           </select>
-          <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{t.city}</label>
-          <select value={d.city} onChange={e=>upd("city",e.target.value)} style={{...SS,marginBottom:11}}>
+          <label style={{fontSize:9,fontWeight:500,color:"#2a2a2a",display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{t.city}</label>
+          <select value={d.city} onChange={e=>upd("city",e.target.value)} style={sel}>
             {(CITIES[d.province]||[]).map(c=><option key={c}>{c}</option>)}
           </select>
-          <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{t.revenue}</label>
-          <select value={d.revM} onChange={e=>upd("revM",parseFloat(e.target.value))} style={{...SS,marginBottom:11}}>
+          <label style={{fontSize:9,fontWeight:500,color:"#2a2a2a",display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{t.revenue}</label>
+          <select value={d.revM} onChange={e=>upd("revM",parseFloat(e.target.value))} style={sel}>
             {REV_BANDS.map(b=><option key={b.v} value={b.v}>{lang==="ur"?b.lUr:b.l}</option>)}
           </select>
-          <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:4}}>{t.employees}</label>
-          <select value={d.emp} onChange={e=>upd("emp",parseInt(e.target.value))} style={{...SS,marginBottom:14}}>
+          <label style={{fontSize:9,fontWeight:500,color:"#2a2a2a",display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{t.employees}</label>
+          <select value={d.emp} onChange={e=>upd("emp",parseInt(e.target.value))} style={{...sel,marginBottom:14}}>
             {EMP_BANDS.map(b=><option key={b.v} value={b.v}>{lang==="ur"?b.lUr:b.l}</option>)}
           </select>
-          <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:8}}>{t.licences}</label>
+          <label style={{fontSize:9,fontWeight:500,color:"#2a2a2a",display:"block",marginBottom:8,textTransform:"uppercase",letterSpacing:".08em"}}>{t.licences}</label>
           <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:16}}>
             {LICENCE_TYPES.map(l=>(
-              <div key={l} onClick={()=>toggleLic(l)} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderRadius:10,border:`1.5px solid ${d.licences.includes(l)?G.green:G.border}`,background:d.licences.includes(l)?"#f0fdf4":"#fff",cursor:"pointer"}}>
-                <div style={{width:16,height:16,borderRadius:4,border:`2px solid ${d.licences.includes(l)?G.green:G.border}`,background:d.licences.includes(l)?G.green:"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                  {d.licences.includes(l) && <span style={{color:"#fff",fontSize:10}}>✓</span>}
+              <div key={l} onClick={()=>toggleLic(l)} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:10,border:`0.5px solid ${d.licences.includes(l)?"rgba(201,168,76,.3)":"#1a1a1a"}`,background:d.licences.includes(l)?"rgba(201,168,76,.05)":"transparent",cursor:"pointer"}}>
+                <div style={{width:18,height:18,borderRadius:5,border:`1.5px solid ${d.licences.includes(l)?"#C9A84C":"#1e1e1e"}`,background:d.licences.includes(l)?"#C9A84C":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  {d.licences.includes(l) && <i className="ti ti-check" style={{fontSize:11,color:"#000"}}/>}
                 </div>
-                <span style={{fontSize:12,color:G.navy}}>{l}</span>
+                <span style={{fontSize:11,color:d.licences.includes(l)?"#C9A84C":"#444"}}>{l}</span>
               </div>
             ))}
           </div>
-          <button onClick={save} style={{...BP,background:saved?`linear-gradient(135deg,#0d9488,#10b981)`:`linear-gradient(135deg,${G.indigo},${G.violet})`}}>
-            {saved ? t.saved : t.updateSave}
+          <button onClick={save} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:saved?"#1a1a1a":"linear-gradient(135deg,#C9A84C,#B8922A)",color:saved?"#C9A84C":"#000",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+            <i className={`ti ${saved?"ti-check":"ti-device-floppy"}`} style={{fontSize:16}}/>{saved?t.saved:t.updateSave}
           </button>
         </div>
       </div>
-    </div>
-  );
-}
-
-/* ── BOTTOM NAV ───────────────────────────────────────────── */
-function BottomNav({ active, onNav, urgentCount, newsCount, lang }) {
-  const t = T[lang];
-  const tabs = [
-    {id:"dash",    icon:"ti-home",  label:t.home},
-    {id:"news",    icon:"ti-news",  label:t.news,    badge:newsCount},
-    {id:"laws",    icon:"ti-scale", label:t.laws,    badge:urgentCount},
-    {id:"profile", icon:"ti-user",  label:t.profile},
-  ];
-  return (
-    <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:480,background:G.night,borderTop:`0.5px solid ${G.dark3}`,display:"flex",padding:"10px 0 14px",zIndex:100}}>
-      {tabs.map(tab=>(
-        <button key={tab.id} onClick={()=>onNav(tab.id)} style={{flex:1,background:"transparent",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3,position:"relative",padding:"2px 0"}}>
-          <i className={`ti ${tab.icon}`} style={{fontSize:20,color:active===tab.id?G.gold:"#1e1e1e"}}/>
-          <span style={{fontSize:8,fontWeight:500,color:active===tab.id?G.gold:"#1e1e1e",fontFamily:G.b,letterSpacing:".05em"}}>{tab.label}</span>
-          {active===tab.id && <div style={{position:"absolute",bottom:-14,width:16,height:2,background:G.gold,borderRadius:1}}/>}
-          {(tab.badge||0)>0 && <span style={{position:"absolute",top:0,right:"14%",background:G.red,color:"#fff",fontSize:8,fontWeight:700,borderRadius:8,padding:"1px 4px",minWidth:13,textAlign:"center"}}>{tab.badge}</span>}
-        </button>
-      ))}
     </div>
   );
 }
