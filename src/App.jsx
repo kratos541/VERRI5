@@ -163,25 +163,44 @@ function riskColor(s) { return s>=70?"#ef4444":s>=40?"#f59e0b":"#10b981"; }
 
 /* ── DESIGN ───────────────────────────────────────────────── */
 const G = {
-  h: "'Fraunces','Playfair Display',Georgia,serif",
+  h: "'DM Sans',system-ui,sans-serif",
   b: "'DM Sans',system-ui,sans-serif",
   mono: "'DM Mono',monospace",
-  night:"#070714", navy:"#0f172a", card:"#ffffff", surface:"#f5f4f2",
-  border:"#e2e8f0", muted:"#64748b",
-  green:"#059669", red:"#ef4444", amber:"#f59e0b",
-  indigo:"#4f46e5", violet:"#7c3aed", pk:"#01411C",
+  /* Dark theme */
+  night:"#060606", dark1:"#0c0c0c", dark2:"#111111", dark3:"#161616",
+  darkBorder:"rgba(201,168,76,.22)",
+  /* Light theme */
+  card:"#ffffff", surface:"#faf6ed", lightBorder:"#f0e8cc", lightCard:"#fdf8ef",
+  /* Gold */
+  gold:"#C9A84C", goldDark:"#B8922A", goldFaint:"rgba(201,168,76,.08)",
+  goldBorder:"rgba(201,168,76,.25)",
+  /* Semantic */
+  red:"#ef4444", redFaint:"rgba(239,68,68,.1)", redBorder:"rgba(239,68,68,.45)",
+  green:"#059669", muted:"#2a2a2a", lightMuted:"#bbb",
+  /* Legacy compat */
+  navy:"#111111", border:"#f0e8cc", pk:"#C9A84C", indigo:"#C9A84C", violet:"#B8922A", green2:"#059669",
 };
+
+/* Dark vs Light helpers */
+const isDark = () => document.documentElement.classList.contains("dark") || window.matchMedia("(prefers-color-scheme: dark)").matches;
+
 function injectFonts() {
-  if (document.getElementById("vf6")) return;
+  if (document.getElementById("vf-fonts")) return;
   const l = document.createElement("link");
-  l.id="vf6"; l.rel="stylesheet";
-  l.href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;700&family=DM+Sans:wght@400;500;600&family=DM+Mono&display=swap";
+  l.id="vf-fonts"; l.rel="stylesheet";
+  l.href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono&display=swap";
   document.head.appendChild(l);
+  /* Tabler icons */
+  const t = document.createElement("link");
+  t.rel="stylesheet";
+  t.href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.8.0/dist/tabler-icons.min.css";
+  document.head.appendChild(t);
 }
-const IS = {width:"100%",padding:"11px 13px",borderRadius:10,border:"1.5px solid #e2e8f0",fontSize:13,fontFamily:"inherit",color:G.navy,background:"#f8fafc",outline:"none",boxSizing:"border-box"};
+/* ── SHARED INPUT / BUTTON STYLES ─────────────────────────── */
+const IS = {width:"100%",padding:"11px 13px",borderRadius:10,border:"1px solid #1e1e1e",fontSize:13,fontFamily:"inherit",color:"#fff",background:"#0c0c0c",outline:"none",boxSizing:"border-box"};
 const SS = {...IS,appearance:"none",cursor:"pointer"};
-const BP = {width:"100%",padding:"13px",borderRadius:12,border:"none",background:`linear-gradient(135deg,${G.indigo},${G.violet})`,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"};
-const BS = {...BP,background:"#fff",color:G.navy,border:"1.5px solid #e2e8f0",boxShadow:"none"};
+const BP = {width:"100%",padding:"13px",borderRadius:12,border:"none",background:`linear-gradient(135deg,${G.gold},${G.goldDark})`,color:"#000",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",letterSpacing:".02em"};
+const BS = {...BP,background:"#0c0c0c",color:G.gold,border:`1px solid ${G.goldBorder}`,boxShadow:"none"};
 
 /* ── ONBOARDING ───────────────────────────────────────────── */
 function Onboarding({ onDone, lang, setLang }) {
@@ -448,6 +467,220 @@ function Dashboard({ biz, laws, news, onNav, onLaw, onNews, lang, setLang, user,
   const CT = {food:"10:00 PM",retail:"8:00 PM",wholesale:"8:00 PM",services:"8:00 PM",pharmacy:"24 hrs",medical:"24 hrs",it:"8:00 PM",education:"8:00 PM",manufacturing:"Anytime",construction:"Anytime",trading:"8:00 PM"};
   const myClosing = closingLaw?.closingTimes?.[biz.type] || CT[biz.type] || "8:00 PM";
 
+  /* Icon map for business types */
+  const bizIcon = {retail:"ti-building-store",wholesale:"ti-package",food:"ti-tools-kitchen-2",manufacturing:"ti-building-factory-2",services:"ti-briefcase",it:"ti-device-laptop",medical:"ti-medical-cross",pharmacy:"ti-pill",education:"ti-school",construction:"ti-crane",trading:"ti-ship"};
+  const icon = bizIcon[biz.type] || "ti-building";
+
+  return (
+    <div style={{height:"100vh",overflowY:"auto",fontFamily:G.b,background:G.night,direction:lang==="ur"?"rtl":"ltr"}}>
+      <style>{`
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        ::-webkit-scrollbar{display:none}
+        * {box-sizing:border-box}
+        .ti{font-family:"tabler-icons"!important}
+      `}</style>
+
+      {/* Header */}
+      <div style={{background:G.night,padding:"18px 18px 20px",borderBottom:`0.5px solid ${G.dark3}`}}>
+        {/* Top row */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:32,height:32,borderRadius:9,border:`1px solid ${G.goldBorder}`,background:G.goldFaint,display:"flex",alignItems:"center",justifyContent:"center"}}>
+              <i className="ti ti-shield-check" style={{fontSize:15,color:G.gold}}/>
+            </div>
+            <div>
+              <div style={{fontSize:14,fontWeight:500,color:G.gold,letterSpacing:".8px"}}>Verifill</div>
+              <div style={{fontSize:7.5,color:"rgba(201,168,76,.3)",letterSpacing:".2em",textTransform:"uppercase"}}>Pakistan Compliance</div>
+            </div>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <div style={{display:"flex",gap:4}}>
+              {["en","ur"].map(l=>(
+                <button key={l} onClick={()=>setLang(l)} style={{padding:"2px 8px",borderRadius:6,border:`0.5px solid ${lang===l?G.goldBorder:"#1a1a1a"}`,background:lang===l?G.goldFaint:"transparent",color:lang===l?G.gold:"#2a2a2a",fontSize:9,cursor:"pointer",fontFamily:G.b}}>
+                  {l==="en"?"EN":"اردو"}
+                </button>
+              ))}
+            </div>
+            {user ? (
+              <div style={{display:"flex",alignItems:"center",gap:6}}>
+                <div style={{width:28,height:28,borderRadius:"50%",border:`1px solid ${G.goldBorder}`,background:G.goldFaint,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:500,color:G.gold}}>
+                  {user.user_metadata?.name?.charAt(0) || "U"}
+                </div>
+                <button onClick={signOut} style={{fontSize:9,color:"#2a2a2a",background:"none",border:"none",cursor:"pointer",fontFamily:G.b}}>
+                  <i className="ti ti-logout" style={{fontSize:12,color:"#2a2a2a"}}/>
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Business name */}
+        <div style={{fontSize:20,fontWeight:500,color:"#fff",letterSpacing:"-.5px",marginBottom:4}}>
+          {biz.name.length>24?biz.name.slice(0,24)+"…":biz.name}
+        </div>
+        <div style={{fontSize:9,color:"#2a2a2a",display:"flex",alignItems:"center",gap:6,marginBottom:18}}>
+          <i className={`ti ${icon}`} style={{fontSize:10,color:G.gold}}/>
+          {lang==="ur"?biz.typeLabel:biz.typeLabel}
+          <span style={{width:2,height:2,borderRadius:"50%",background:"#252525",display:"inline-block"}}/>
+          {biz.city}, {biz.province}
+        </div>
+
+        {/* Stats — Option B: thin gold border */}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6}}>
+          {[
+            {n:laws.length,  l:lang==="ur"?"قوانین":"Laws",     icon:"ti-scale"},
+            {n:urgent.length,l:lang==="ur"?"فوری":"Urgent",     icon:"ti-alert-triangle"},
+            {n:news.length,  l:lang==="ur"?"خبریں":"News",       icon:"ti-news"},
+            {n:`${comp}%`,   l:lang==="ur"?"اسکور":"Score",      icon:"ti-chart-bar"},
+          ].map((s,i)=>(
+            <div key={i} style={{border:`0.5px solid ${G.goldBorder}`,borderRadius:10,padding:"9px 4px",textAlign:"center",background:"transparent"}}>
+              <div style={{fontSize:18,fontWeight:500,color:G.gold,lineHeight:1,marginBottom:3}}>{s.n}</div>
+              <div style={{fontSize:7,color:"#2a2a2a",letterSpacing:".1em",textTransform:"uppercase"}}>{s.l}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div style={{padding:"14px 16px 110px",background:G.dark1}}>
+
+        {/* Closing time */}
+        {closingLaw && (
+          <div onClick={()=>onLaw(closingLaw)} style={{background:G.dark2,border:`0.5px solid ${G.dark3}`,borderLeft:`2px solid ${G.gold}`,borderRadius:12,padding:"12px 14px",marginBottom:12,cursor:"pointer"}}>
+            <div style={{fontSize:7,color:G.gold,letterSpacing:".18em",textTransform:"uppercase",marginBottom:8,opacity:.7}}>
+              <i className="ti ti-clock" style={{fontSize:9,verticalAlign:"-1px",marginRight:4}}/>{lang==="ur"?"آج رات بند کرنے کا وقت":"Mandatory closing time tonight"}
+            </div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div>
+                <div style={{fontSize:28,fontWeight:500,color:"#fff",letterSpacing:"-1px",lineHeight:1}}>{myClosing}</div>
+                <div style={{fontSize:8,color:"#2a2a2a",marginTop:3}}>{lang==="ur"?biz.typeLabel:biz.typeLabel} · {biz.province}</div>
+              </div>
+              <div style={{border:`0.5px solid ${G.goldBorder}`,borderRadius:20,padding:"3px 10px",fontSize:8,color:G.gold,fontWeight:500}}>
+                PKR 25,000 {lang==="ur"?"جرمانہ":"fine"}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Quick tools */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7,marginBottom:14}}>
+          {[
+            {icon:"ti-calendar-event", label:lang==="ur"?"کیلنڈر":"Calendar",   nav:"calendar"},
+            {icon:"ti-calculator",     label:lang==="ur"?"جرمانہ":"Fine Calc",  nav:"finecalc"},
+            {icon:"ti-scan",           label:lang==="ur"?"اسکین":"Scan Doc",    nav:"scandoc"},
+            {icon:"ti-user-check",     label:lang==="ur"?"CA تلاش":"Find CA",   nav:"findca"},
+          ].map(q=>(
+            <div key={q.nav} onClick={()=>onNav(q.nav)} style={{background:G.dark2,border:`0.5px solid ${G.dark3}`,borderRadius:11,padding:"11px 12px",display:"flex",alignItems:"center",gap:9,cursor:"pointer"}}>
+              <i className={`ti ${q.icon}`} style={{fontSize:16,color:G.gold}}/>
+              <span style={{fontSize:11,color:"#444",fontWeight:400}}>{q.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Laws */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+          <span style={{fontSize:9,fontWeight:500,color:"#1e1e1e",letterSpacing:".12em",textTransform:"uppercase"}}>
+            <i className="ti ti-scale" style={{fontSize:10,color:G.gold,marginRight:5,verticalAlign:"-1px"}}/>
+            {lang==="ur"?"آپ کے قوانین":"Your Laws"}
+          </span>
+          <span onClick={()=>onNav("laws")} style={{fontSize:9,color:G.gold,cursor:"pointer"}}>
+            {lang==="ur"?"سب دیکھیں":"See all"} <i className="ti ti-arrow-right" style={{fontSize:9,verticalAlign:"-1px"}}/>
+          </span>
+        </div>
+
+        {laws.length===0 && (
+          <div style={{textAlign:"center",padding:24,background:G.dark2,borderRadius:12,fontSize:12,color:"#2a2a2a",border:`0.5px solid ${G.dark3}`,marginBottom:10}}>
+            <i className="ti ti-search" style={{fontSize:24,color:"#1a1a1a",display:"block",marginBottom:8}}/>
+            No laws matched your profile. Update your profile.
+          </div>
+        )}
+
+        {laws.slice(0,5).map(law=>{
+          const d=daysUntil(law.deadline);
+          const urg=d!==null&&d<60;
+          const catIcon = {Tax:"ti-receipt-tax",Labour:"ti-moneybag","Food Safety":"ti-tools-kitchen-2",Licensing:"ti-license",Operations:"ti-clock",Medical:"ti-medical-cross"}[law.cat] || "ti-scale";
+          return (
+            <div key={law.id} onClick={()=>onLaw(law)} style={{
+              background:G.dark2,
+              border:urg?`1px solid ${G.redBorder}`:`0.5px solid ${G.dark3}`,
+              boxShadow:urg?`0 0 0 2px ${G.redFaint}`:"none",
+              borderRadius:12,padding:"11px 13px",marginBottom:7,
+              display:"flex",gap:10,alignItems:"center",cursor:"pointer",
+              transition:"border-color .2s",
+            }}>
+              <div style={{width:30,height:30,borderRadius:8,background:urg?G.redFaint:G.goldFaint,border:`0.5px solid ${urg?G.redBorder:G.goldBorder}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <i className={`ti ${catIcon}`} style={{fontSize:14,color:urg?G.red:G.gold}}/>
+              </div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:11,fontWeight:500,color:urg?"#fff":"#aaa",marginBottom:1,lineHeight:1.3}}>
+                  {lang==="ur"?law.titleUr:law.title}
+                </div>
+                <div style={{fontSize:8,color:"#252525"}}>{law.sub}</div>
+                {urg && (
+                  <div style={{fontSize:8,color:G.red,marginTop:2,fontWeight:500}}>
+                    <i className="ti ti-alert-triangle" style={{fontSize:8,verticalAlign:"-1px",marginRight:3}}/>
+                    {d>0?`${d} days`:"Overdue"} · PKR {(law.penalty||0).toLocaleString()} fine
+                  </div>
+                )}
+              </div>
+              <i className="ti ti-chevron-right" style={{fontSize:13,color:urg?"rgba(239,68,68,.3)":"#1c1c1c",flexShrink:0}}/>
+            </div>
+          );
+        })}
+
+        {laws.length>5 && (
+          <div onClick={()=>onNav("laws")} style={{textAlign:"center",padding:"10px",fontSize:11,color:G.gold,cursor:"pointer",border:`0.5px solid ${G.goldBorder}`,borderRadius:10,marginBottom:14}}>
+            <i className="ti ti-plus" style={{fontSize:11,marginRight:4,verticalAlign:"-1px"}}/>
+            {laws.length-5} {lang==="ur"?"مزید قوانین":"more laws"}
+          </div>
+        )}
+
+        {/* News */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"16px 0 10px"}}>
+          <span style={{fontSize:9,fontWeight:500,color:"#1e1e1e",letterSpacing:".12em",textTransform:"uppercase"}}>
+            <i className="ti ti-news" style={{fontSize:10,color:G.gold,marginRight:5,verticalAlign:"-1px"}}/>
+            {lang==="ur"?"تازہ خبریں":"Latest News"}
+          </span>
+          <span onClick={()=>onNav("news")} style={{fontSize:9,color:G.gold,cursor:"pointer"}}>
+            {lang==="ur"?"خبریں":"News feed"} <i className="ti ti-arrow-right" style={{fontSize:9,verticalAlign:"-1px"}}/>
+          </span>
+        </div>
+        <div style={{display:"flex",gap:9,overflowX:"auto",paddingBottom:8}}>
+          {news.slice(0,5).map(n=>(
+            <div key={n.id} onClick={()=>onNews(n)} style={{flexShrink:0,width:170,borderRadius:12,overflow:"hidden",cursor:"pointer",border:`0.5px solid ${G.dark3}`}}>
+              <div style={{height:90,background:`url(${n.img}) center/cover`}}/>
+              <div style={{padding:"8px 10px",background:G.dark2}}>
+                <div style={{fontSize:8,background:G.goldFaint,color:G.gold,border:`0.5px solid ${G.goldBorder}`,borderRadius:4,padding:"1px 6px",display:"inline-block",marginBottom:4,fontWeight:500}}>{n.cat}</div>
+                <div style={{fontSize:10,fontWeight:500,color:"#ccc",lineHeight:1.35}}>{lang==="ur"?n.headlineUr:n.headline}</div>
+                <div style={{fontSize:8,color:"#252525",marginTop:3}}>{n.source}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Kit CTA */}
+        <div onClick={()=>onNav("kit")} style={{marginTop:14,background:G.dark2,border:`0.5px solid ${G.goldBorder}`,borderRadius:14,padding:"14px 16px",cursor:"pointer",display:"flex",gap:12,alignItems:"center"}}>
+          <div style={{width:36,height:36,borderRadius:10,background:G.goldFaint,border:`0.5px solid ${G.goldBorder}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+            <i className="ti ti-package" style={{fontSize:18,color:G.gold}}/>
+          </div>
+          <div>
+            <div style={{fontSize:12,fontWeight:500,color:G.gold,marginBottom:2}}>{lang==="ur"?"کمپلائنس کٹ":"Compliance Kit"}</div>
+            <div style={{fontSize:10,color:"#2a2a2a"}}>{lang==="ur"?"تمام خطوط ایک جگہ":"All your letters in one place"}</div>
+          </div>
+          <i className="ti ti-arrow-right" style={{marginLeft:"auto",fontSize:16,color:"#1c1c1c"}}/>
+        </div>
+      </div>
+    </div>
+  );
+}
+  const t = T[lang];
+  const urgent = laws.filter(l=>{const d=daysUntil(l.deadline);return d!==null&&d<60;});
+  const comp = laws.length ? Math.max(0,100-Math.round((urgent.length/laws.length)*50)) : 100;
+  const closingLaw = laws.find(l=>l.id==="punjab-closing"||l.id==="sindh-closing");
+  const CT = {food:"10:00 PM",retail:"8:00 PM",wholesale:"8:00 PM",services:"8:00 PM",pharmacy:"24 hrs",medical:"24 hrs",it:"8:00 PM",education:"8:00 PM",manufacturing:"Anytime",construction:"Anytime",trading:"8:00 PM"};
+  const myClosing = closingLaw?.closingTimes?.[biz.type] || CT[biz.type] || "8:00 PM";
+
   return (
     <div style={{height:"100vh",overflowY:"auto",fontFamily:G.b,direction:lang==="ur"?"rtl":"ltr"}}>
       {/* Dark header */}
@@ -544,45 +777,6 @@ function Dashboard({ biz, laws, news, onNav, onLaw, onNews, lang, setLang, user,
                 <div style={{fontSize:12,fontWeight:600,color:G.navy,lineHeight:1.35,marginBottom:2}}>{lang==="ur"?law.titleUr:law.title}</div>
                 <div style={{fontSize:10,color:G.muted}}>{law.sub}</div>
                 {urg && <div style={{fontSize:10,color:"#b91c1c",marginTop:2,fontWeight:600}}>⚠ {d>0?`${d} ${t.daysLeft}`:t.overdue} — PKR {(law.penalty||0).toLocaleString()}</div>}
-              </div>
-              <div style={{fontSize:18,color:G.muted}}>›</div>
-            </div>
-          );
-        })}
-        {laws.length > 4 && <div onClick={()=>onNav("laws")} style={{textAlign:"center",padding:"10px",fontSize:12,color:G.violet,cursor:"pointer",fontWeight:600}}>+{laws.length-4} more laws →</div>}
-
-        {/* News preview */}
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"16px 0 10px"}}>
-          <span style={{fontSize:12,fontWeight:700,color:G.navy}}>📡 {t.latestNews}</span>
-          <span onClick={()=>onNav("news")} style={{fontSize:11,color:G.violet,cursor:"pointer",fontWeight:600}}>{t.newsFeed}</span>
-        </div>
-        <div style={{display:"flex",gap:10,overflowX:"auto",paddingBottom:8}}>
-          {news.slice(0,5).map(n=>(
-            <div key={n.id} onClick={()=>onNews(n)} style={{flexShrink:0,width:190,borderRadius:14,overflow:"hidden",cursor:"pointer",boxShadow:"0 4px 14px rgba(0,0,0,.12)"}}>
-              <div style={{height:105,background:`url(${n.img}) center/cover`}}/>
-              <div style={{padding:"8px 10px",background:G.card}}>
-                <div style={{fontSize:9,background:n.catColor,color:"#fff",borderRadius:5,padding:"1px 6px",display:"inline-block",marginBottom:4,fontWeight:700}}>{n.cat}</div>
-                <div style={{fontSize:11,fontWeight:600,color:G.navy,lineHeight:1.35}}>{lang==="ur"?n.headlineUr:n.headline}</div>
-                <div style={{fontSize:10,color:G.muted,marginTop:2}}>{n.source} · {n.h}h</div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Kit CTA */}
-        <div onClick={()=>onNav("kit")} style={{marginTop:14,background:`linear-gradient(135deg,${G.indigo},${G.violet})`,borderRadius:16,padding:"14px 16px",cursor:"pointer",display:"flex",gap:12,alignItems:"center"}}>
-          <span style={{fontSize:26}}>📦</span>
-          <div>
-            <div style={{fontSize:13,fontWeight:700,color:"#fff",marginBottom:2}}>{t.kitTitle}</div>
-            <div style={{fontSize:11,color:"rgba(255,255,255,.65)"}}>{t.kitSub}</div>
-          </div>
-          <div style={{marginLeft:"auto",fontSize:20,color:"rgba(255,255,255,.6)"}}>›</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ── INSTAGRAM NEWS FEED ──────────────────────────────────── */
 function NewsFeed({ biz, onSelect, lang }) {
   const t = T[lang];
@@ -1339,19 +1533,19 @@ function ProfileScreen({ biz, onUpdate, lang }) {
 function BottomNav({ active, onNav, urgentCount, newsCount, lang }) {
   const t = T[lang];
   const tabs = [
-    {id:"dash",    icon:"🏠", label:t.home},
-    {id:"news",    icon:"📡", label:t.news,   badge:newsCount},
-    {id:"laws",    icon:"📚", label:t.laws,   badge:urgentCount},
-    {id:"profile", icon:"👤", label:t.profile},
+    {id:"dash",    icon:"ti-home",  label:t.home},
+    {id:"news",    icon:"ti-news",  label:t.news,    badge:newsCount},
+    {id:"laws",    icon:"ti-scale", label:t.laws,    badge:urgentCount},
+    {id:"profile", icon:"ti-user",  label:t.profile},
   ];
   return (
-    <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:480,background:G.night,borderTop:"1px solid #1c1c3a",display:"flex",padding:"10px 0 14px",zIndex:100}}>
+    <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:480,background:G.night,borderTop:`0.5px solid ${G.dark3}`,display:"flex",padding:"10px 0 14px",zIndex:100}}>
       {tabs.map(tab=>(
-        <button key={tab.id} onClick={()=>onNav(tab.id)} style={{flex:1,background:"transparent",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:4,position:"relative",padding:"2px 0"}}>
-          <span style={{fontSize:20}}>{tab.icon}</span>
-          <span style={{fontSize:10,fontWeight:700,color:active===tab.id?"#6ee7b7":"#4b5563",fontFamily:G.b}}>{tab.label}</span>
-          {(tab.badge||0)>0 && <span style={{position:"absolute",top:0,right:"14%",background:G.red,color:"#fff",fontSize:9,fontWeight:800,borderRadius:8,padding:"1px 5px",minWidth:14,textAlign:"center"}}>{tab.badge}</span>}
-          {active===tab.id && <div style={{position:"absolute",bottom:-14,width:28,height:3,background:"#059669",borderRadius:2}}/>}
+        <button key={tab.id} onClick={()=>onNav(tab.id)} style={{flex:1,background:"transparent",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3,position:"relative",padding:"2px 0"}}>
+          <i className={`ti ${tab.icon}`} style={{fontSize:20,color:active===tab.id?G.gold:"#1e1e1e"}}/>
+          <span style={{fontSize:8,fontWeight:500,color:active===tab.id?G.gold:"#1e1e1e",fontFamily:G.b,letterSpacing:".05em"}}>{tab.label}</span>
+          {active===tab.id && <div style={{position:"absolute",bottom:-14,width:16,height:2,background:G.gold,borderRadius:1}}/>}
+          {(tab.badge||0)>0 && <span style={{position:"absolute",top:0,right:"14%",background:G.red,color:"#fff",fontSize:8,fontWeight:700,borderRadius:8,padding:"1px 4px",minWidth:13,textAlign:"center"}}>{tab.badge}</span>}
         </button>
       ))}
     </div>
@@ -1617,13 +1811,14 @@ export default function App() {
   };
 
   return (
-    <div style={{maxWidth:480,margin:"0 auto",height:"100vh",background:G.surface,position:"relative",fontFamily:G.b,display:"flex",flexDirection:"column"}}>
+    <div style={{maxWidth:480,margin:"0 auto",height:"100vh",background:G.night,position:"relative",fontFamily:G.b,display:"flex",flexDirection:"column"}}>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes up   { from { opacity:0; transform: translateY(14px); } to { opacity:1; transform: translateY(0); } }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         select, input, button { font-family: inherit; }
         ::-webkit-scrollbar { display: none; }
+        .ti { font-family: "tabler-icons" !important; }
       `}</style>
       <div style={{flex:1,overflow:"hidden",animation:"up .3s ease"}}>
         {renderScreen()}
