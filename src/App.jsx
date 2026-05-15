@@ -765,13 +765,6 @@ function Dashboard({ biz, laws, news, onNav, onLaw, onNews, lang, setLang, user,
           <span style={{fontSize:12,fontWeight:700,color:G.navy}}>⚖️ {t.myLaws} ({laws.length})</span>
           <span onClick={()=>onNav("laws")} style={{fontSize:11,color:G.violet,cursor:"pointer",fontWeight:600}}>{t.seeAll}</span>
         </div>
-        {laws.length === 0 && (
-          <div style={{textAlign:"center",padding:"24px",background:G.card,borderRadius:14,fontSize:13,color:G.muted,border:`1px solid ${G.border}`,marginBottom:10}}>No laws matched your profile. Update your profile to see results.</div>
-        )}
-        {laws.slice(0,4).map(law=>{
-          const d=daysUntil(law.deadline); const urg=d!==null&&d<60;
-          return (
-            <div key={law.id} onClick={()=>onLaw(law)} style={{background:G.card,borderRadius:14,padding:"12px 14px",marginBottom:8,borderLeft:`4px solid ${urg?"#ef4444":G.green}`,boxShadow:"0 2px 8px rgba(0,0,0,.06)",cursor:"pointer",display:"flex",gap:12,alignItems:"center"}}>
 /* ── INSTAGRAM NEWS FEED ──────────────────────────────────── */
 function NewsFeed({ biz, onSelect, lang }) {
   const t = T[lang];
