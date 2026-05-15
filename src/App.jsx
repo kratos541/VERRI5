@@ -772,11 +772,6 @@ function Dashboard({ biz, laws, news, onNav, onLaw, onNews, lang, setLang, user,
           const d=daysUntil(law.deadline); const urg=d!==null&&d<60;
           return (
             <div key={law.id} onClick={()=>onLaw(law)} style={{background:G.card,borderRadius:14,padding:"12px 14px",marginBottom:8,borderLeft:`4px solid ${urg?"#ef4444":G.green}`,boxShadow:"0 2px 8px rgba(0,0,0,.06)",cursor:"pointer",display:"flex",gap:12,alignItems:"center"}}>
-              <div style={{width:36,height:36,borderRadius:10,background:law.bg||"#eef2ff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>{law.icon}</div>
-              <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:12,fontWeight:600,color:G.navy,lineHeight:1.35,marginBottom:2}}>{lang==="ur"?law.titleUr:law.title}</div>
-                <div style={{fontSize:10,color:G.muted}}>{law.sub}</div>
-                {urg && <div style={{fontSize:10,color:"#b91c1c",marginTop:2,fontWeight:600}}>⚠ {d>0?`${d} ${t.daysLeft}`:t.overdue} — PKR {(law.penalty||0).toLocaleString()}</div>}
 /* ── INSTAGRAM NEWS FEED ──────────────────────────────────── */
 function NewsFeed({ biz, onSelect, lang }) {
   const t = T[lang];
