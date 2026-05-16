@@ -1548,15 +1548,15 @@ export default function App() {
   /* Use DB laws if loaded, otherwise fall back to hardcoded */
   const LAWS_SOURCE = dbLaws.length > 0 ? dbLaws : ALL_LAWS;
 
-  const myLaws = biz ? LAWS_SOURCE.filter(l => matchLaw(l, biz)) : [];
-  const myNews = biz ? NEWS.filter(n => matchNews(n, biz))       : [];
+  const myLaws = biz && typeof biz === "object" ? LAWS_SOURCE.filter(l => matchLaw(l, biz)) : [];
+  const myNews = biz && typeof biz === "object" ? NEWS.filter(n => matchNews(n, biz)) : [];
 
   const nav = s => { setSelLaw(null); setSelNews(null); setScreen(s); };
   const inDetail    = selLaw || selNews;
   const mainScreens = ["dash","news","laws","profile"];
 
   /* Loading spinner */
-  if (authLoading || lawsLoading) return (
+  if ((authLoading || lawsLoading) && !biz) return (
     <div style={{height:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:G.night,fontFamily:G.b,gap:16}}>
       <div style={{display:"flex",alignItems:"center",gap:10}}>
         <div style={{width:32,height:32,borderRadius:9,border:`1px solid ${G.goldBorder}`,background:G.goldFaint,display:"flex",alignItems:"center",justifyContent:"center"}}>
