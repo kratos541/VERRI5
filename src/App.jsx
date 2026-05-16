@@ -1349,8 +1349,8 @@ function BottomNav({ active, onNav, urgentCount, newsCount, lang, TH }) {
     <div style={{background:TH.bg,borderTop:`0.5px solid ${TH.border}`,display:"flex",padding:"10px 0 14px",flexShrink:0}}>
       {tabs.map(tab=>(
         <button key={tab.id} onClick={()=>onNav(tab.id)} style={{flex:1,background:"transparent",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3,position:"relative",padding:"2px 0"}}>
-          <i className={`ti ${tab.icon}`} style={{fontSize:26,color:active===tab.id?TH.gold:TH.border}}/>
-          <span style={{fontSize:10,fontWeight:500,color:active===tab.id?TH.gold:TH.text3,fontFamily:"inherit"}}>{tab.label}</span>
+          <i className={`ti ${tab.icon}`} style={{fontSize:26,color:active===tab.id?"#C9A84C":"#2a2a2a",fontWeight:900}}/>
+          <span style={{fontSize:10,fontWeight:active===tab.id?700:400,color:active===tab.id?"#C9A84C":"#2a2a2a",fontFamily:"inherit"}}>{tab.label}</span>
           {active===tab.id && <div style={{position:"absolute",bottom:-14,width:16,height:2,background:TH.gold,borderRadius:1}}/>}
           {(tab.badge||0)>0 && <span style={{position:"absolute",top:0,right:"14%",background:TH.red,color:"#ffffff",fontSize:8,fontWeight:700,borderRadius:8,padding:"1px 4px",minWidth:13,textAlign:"center"}}>{tab.badge}</span>}
         </button>
