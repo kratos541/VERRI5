@@ -1387,216 +1387,129 @@ function ProfileScreen({ biz, onUpdate, lang }) {
   );
 }
 
+
 /* ── ROOT ─────────────────────────────────────────────────── */
 export default function App() {
   injectFonts();
-  const [lang, setLang]       = useState("en");
-  const [biz, setBiz]         = useState(null);
-  const [screen, setScreen]   = useState("dash");
-  const [selLaw, setSelLaw]   = useState(null);
+  const [lang, setLang] = useState("en");
+  const [biz,  setBiz]  = useState(null);
+  const [screen, setScreen] = useState("dash");
+  const [selLaw,  setSelLaw]  = useState(null);
   const [selNews, setSelNews] = useState(null);
+  const [user, setUser] = useState(null);
+  const [ready, setReady] = useState(false);
+  const [dbLaws, setDbLaws] = useState([]);
 
-  /* ── Auth state ── */
-  const [user, setUser]       = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
-
+  /* Auth */
   useEffect(() => {
-    /* Check if user is already logged in */
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-      setAuthLoading(false);
     });
-    /* Listen for login/logout */
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setUser(session?.user ?? null);
     });
     return () => subscription.unsubscribe();
   }, []);
 
-  /* Google login */
-  const signInWithGoogle = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: window.location.origin },
-    });
-  };
-
-  /* Logout */
-  const signOut = async () => {
-    await supabase.auth.signOut();
-  };
-
-  /* Save profile to Supabase when user completes onboarding */
-  const saveProfile = async (bizData) => {
-    if (!user) return;
-    await supabase.from("user_profiles").upsert({
-      id:          user.id,
-      name:        bizData.name,
-      owner_name:  bizData.ownerName,
-      designation: bizData.designation,
-      phone:       bizData.phone,
-      type:        bizData.type,
-      province:    bizData.province,
-      city:        bizData.city,
-      address:     bizData.address,
-      reg_type:    bizData.regType,
-      ntn:         bizData.ntn,
-      rev_m:       bizData.revM,
-      emp:         bizData.emp,
-      licences:    bizData.licences,
-      products:    bizData.products,
-      updated_at:  new Date().toISOString(),
-    });
-  };
+  /* Laws from Supabase */
+  useEffect(() => {
+    supabase.from("laws").select("*").eq("active", true).order("cat")
+      .then(({ data, error }) => {
+        if (!error && data && data.length > 0) {
+          const mapped = data.map(l => ({
+            id: l.id, title: l.title, titleUr: l.title_ur,
+            cat: l.cat, sub: l.sub, icon: l.icon,
+            color: l.color, bg: l.bg,
+            provinces: l.provinces || ["All"],
+            types: l.types || [],
+            minRevM: l.min_rev_m || 0,
+            minEmp: l.min_emp || 1,
+            badge: l.badge, deadline: l.deadline,
+            penalty: l.penalty || 0,
+            penaltyPerDay: l.penalty_per_day || 0,
+            summaryEn: l.summary_en, summaryUr: l.summary_ur,
+            steps: l.steps || [],
+            authority: l.authority, phone: l.phone, url: l.url,
+            letter: l.letter_template ? (b) => l.letter_template
+              .replace(/\[BUSINESS_NAME\]/g, b.name||"")
+              .replace(/\[OWNER_NAME\]/g, b.ownerName||"")
+              .replace(/\[DESIGNATION\]/g, b.designation||"")
+              .replace(/\[PHONE\]/g, b.phone||"[PHONE]")
+              .replace(/\[ADDRESS\]/g, b.address||"")
+              .replace(/\[CITY\]/g, b.city||"")
+              .replace(/\[PROVINCE\]/g, b.province||"")
+              .replace(/\[NTN\]/g, b.ntn||"[NTN]")
+              .replace(/\[TYPE\]/g, b.typeLabel||"")
+              .replace(/\[STRN\]/g, "[ENTER STRN]") : null,
+          }));
+          setDbLaws(mapped);
+        }
+        setReady(true);
+      })
+      .catch(() => setReady(true));
+  }, []);
 
   /* Load saved profile when user logs in */
   useEffect(() => {
     if (!user || biz) return;
     supabase.from("user_profiles").select("*").eq("id", user.id).single()
       .then(({ data }) => {
-        if (data) {
+        if (data && data.type && data.province) {
           setBiz({
-            name:        data.name        || "",
-            ownerName:   data.owner_name  || "",
-            designation: data.designation || "Owner",
-            phone:       data.phone       || "",
-            type:        data.type        || "",
-            province:    data.province    || "",
-            city:        data.city        || "",
-            address:     data.address     || "",
-            regType:     data.reg_type    || "sole",
-            ntn:         data.ntn         || "",
-            revM:        data.rev_m       || 3,
-            emp:         data.emp         || 3,
-            licences:    data.licences    || [],
-            products:    data.products    || "",
-            typeLabel:   data.type ? bl(data.type,"en") : "",
-            revLabel:    REV_BANDS.find(b=>b.v===data.rev_m)?.l || "",
-            empLabel:    EMP_BANDS.find(b=>b.v===data.emp)?.l  || "",
+            name: data.name||"", ownerName: data.owner_name||"",
+            designation: data.designation||"Owner", phone: data.phone||"",
+            type: data.type||"", province: data.province||"",
+            city: data.city||"", address: data.address||"",
+            regType: data.reg_type||"sole", ntn: data.ntn||"",
+            revM: data.rev_m||3, emp: data.emp||3,
+            licences: data.licences||[], products: data.products||"",
+            typeLabel: bl(data.type,"en"),
+            revLabel: REV_BANDS.find(b=>b.v===data.rev_m)?.l||"",
+            empLabel: EMP_BANDS.find(b=>b.v===data.emp)?.l||"",
           });
-          setScreen("dash");
         }
-      });
+      }).catch(()=>{});
   }, [user]);
 
-  /* Fetch laws from Supabase ── */
-  const [dbLaws, setDbLaws]     = useState([]);
-  const [lawsLoading, setLawsLoading] = useState(true);
-  const [lawsError, setLawsError]     = useState(null);
+  const signInWithGoogle = () => supabase.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: window.location.origin }});
+  const signOut = () => supabase.auth.signOut().then(()=>setBiz(null));
+  const saveProfile = async (b) => {
+    if (!user) return;
+    await supabase.from("user_profiles").upsert({ id:user.id, name:b.name, owner_name:b.ownerName, designation:b.designation, phone:b.phone, type:b.type, province:b.province, city:b.city, address:b.address, reg_type:b.regType, ntn:b.ntn, rev_m:b.revM, emp:b.emp, licences:b.licences, products:b.products, updated_at:new Date().toISOString() });
+  };
 
-  useEffect(() => {
-    async function fetchLaws() {
-      try {
-        const { data, error } = await supabase
-          .from("laws")
-          .select("*")
-          .eq("active", true)
-          .order("cat");
-        if (error) throw error;
-        /* Map snake_case DB columns → camelCase used in components */
-        const mapped = (data || []).map(l => ({
-          id:            l.id,
-          title:         l.title,
-          titleUr:       l.title_ur,
-          cat:           l.cat,
-          sub:           l.sub,
-          icon:          l.icon,
-          color:         l.color,
-          bg:            l.bg,
-          provinces:     l.provinces || ["All"],
-          types:         l.types     || [],
-          minRevM:       l.min_rev_m || 0,
-          minEmp:        l.min_emp   || 1,
-          badge:         l.badge,
-          deadline:      l.deadline,
-          penalty:       l.penalty   || 0,
-          penaltyPerDay: l.penalty_per_day || 0,
-          summaryEn:     l.summary_en,
-          summaryUr:     l.summary_ur,
-          steps:         l.steps     || [],
-          authority:     l.authority,
-          phone:         l.phone,
-          url:           l.url,
-          /* Re-create the letter function from the template stored in DB */
-          letter: l.letter_template ? (b) =>
-            l.letter_template
-              .replace(/\[BUSINESS_NAME\]/g, b.name || "")
-              .replace(/\[OWNER_NAME\]/g,    b.ownerName || "")
-              .replace(/\[DESIGNATION\]/g,   b.designation || "")
-              .replace(/\[PHONE\]/g,         b.phone || "[PHONE]")
-              .replace(/\[ADDRESS\]/g,       b.address || "")
-              .replace(/\[CITY\]/g,          b.city || "")
-              .replace(/\[PROVINCE\]/g,      b.province || "")
-              .replace(/\[NTN\]/g,           b.ntn || "[NTN]")
-              .replace(/\[TYPE\]/g,          b.typeLabel || "")
-              .replace(/\[STRN\]/g,          "[ENTER STRN]")
-          : null,
-        }));
-        setDbLaws(mapped);
-      } catch (err) {
-        console.error("Supabase fetch error:", err);
-        setLawsError(err.message);
-        /* Fall back to ALL_LAWS so app still works */
-        setDbLaws(ALL_LAWS);
-      } finally {
-        setLawsLoading(false);
-      }
-    }
-    fetchLaws();
-  }, []);
-
-  /* Use DB laws if loaded, otherwise fall back to hardcoded */
-  const LAWS_SOURCE = dbLaws.length > 0 ? dbLaws : ALL_LAWS;
-
-  const myLaws = biz && typeof biz === "object" ? LAWS_SOURCE.filter(l => matchLaw(l, biz)) : [];
-  const myNews = biz && typeof biz === "object" ? NEWS.filter(n => matchNews(n, biz)) : [];
-
+  const LAWS = dbLaws.length > 0 ? dbLaws : ALL_LAWS;
+  const myLaws = biz && biz.type ? LAWS.filter(l => matchLaw(l, biz)) : [];
+  const myNews = biz && biz.type ? NEWS.filter(n => matchNews(n, biz)) : [];
   const nav = s => { setSelLaw(null); setSelNews(null); setScreen(s); };
-  const inDetail    = selLaw || selNews;
-  const mainScreens = ["dash","news","laws","profile"];
 
-  /* Loading spinner */
-  if ((authLoading || lawsLoading) && !biz) return (
-    <div style={{height:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:G.night,fontFamily:G.b,gap:16}}>
-      <div style={{display:"flex",alignItems:"center",gap:10}}>
-        <div style={{width:32,height:32,borderRadius:9,border:`1px solid ${G.goldBorder}`,background:G.goldFaint,display:"flex",alignItems:"center",justifyContent:"center"}}>
-          <i className="ti ti-shield-check" style={{fontSize:16,color:G.gold}}/>
-        </div>
-        <div style={{fontSize:18,fontWeight:500,color:G.gold,letterSpacing:"1px"}}>Verifill</div>
-      </div>
-      <div style={{width:32,height:32,border:`2px solid #1a1a1a`,borderTopColor:G.gold,borderRadius:"50%",animation:"spin .7s linear infinite"}}/>
-      <div style={{fontSize:11,color:"#2a2a2a"}}>Loading Pakistan laws…</div>
+  /* 1. Show loading ONLY on first open before laws are ready */
+  if (!ready && !biz) return (
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"#060606",gap:16,fontFamily:"inherit"}}>
+      <div style={{fontSize:16,fontWeight:500,color:"#C9A84C",letterSpacing:"1px"}}>Verifill</div>
+      <div style={{width:28,height:28,border:"2px solid #1a1a1a",borderTopColor:"#C9A84C",borderRadius:"50%",animation:"spin .7s linear infinite"}}/>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
-  /* Not logged in — show sign in screen */
+  /* 2. Show sign in if no user and no biz */
   if (!user && !biz) return (
-    <div style={{height:"100vh",overflowY:"auto",background:G.night,fontFamily:G.b}}>
-      <style>{`@keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}`}</style>
-      <div style={{maxWidth:480,margin:"0 auto",padding:"40px 20px 60px",animation:"up .5s ease",textAlign:"center"}}>
-        <div style={{display:"inline-flex",alignItems:"center",gap:12,background:G.goldFaint,border:`1px solid ${G.goldBorder}`,borderRadius:16,padding:"10px 22px",marginBottom:16}}>
-          <div style={{width:36,height:36,borderRadius:10,border:`1px solid ${G.goldBorder}`,background:G.goldFaint,display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <i className="ti ti-shield-check" style={{fontSize:18,color:G.gold}}/>
+    <div style={{height:"100vh",overflowY:"auto",background:"#060606",fontFamily:"inherit"}}>
+      <div style={{maxWidth:480,margin:"0 auto",padding:"60px 24px",textAlign:"center"}}>
+        <div style={{display:"inline-flex",alignItems:"center",gap:10,marginBottom:32}}>
+          <div style={{width:40,height:40,borderRadius:11,border:"1px solid rgba(201,168,76,.4)",background:"rgba(201,168,76,.08)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <i className="ti ti-shield-check" style={{fontSize:20,color:"#C9A84C"}}/>
           </div>
-          <div>
-            <div style={{fontSize:22,fontWeight:500,color:G.gold,letterSpacing:"1px"}}>Verifill</div>
-            <div style={{fontSize:8,color:"rgba(201,168,76,.35)",letterSpacing:".18em",textTransform:"uppercase",marginTop:1}}>Pakistan Compliance AI 🇵🇰</div>
+          <div style={{textAlign:"left"}}>
+            <div style={{fontSize:18,fontWeight:500,color:"#C9A84C",letterSpacing:"1px"}}>Verifill</div>
+            <div style={{fontSize:9,color:"rgba(201,168,76,.3)",letterSpacing:".2em",textTransform:"uppercase"}}>Pakistan Compliance</div>
           </div>
         </div>
-        <p style={{color:"#2a2a2a",fontSize:12,lineHeight:1.9,marginBottom:28}}>
-          Every law that applies to your business.<br/>
-          Specific to your city, province, and business type.<br/>
-          Never get fined for missing a deadline again.
-        </p>
-        <div style={{background:G.dark1,border:`0.5px solid ${G.dark3}`,borderRadius:20,padding:"28px 22px"}}>
-          <i className="ti ti-hand-stop" style={{fontSize:28,color:G.gold,display:"block",marginBottom:10}}/>
-          <div style={{fontSize:18,fontWeight:500,color:"#fff",marginBottom:6}}>Welcome to Verifill</div>
-          <div style={{fontSize:12,color:"#2a2a2a",marginBottom:22,lineHeight:1.7}}>
-            Sign in with Google to save your profile permanently.
-          </div>
-          <button onClick={signInWithGoogle} style={{width:"100%",padding:"13px 16px",borderRadius:12,border:"0.5px solid #2a2a2a",background:"#fff",color:"#3c4043",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:G.b,display:"flex",alignItems:"center",justifyContent:"center",gap:12,marginBottom:14}}>
-            <svg width="20" height="20" viewBox="0 0 48 48">
+        <div style={{background:"#0c0c0c",border:"0.5px solid #1a1a1a",borderRadius:16,padding:"28px 22px"}}>
+          <div style={{fontSize:18,fontWeight:500,color:"#fff",marginBottom:8}}>Welcome</div>
+          <div style={{fontSize:12,color:"#2a2a2a",marginBottom:24,lineHeight:1.7}}>Sign in to save your profile permanently.</div>
+          <button onClick={signInWithGoogle} style={{width:"100%",padding:"13px 16px",borderRadius:12,border:"0.5px solid #2a2a2a",background:"#fff",color:"#3c4043",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:12,marginBottom:14}}>
+            <svg width="18" height="18" viewBox="0 0 48 48">
               <path fill="#4285F4" d="M44.5 20H24v8.5h11.8C34.7 33.9 29.8 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/>
               <path fill="#34A853" d="M6.3 14.7l7 5.1C15 16.1 19.2 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16.3 2 9.7 7.4 6.3 14.7z"/>
               <path fill="#FBBC05" d="M24 46c5.6 0 10.6-1.9 14.5-5.1l-6.7-5.5C29.8 37 27 38 24 38c-5.8 0-10.7-3.1-11.8-7.5l-7 5.4C9.7 42.6 16.3 46 24 46z"/>
@@ -1605,34 +1518,24 @@ export default function App() {
             Continue with Google
           </button>
           <div style={{display:"flex",alignItems:"center",gap:10,margin:"4px 0 14px"}}>
-            <div style={{flex:1,height:"0.5px",background:G.dark3}}/><span style={{fontSize:11,color:"#1e1e1e"}}>or</span><div style={{flex:1,height:"0.5px",background:G.dark3}}/>
+            <div style={{flex:1,height:"0.5px",background:"#1a1a1a"}}/>
+            <span style={{fontSize:11,color:"#2a2a2a"}}>or</span>
+            <div style={{flex:1,height:"0.5px",background:"#1a1a1a"}}/>
           </div>
-          <button onClick={()=>setBiz("onboard")} style={{width:"100%",padding:"12px",borderRadius:12,border:"none",background:`linear-gradient(135deg,${G.gold},${G.goldDark})`,color:"#000",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:G.b}}>
-            Continue without saving →
+          <button onClick={()=>setBiz("onboard")} style={{width:"100%",padding:"12px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#C9A84C,#B8922A)",color:"#000",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
+            Continue without saving
           </button>
-          <div style={{fontSize:10,color:"#1e1e1e",marginTop:14,lineHeight:1.6}}>
-            <i className="ti ti-lock" style={{fontSize:10,marginRight:4,verticalAlign:"-1px",color:"#2a2a2a"}}/>Your data is private and never shared.
-          </div>
         </div>
       </div>
     </div>
   );
 
-  /* Logged in or skipped — show onboarding if no profile yet */
+  /* 3. Show onboarding if no real profile yet */
   if (!biz || biz === "onboard" || !biz.type || !biz.province) return (
     <Onboarding
-      onDone={async b => {
-        const safeBiz = {
-          ...b,
-          typeLabel: bl(b.type,"en") || b.type || "",
-          revLabel:  REV_BANDS.find(r=>r.v===b.revM)?.l || "",
-          empLabel:  EMP_BANDS.find(r=>r.v===b.emp)?.l  || "",
-          licences:  b.licences || [],
-          products:  b.products || "",
-          ntn:       b.ntn || "",
-        };
-        setBiz(safeBiz);
-        if (user) await saveProfile(safeBiz);
+      onDone={b => {
+        setBiz({ ...b, typeLabel: bl(b.type,"en"), revLabel: REV_BANDS.find(r=>r.v===b.revM)?.l||"", empLabel: EMP_BANDS.find(r=>r.v===b.emp)?.l||"", licences: b.licences||[], products: b.products||"", ntn: b.ntn||"" });
+        saveProfile(b);
         setScreen("dash");
       }}
       lang={lang}
@@ -1640,57 +1543,44 @@ export default function App() {
     />
   );
 
+  /* 4. Main app */
+  const inDetail = selLaw || selNews;
+  const mainScreens = ["dash","news","laws","profile"];
+
   const renderScreen = () => {
-    try {
-      if (selLaw)  return <LawDetail  law={selLaw}  biz={biz} onBack={() => setSelLaw(null)}  lang={lang}/>;
-      if (selNews) return <NewsDetail news={selNews} biz={biz} onBack={() => setSelNews(null)} lang={lang}/>;
-      switch (screen) {
-        case "dash":     return <Dashboard     biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut}/>;
-        case "news":     return <NewsFeed      biz={biz} onSelect={setSelNews} lang={lang}/>;
-        case "laws":     return <LawBook       biz={biz} onSelect={setSelLaw}  lang={lang} allLaws={LAWS_SOURCE} onNav={nav}/>;
-        case "profile":  return <ProfileScreen biz={biz} onUpdate={async b => { setBiz(b); if(user) await saveProfile(b); nav("dash"); }} lang={lang}/>;
-        case "calendar": return <ComplianceCalendar laws={myLaws} lang={lang} onNav={nav}/>;
-        case "finecalc": return <FineCalculator     laws={myLaws} lang={lang} onNav={nav}/>;
-        case "scandoc":  return <DocScanner         lang={lang} onNav={nav}/>;
-        case "findca":   return <FindCA             biz={biz} lang={lang} onNav={nav}/>;
-        case "kit":      return <ComplianceKit      laws={myLaws} biz={biz} lang={lang} onNav={nav}/>;
-        default:         return <Dashboard          biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut}/>;
-      }
-    } catch(err) {
-      return (
-        <div style={{padding:24,background:"#060606",minHeight:"100vh",color:"#ef4444",fontFamily:"monospace",fontSize:12}}>
-          <div style={{color:"#C9A84C",fontSize:16,marginBottom:16}}>Debug — Crash Info</div>
-          <div style={{marginBottom:8}}>Error: {err.message}</div>
-          <div style={{marginBottom:8}}>Screen: {screen}</div>
-          <div style={{marginBottom:8}}>Biz type: {biz?.type}</div>
-          <div style={{marginBottom:8}}>Biz name: {biz?.name}</div>
-          <div style={{marginBottom:8}}>Laws count: {myLaws?.length}</div>
-          <div style={{marginBottom:16}}>Stack: {err.stack?.slice(0,300)}</div>
-          <button onClick={()=>nav("dash")} style={{padding:"10px 20px",background:"#C9A84C",border:"none",borderRadius:8,color:"#000",cursor:"pointer",fontFamily:"inherit"}}>Try Dashboard</button>
-          <button onClick={()=>{setBiz(null);}} style={{padding:"10px 20px",background:"#1a1a1a",border:"1px solid #333",borderRadius:8,color:"#C9A84C",cursor:"pointer",fontFamily:"inherit",marginLeft:8}}>Reset Profile</button>
-        </div>
-      );
+    if (selLaw)  return <LawDetail  law={selLaw}  biz={biz} onBack={()=>setSelLaw(null)}  lang={lang}/>;
+    if (selNews) return <NewsDetail news={selNews} biz={biz} onBack={()=>setSelNews(null)} lang={lang}/>;
+    switch(screen) {
+      case "dash":     return <Dashboard     biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut}/>;
+      case "news":     return <NewsFeed      biz={biz} onSelect={setSelNews} lang={lang}/>;
+      case "laws":     return <LawBook       biz={biz} onSelect={setSelLaw} lang={lang} allLaws={LAWS} onNav={nav}/>;
+      case "profile":  return <ProfileScreen biz={biz} onUpdate={b=>{ setBiz(b); saveProfile(b); nav("dash"); }} lang={lang}/>;
+      case "calendar": return <ComplianceCalendar laws={myLaws} lang={lang} onNav={nav}/>;
+      case "finecalc": return <FineCalculator     laws={myLaws} lang={lang} onNav={nav}/>;
+      case "scandoc":  return <DocScanner         lang={lang} onNav={nav}/>;
+      case "findca":   return <FindCA             biz={biz} lang={lang} onNav={nav}/>;
+      case "kit":      return <ComplianceKit      laws={myLaws} biz={biz} lang={lang} onNav={nav}/>;
+      default:         return <Dashboard          biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut}/>;
     }
   };
 
   return (
-    <div style={{maxWidth:480,margin:"0 auto",height:"100vh",background:G.night,position:"relative",fontFamily:G.b,display:"flex",flexDirection:"column"}}>
+    <div style={{maxWidth:480,margin:"0 auto",height:"100vh",background:"#060606",position:"relative",fontFamily:"inherit",display:"flex",flexDirection:"column"}}>
       <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes up   { from { opacity:0; transform: translateY(14px); } to { opacity:1; transform: translateY(0); } }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        select, input, button { font-family: inherit; }
-        ::-webkit-scrollbar { display: none; }
-        .ti { font-family: "tabler-icons" !important; }
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        *{box-sizing:border-box;margin:0;padding:0}
+        select,input,button{font-family:inherit}
+        ::-webkit-scrollbar{display:none}
+        .ti{font-family:"tabler-icons"!important}
       `}</style>
-      <div style={{flex:1,overflow:"auto",animation:"up .3s ease"}}>
+      <div style={{flex:1,overflowY:"auto"}}>
         {renderScreen()}
       </div>
       {!inDetail && mainScreens.includes(screen) && (
-        <BottomNav
-          active={screen} onNav={nav}
-          urgentCount={myLaws.filter(l => { const d = daysUntil(l.deadline); return d !== null && d < 60; }).length}
-          newsCount={myNews.filter(n => n.mag === "high").length}
+        <BottomNav active={screen} onNav={nav}
+          urgentCount={myLaws.filter(l=>{const d=daysUntil(l.deadline);return d!==null&&d<60;}).length}
+          newsCount={myNews.filter(n=>n.mag==="high").length}
           lang={lang}
         />
       )}
