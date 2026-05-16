@@ -151,10 +151,77 @@ const daysUntil = d => d ? Math.ceil((new Date(d)-new Date())/86400000) : null;
 
 function matchLaw(law, biz) {
   if (!biz || !biz.type || !biz.province) return false;
-  return (law.provinces.includes("All") || law.provinces.includes(biz.province))
+
+  /* Base matching — type, province, revenue, employees */
+  const baseMatch =
+    (law.provinces.includes("All") || law.provinces.includes(biz.province))
     && (law.types.includes(biz.type) || (biz.type==="pharmacy" && law.types.includes("medical")))
     && (biz.revM||0) >= (law.minRevM||0)
     && (biz.emp||1)  >= (law.minEmp||1);
+
+  if (!baseMatch) return false;
+
+  /* Step 4 — Business activities unlock extra laws */
+  const id = law.id || "";
+  const title = (law.title||"").toLowerCase();
+
+  /* Import/export laws — only show if user imports or exports */
+  const isImportLaw = id.includes("import") || id.includes("weboc") || title.includes("advance tax on import") || title.includes("import export code");
+  if (isImportLaw && !biz.doesImport) return false;
+
+  const isExportLaw = id.includes("export") || id.includes("tdap") || id.includes("form-e") || title.includes("export") || title.includes("form e");
+  if (isExportLaw && !biz.doesExport && !biz.doesImport) return false;
+
+  /* Food laws — only show if user handles food */
+  const isFoodHandlingLaw = title.includes("food handler") || title.includes("pest control") || title.includes("hygiene certificate") || title.includes("halal");
+  if (isFoodHandlingLaw && !biz.handlesFood && biz.type !== "food") return false;
+
+  /* Factory laws — only show if user has a factory */
+  const isFactoryLaw = title.includes("factory act") || title.includes("boiler") || id.includes("factory") || id.includes("boiler");
+  if (isFactoryLaw && !biz.hasFactory) return false;
+
+  /* Environmental laws — only show if factory */
+  const isEnvLaw = title.includes("environment") || title.includes("epa");
+  if (isEnvLaw && !biz.hasFactory && !biz.hasWarehouse) return false;
+
+  /* Step 5 — Specific details */
+  /* Generator/fuel storage — only if has generator */
+  const isGeneratorLaw = title.includes("generator") || title.includes("petroleum storage") || title.includes("fuel storage");
+  if (isGeneratorLaw && !biz.hasGenerator) return false;
+
+  /* Signboard permit — only if has signboard */
+  const isSignboardLaw = title.includes("signboard") || title.includes("outdoor advertising");
+  if (isSignboardLaw && !biz.hasSignboard) return false;
+
+  /* Gratuity — only if has long-term employees */
+  const isGratuityLaw = title.includes("gratuity");
+  if (isGratuityLaw && !biz.hasLongTermEmployees) return false;
+
+  /* Boiler — only if has boiler */
+  const isBoilerLaw = title.includes("boiler") || title.includes("pressure vessel");
+  if (isBoilerLaw && !biz.hasBoiler) return false;
+
+  /* Commercial vehicles — only if has vehicles */
+  const isVehicleLaw = title.includes("commercial vehicle") || title.includes("route permit");
+  if (isVehicleLaw && !biz.hasVehicles) return false;
+
+  /* PSEB / Freelancer — only IT businesses */
+  const isPsebLaw = title.includes("pseb") || title.includes("freelancer tax");
+  if (isPsebLaw && biz.type !== "it" && biz.type !== "services") return false;
+
+  /* PTA Telecom — only if IT/telecom */
+  const isPtaLaw = title.includes("pta registration") || title.includes("telecom business");
+  if (isPtaLaw && biz.type !== "it" && biz.type !== "services") return false;
+
+  /* Money changer — only if deals in foreign currency */
+  const isMoneyChangerLaw = title.includes("money changer");
+  if (isMoneyChangerLaw && !biz.dealsForeignCurrency) return false;
+
+  /* Foreign currency — only if exports or deals foreign */
+  const isFxLaw = title.includes("form e") || title.includes("foreign currency");
+  if (isFxLaw && !biz.doesExport && !biz.dealsForeignCurrency) return false;
+
+  return true;
 }
 function matchNews(n, biz) {
   if (!biz || !biz.type || !biz.province) return false;
