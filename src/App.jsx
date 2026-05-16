@@ -1641,19 +1641,35 @@ export default function App() {
   );
 
   const renderScreen = () => {
-    if (selLaw)  return <LawDetail  law={selLaw}  biz={biz} onBack={() => setSelLaw(null)}  lang={lang}/>;
-    if (selNews) return <NewsDetail news={selNews} biz={biz} onBack={() => setSelNews(null)} lang={lang}/>;
-    switch (screen) {
-      case "dash":     return <Dashboard     biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut}/>;
-      case "news":     return <NewsFeed      biz={biz} onSelect={setSelNews} lang={lang}/>;
-      case "laws":     return <LawBook       biz={biz} onSelect={setSelLaw}  lang={lang} allLaws={LAWS_SOURCE} onNav={nav}/>;
-      case "profile":  return <ProfileScreen biz={biz} onUpdate={async b => { setBiz(b); if(user) await saveProfile(b); nav("dash"); }} lang={lang}/>;
-      case "calendar": return <ComplianceCalendar laws={myLaws} lang={lang} onNav={nav}/>;
-      case "finecalc": return <FineCalculator     laws={myLaws} lang={lang} onNav={nav}/>;
-      case "scandoc":  return <DocScanner         lang={lang} onNav={nav}/>;
-      case "findca":   return <FindCA             biz={biz} lang={lang} onNav={nav}/>;
-      case "kit":      return <ComplianceKit      laws={myLaws} biz={biz} lang={lang} onNav={nav}/>;
-      default:         return <Dashboard          biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut}/>;
+    try {
+      if (selLaw)  return <LawDetail  law={selLaw}  biz={biz} onBack={() => setSelLaw(null)}  lang={lang}/>;
+      if (selNews) return <NewsDetail news={selNews} biz={biz} onBack={() => setSelNews(null)} lang={lang}/>;
+      switch (screen) {
+        case "dash":     return <Dashboard     biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut}/>;
+        case "news":     return <NewsFeed      biz={biz} onSelect={setSelNews} lang={lang}/>;
+        case "laws":     return <LawBook       biz={biz} onSelect={setSelLaw}  lang={lang} allLaws={LAWS_SOURCE} onNav={nav}/>;
+        case "profile":  return <ProfileScreen biz={biz} onUpdate={async b => { setBiz(b); if(user) await saveProfile(b); nav("dash"); }} lang={lang}/>;
+        case "calendar": return <ComplianceCalendar laws={myLaws} lang={lang} onNav={nav}/>;
+        case "finecalc": return <FineCalculator     laws={myLaws} lang={lang} onNav={nav}/>;
+        case "scandoc":  return <DocScanner         lang={lang} onNav={nav}/>;
+        case "findca":   return <FindCA             biz={biz} lang={lang} onNav={nav}/>;
+        case "kit":      return <ComplianceKit      laws={myLaws} biz={biz} lang={lang} onNav={nav}/>;
+        default:         return <Dashboard          biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut}/>;
+      }
+    } catch(err) {
+      return (
+        <div style={{padding:24,background:"#060606",minHeight:"100vh",color:"#ef4444",fontFamily:"monospace",fontSize:12}}>
+          <div style={{color:"#C9A84C",fontSize:16,marginBottom:16}}>Debug — Crash Info</div>
+          <div style={{marginBottom:8}}>Error: {err.message}</div>
+          <div style={{marginBottom:8}}>Screen: {screen}</div>
+          <div style={{marginBottom:8}}>Biz type: {biz?.type}</div>
+          <div style={{marginBottom:8}}>Biz name: {biz?.name}</div>
+          <div style={{marginBottom:8}}>Laws count: {myLaws?.length}</div>
+          <div style={{marginBottom:16}}>Stack: {err.stack?.slice(0,300)}</div>
+          <button onClick={()=>nav("dash")} style={{padding:"10px 20px",background:"#C9A84C",border:"none",borderRadius:8,color:"#000",cursor:"pointer",fontFamily:"inherit"}}>Try Dashboard</button>
+          <button onClick={()=>{setBiz(null);}} style={{padding:"10px 20px",background:"#1a1a1a",border:"1px solid #333",borderRadius:8,color:"#C9A84C",cursor:"pointer",fontFamily:"inherit",marginLeft:8}}>Reset Profile</button>
+        </div>
+      );
     }
   };
 
