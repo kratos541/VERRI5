@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Verifill</string>
+    <string name="title_activity_main">Verifill</string>
+    <string name="package_name">com.verifill.app</string>
+    <string name="custom_url_scheme">com.verifill.app</string>
+</resources>
