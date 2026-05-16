@@ -1683,7 +1683,7 @@ export default function App() {
         ::-webkit-scrollbar { display: none; }
         .ti { font-family: "tabler-icons" !important; }
       `}</style>
-      <div style={{flex:1,overflow:"hidden",animation:"up .3s ease"}}>
+      <div style={{flex:1,overflow:"auto",animation:"up .3s ease"}}>
         {renderScreen()}
       </div>
       {!inDetail && mainScreens.includes(screen) && (
