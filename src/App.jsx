@@ -1376,13 +1376,13 @@ export default function App() {
   const TH = dark ? {
     bg:"#060606", bg2:"#0c0c0c", bg3:"#111111",
     border:"#1e1e1e", border2:"rgba(201,168,76,.25)",
-    text:"#ffffff", text2:"#888888", text3:"#333333",
+    text:"#ffffff", text2:"#cccccc", text3:"#888888",
     gold:"#C9A84C", goldFaint:"rgba(201,168,76,.08)",
     red:"#ef4444", redFaint:"rgba(239,68,68,.08)", redBorder:"rgba(239,68,68,.4)",
   } : {
     bg:"#ffffff", bg2:"#fdf8ef", bg3:"#f5ede0",
     border:"#ede8d8", border2:"rgba(184,146,42,.3)",
-    text:"#111111", text2:"#666666", text3:"#aaaaaa",
+    text:"#111111", text2:"#333333", text3:"#666666",
     gold:"#B8922A", goldFaint:"rgba(184,146,42,.08)",
     red:"#dc2626", redFaint:"rgba(220,38,38,.06)", redBorder:"rgba(220,38,38,.35)",
   };
