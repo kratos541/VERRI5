@@ -1388,6 +1388,29 @@ function ProfileScreen({ biz, onUpdate, lang }) {
 }
 
 
+/* ── BOTTOM NAV ───────────────────────────────────────────── */
+function BottomNav({ active, onNav, urgentCount, newsCount, lang }) {
+  const t = T[lang];
+  const tabs = [
+    {id:"dash",    icon:"ti-home",  label:t.home},
+    {id:"news",    icon:"ti-news",  label:t.news,   badge:newsCount},
+    {id:"laws",    icon:"ti-scale", label:t.laws,   badge:urgentCount},
+    {id:"profile", icon:"ti-user",  label:t.profile},
+  ];
+  return (
+    <div style={{background:"#060606",borderTop:"0.5px solid #161616",display:"flex",padding:"10px 0 14px",flexShrink:0}}>
+      {tabs.map(tab=>(
+        <button key={tab.id} onClick={()=>onNav(tab.id)} style={{flex:1,background:"transparent",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3,position:"relative",padding:"2px 0"}}>
+          <i className={`ti ${tab.icon}`} style={{fontSize:22,color:active===tab.id?"#C9A84C":"#222"}}/>
+          <span style={{fontSize:8,fontWeight:500,color:active===tab.id?"#C9A84C":"#222",fontFamily:"inherit",letterSpacing:".05em"}}>{tab.label}</span>
+          {active===tab.id && <div style={{position:"absolute",bottom:-14,width:16,height:2,background:"#C9A84C",borderRadius:1}}/>}
+          {(tab.badge||0)>0 && <span style={{position:"absolute",top:0,right:"14%",background:"#ef4444",color:"#fff",fontSize:8,fontWeight:700,borderRadius:8,padding:"1px 4px",minWidth:13,textAlign:"center"}}>{tab.badge}</span>}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 /* ── ROOT ─────────────────────────────────────────────────── */
 export default function App() {
   injectFonts();
