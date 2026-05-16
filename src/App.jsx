@@ -150,12 +150,14 @@ const bi = v => BIZ_TYPES.find(t=>t.v===v)?.i || "🏢";
 const daysUntil = d => d ? Math.ceil((new Date(d)-new Date())/86400000) : null;
 
 function matchLaw(law, biz) {
+  if (!biz || !biz.type || !biz.province) return false;
   return (law.provinces.includes("All") || law.provinces.includes(biz.province))
     && (law.types.includes(biz.type) || (biz.type==="pharmacy" && law.types.includes("medical")))
-    && biz.revM >= (law.minRevM||0)
-    && biz.emp  >= (law.minEmp||1);
+    && (biz.revM||0) >= (law.minRevM||0)
+    && (biz.emp||1)  >= (law.minEmp||1);
 }
 function matchNews(n, biz) {
+  if (!biz || !biz.type || !biz.province) return false;
   return (n.provinces.includes("All") || n.provinces.includes(biz.province))
     && (n.types.includes(biz.type) || (biz.type==="pharmacy" && n.types.includes("medical")));
 }
@@ -465,11 +467,15 @@ function Dashboard({ biz, laws, news, onNav, onLaw, onNews, lang, setLang, user,
   const comp = laws.length ? Math.max(0,100-Math.round((urgent.length/laws.length)*50)) : 100;
   const closingLaw = laws.find(l=>l.id==="punjab-closing"||l.id==="sindh-closing");
   const CT = {food:"10:00 PM",retail:"8:00 PM",wholesale:"8:00 PM",services:"8:00 PM",pharmacy:"24 hrs",medical:"24 hrs",it:"8:00 PM",education:"8:00 PM",manufacturing:"Anytime",construction:"Anytime",trading:"8:00 PM"};
-  const myClosing = closingLaw?.closingTimes?.[biz.type] || CT[biz.type] || "8:00 PM";
+  const myClosing = closingLaw?.closingTimes?.[biz?.type] || CT[biz?.type] || "8:00 PM";
 
   /* Icon map for business types */
   const bizIcon = {retail:"ti-building-store",wholesale:"ti-package",food:"ti-tools-kitchen-2",manufacturing:"ti-building-factory-2",services:"ti-briefcase",it:"ti-device-laptop",medical:"ti-medical-cross",pharmacy:"ti-pill",education:"ti-school",construction:"ti-crane",trading:"ti-ship"};
-  const icon = bizIcon[biz.type] || "ti-building";
+  const icon = bizIcon[biz?.type] || "ti-building";
+  const bizName = biz?.name || "";
+  const bizType = biz?.typeLabel || bl(biz?.type,"en") || "";
+  const bizCity = biz?.city || "";
+  const bizProvince = biz?.province || "";
 
   return (
     <div style={{height:"100vh",overflowY:"auto",fontFamily:G.b,background:G.night,direction:lang==="ur"?"rtl":"ltr"}}>
@@ -517,13 +523,13 @@ function Dashboard({ biz, laws, news, onNav, onLaw, onNews, lang, setLang, user,
 
         {/* Business name */}
         <div style={{fontSize:20,fontWeight:500,color:"#fff",letterSpacing:"-.5px",marginBottom:4}}>
-          {biz.name.length>24?biz.name.slice(0,24)+"…":biz.name}
+          {bizName.length>24?bizName.slice(0,24)+"…":bizName}
         </div>
         <div style={{fontSize:9,color:"#2a2a2a",display:"flex",alignItems:"center",gap:6,marginBottom:18}}>
           <i className={`ti ${icon}`} style={{fontSize:10,color:G.gold}}/>
-          {lang==="ur"?biz.typeLabel:biz.typeLabel}
+          {bizType}
           <span style={{width:2,height:2,borderRadius:"50%",background:"#252525",display:"inline-block"}}/>
-          {biz.city}, {biz.province}
+          {bizCity}{bizProvince?`, ${bizProvince}`:""}
         </div>
 
         {/* Stats — Option B: thin gold border */}
@@ -1552,38 +1558,44 @@ export default function App() {
   /* Loading spinner */
   if (authLoading || lawsLoading) return (
     <div style={{height:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:G.night,fontFamily:G.b,gap:16}}>
-      <div style={{fontFamily:G.h,fontSize:28,color:"#fff",letterSpacing:"-1px"}}>Verifill</div>
-      <div style={{width:36,height:36,border:"3px solid #1c1c3a",borderTopColor:"#059669",borderRadius:"50%",animation:"spin .7s linear infinite"}}/>
-      <div style={{fontSize:12,color:"rgba(255,255,255,.4)"}}>Loading…</div>
+      <div style={{display:"flex",alignItems:"center",gap:10}}>
+        <div style={{width:32,height:32,borderRadius:9,border:`1px solid ${G.goldBorder}`,background:G.goldFaint,display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <i className="ti ti-shield-check" style={{fontSize:16,color:G.gold}}/>
+        </div>
+        <div style={{fontSize:18,fontWeight:500,color:G.gold,letterSpacing:"1px"}}>Verifill</div>
+      </div>
+      <div style={{width:32,height:32,border:`2px solid #1a1a1a`,borderTopColor:G.gold,borderRadius:"50%",animation:"spin .7s linear infinite"}}/>
+      <div style={{fontSize:11,color:"#2a2a2a"}}>Loading Pakistan laws…</div>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
   /* Not logged in — show sign in screen */
   if (!user && !biz) return (
-    <div style={{height:"100vh",overflowY:"auto",background:`radial-gradient(ellipse at 20% 10%,#01411C,#070714 60%)`,fontFamily:G.b}}>
+    <div style={{height:"100vh",overflowY:"auto",background:G.night,fontFamily:G.b}}>
       <style>{`@keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}`}</style>
       <div style={{maxWidth:480,margin:"0 auto",padding:"40px 20px 60px",animation:"up .5s ease",textAlign:"center"}}>
-        <div style={{display:"inline-flex",alignItems:"center",gap:12,background:"rgba(255,255,255,.07)",border:"1px solid rgba(255,255,255,.12)",borderRadius:16,padding:"10px 22px",marginBottom:16}}>
-          <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#01411C,#059669)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>✓</div>
+        <div style={{display:"inline-flex",alignItems:"center",gap:12,background:G.goldFaint,border:`1px solid ${G.goldBorder}`,borderRadius:16,padding:"10px 22px",marginBottom:16}}>
+          <div style={{width:36,height:36,borderRadius:10,border:`1px solid ${G.goldBorder}`,background:G.goldFaint,display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <i className="ti ti-shield-check" style={{fontSize:18,color:G.gold}}/>
+          </div>
           <div>
-            <div style={{fontFamily:G.h,fontSize:26,color:"#fff",letterSpacing:"-1px",lineHeight:1}}>Verifill</div>
-            <div style={{fontSize:9,color:"rgba(255,255,255,.3)",letterSpacing:".15em",textTransform:"uppercase",marginTop:1}}>Pakistan Compliance AI 🇵🇰</div>
+            <div style={{fontSize:22,fontWeight:500,color:G.gold,letterSpacing:"1px"}}>Verifill</div>
+            <div style={{fontSize:8,color:"rgba(201,168,76,.35)",letterSpacing:".18em",textTransform:"uppercase",marginTop:1}}>Pakistan Compliance AI 🇵🇰</div>
           </div>
         </div>
-        <p style={{color:"rgba(255,255,255,.35)",fontSize:12,lineHeight:1.9,marginBottom:28}}>
+        <p style={{color:"#2a2a2a",fontSize:12,lineHeight:1.9,marginBottom:28}}>
           Every law that applies to your business.<br/>
           Specific to your city, province, and business type.<br/>
           Never get fined for missing a deadline again.
         </p>
-        <div style={{background:G.card,borderRadius:20,padding:"28px 22px",boxShadow:"0 32px 80px rgba(0,0,0,.5)"}}>
-          <div style={{fontSize:24,marginBottom:10}}>👋</div>
-          <div style={{fontFamily:G.h,fontSize:20,color:G.navy,marginBottom:6}}>Welcome to Verifill</div>
-          <div style={{fontSize:12,color:G.muted,marginBottom:22,lineHeight:1.7}}>
-            Sign in with Google to save your profile permanently. Your laws, documents, and progress are always there when you come back.
+        <div style={{background:G.dark1,border:`0.5px solid ${G.dark3}`,borderRadius:20,padding:"28px 22px"}}>
+          <i className="ti ti-hand-stop" style={{fontSize:28,color:G.gold,display:"block",marginBottom:10}}/>
+          <div style={{fontSize:18,fontWeight:500,color:"#fff",marginBottom:6}}>Welcome to Verifill</div>
+          <div style={{fontSize:12,color:"#2a2a2a",marginBottom:22,lineHeight:1.7}}>
+            Sign in with Google to save your profile permanently.
           </div>
-          {/* Google Sign In Button */}
-          <button onClick={signInWithGoogle} style={{width:"100%",padding:"13px 16px",borderRadius:12,border:"1.5px solid #e2e8f0",background:"#fff",color:"#3c4043",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:G.b,display:"flex",alignItems:"center",justifyContent:"center",gap:12,marginBottom:14,boxShadow:"0 2px 8px rgba(0,0,0,.1)"}}>
+          <button onClick={signInWithGoogle} style={{width:"100%",padding:"13px 16px",borderRadius:12,border:"0.5px solid #2a2a2a",background:"#fff",color:"#3c4043",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:G.b,display:"flex",alignItems:"center",justifyContent:"center",gap:12,marginBottom:14}}>
             <svg width="20" height="20" viewBox="0 0 48 48">
               <path fill="#4285F4" d="M44.5 20H24v8.5h11.8C34.7 33.9 29.8 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/>
               <path fill="#34A853" d="M6.3 14.7l7 5.1C15 16.1 19.2 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16.3 2 9.7 7.4 6.3 14.7z"/>
@@ -1593,16 +1605,13 @@ export default function App() {
             Continue with Google
           </button>
           <div style={{display:"flex",alignItems:"center",gap:10,margin:"4px 0 14px"}}>
-            <div style={{flex:1,height:"0.5px",background:G.border}}/>
-            <span style={{fontSize:11,color:G.muted}}>or</span>
-            <div style={{flex:1,height:"0.5px",background:G.border}}/>
+            <div style={{flex:1,height:"0.5px",background:G.dark3}}/><span style={{fontSize:11,color:"#1e1e1e"}}>or</span><div style={{flex:1,height:"0.5px",background:G.dark3}}/>
           </div>
-          {/* Continue without saving */}
-          <button onClick={()=>setBiz("onboard")} style={{width:"100%",padding:"12px",borderRadius:12,border:"none",background:`linear-gradient(135deg,${G.pk},${G.green})`,color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:G.b}}>
+          <button onClick={()=>setBiz("onboard")} style={{width:"100%",padding:"12px",borderRadius:12,border:"none",background:`linear-gradient(135deg,${G.gold},${G.goldDark})`,color:"#000",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:G.b}}>
             Continue without saving →
           </button>
-          <div style={{fontSize:11,color:G.muted,marginTop:14,lineHeight:1.6}}>
-            🔒 Your data is private and never shared.
+          <div style={{fontSize:10,color:"#1e1e1e",marginTop:14,lineHeight:1.6}}>
+            <i className="ti ti-lock" style={{fontSize:10,marginRight:4,verticalAlign:"-1px",color:"#2a2a2a"}}/>Your data is private and never shared.
           </div>
         </div>
       </div>
@@ -1610,11 +1619,20 @@ export default function App() {
   );
 
   /* Logged in or skipped — show onboarding if no profile yet */
-  if (!biz || biz === "onboard") return (
+  if (!biz || biz === "onboard" || !biz.type || !biz.province) return (
     <Onboarding
       onDone={async b => {
-        setBiz(b);
-        if (user) await saveProfile(b);
+        const safeBiz = {
+          ...b,
+          typeLabel: bl(b.type,"en") || b.type || "",
+          revLabel:  REV_BANDS.find(r=>r.v===b.revM)?.l || "",
+          empLabel:  EMP_BANDS.find(r=>r.v===b.emp)?.l  || "",
+          licences:  b.licences || [],
+          products:  b.products || "",
+          ntn:       b.ntn || "",
+        };
+        setBiz(safeBiz);
+        if (user) await saveProfile(safeBiz);
         setScreen("dash");
       }}
       lang={lang}
@@ -1628,7 +1646,7 @@ export default function App() {
     switch (screen) {
       case "dash":     return <Dashboard     biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut}/>;
       case "news":     return <NewsFeed      biz={biz} onSelect={setSelNews} lang={lang}/>;
-      case "laws":     return <LawBook       biz={biz} onSelect={setSelLaw}  lang={lang} allLaws={LAWS_SOURCE}/>;
+      case "laws":     return <LawBook       biz={biz} onSelect={setSelLaw}  lang={lang} allLaws={LAWS_SOURCE} onNav={nav}/>;
       case "profile":  return <ProfileScreen biz={biz} onUpdate={async b => { setBiz(b); if(user) await saveProfile(b); nav("dash"); }} lang={lang}/>;
       case "calendar": return <ComplianceCalendar laws={myLaws} lang={lang} onNav={nav}/>;
       case "finecalc": return <FineCalculator     laws={myLaws} lang={lang} onNav={nav}/>;
