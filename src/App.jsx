@@ -461,7 +461,192 @@ function Onboarding({ onDone, lang, setLang }) {
 }
 
 /* ── DASHBOARD ────────────────────────────────────────────── */
-function Dashboard({ biz, laws, news, onNav, onLaw, onNews, lang, setLang, user, signOut }) {
+function Dashboard({ biz, laws, news, onNav, onLaw, onNews, lang, setLang, user, signOut, dark, setDark, TH }) {
+  const urgent = laws.filter(l=>{const d=daysUntil(l.deadline);return d!==null&&d<60;});
+  const closingLaw = laws.find(l=>l.id==="punjab-closing"||l.id==="sindh-closing");
+  const CT = {food:"10:00 PM",retail:"8:00 PM",wholesale:"8:00 PM",services:"8:00 PM",pharmacy:"24 hrs",medical:"24 hrs",it:"8:00 PM",education:"8:00 PM",manufacturing:"Anytime",construction:"Anytime",trading:"8:00 PM"};
+  const myClosing = closingLaw?.closingTimes?.[biz?.type] || CT[biz?.type] || "8:00 PM";
+  const bizIcon = {retail:"ti-building-store",wholesale:"ti-package",food:"ti-tools-kitchen-2",manufacturing:"ti-building-factory-2",services:"ti-briefcase",it:"ti-device-laptop",medical:"ti-medical-cross",pharmacy:"ti-pill",education:"ti-school",construction:"ti-crane",trading:"ti-ship"};
+  const icon = bizIcon[biz?.type] || "ti-building";
+
+  return (
+    <div style={{height:"100vh",overflowY:"auto",background:TH.bg,fontFamily:"inherit"}}>
+      {/* TOP BAR */}
+      <div style={{background:TH.bg,padding:"20px 20px 16px",borderBottom:`0.5px solid ${TH.border}`}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:36,height:36,borderRadius:10,border:`1px solid ${TH.border2}`,background:TH.goldFaint,display:"flex",alignItems:"center",justifyContent:"center"}}>
+              <i className="ti ti-shield-check" style={{fontSize:18,color:TH.gold}}/>
+            </div>
+            <div>
+              <div style={{fontSize:16,fontWeight:500,color:TH.gold,letterSpacing:".5px"}}>Verifill</div>
+              <div style={{fontSize:9,color:TH.text3,letterSpacing:".15em",textTransform:"uppercase"}}>Pakistan Compliance</div>
+            </div>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            {/* Theme toggle */}
+            <button onClick={()=>setDark(d=>!d)} style={{background:TH.goldFaint,border:`1px solid ${TH.border2}`,borderRadius:8,padding:"6px 8px",cursor:"pointer",color:TH.gold,display:"flex",alignItems:"center"}}>
+              <i className={`ti ${dark?"ti-sun":"ti-moon"}`} style={{fontSize:16}}/>
+            </button>
+            {["en","ur"].map(l=>(
+              <button key={l} onClick={()=>setLang(l)} style={{padding:"4px 10px",borderRadius:8,border:`1px solid ${lang===l?TH.gold:TH.border}`,background:lang===l?TH.goldFaint:"transparent",color:lang===l?TH.gold:TH.text3,fontSize:10,cursor:"pointer",fontFamily:"inherit"}}>
+                {l==="en"?"EN":"اردو"}
+              </button>
+            ))}
+            {user && (
+              <button onClick={signOut} style={{background:"transparent",border:"none",cursor:"pointer",color:TH.text3}}>
+                <i className="ti ti-logout" style={{fontSize:18}}/>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Business info */}
+        <div style={{marginBottom:16}}>
+          <div style={{fontSize:22,fontWeight:500,color:TH.text,letterSpacing:"-.3px",marginBottom:4}}>
+            {(biz?.name||"").length>22?(biz?.name||"").slice(0,22)+"…":biz?.name||""}
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:8,fontSize:13,color:TH.text2}}>
+            <i className={`ti ${icon}`} style={{fontSize:16,color:TH.gold}}/>
+            {biz?.typeLabel||""} · {biz?.city||""}{biz?.province?`, ${biz.province}`:""}
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8}}>
+          {[
+            {n:laws.length,   l:lang==="ur"?"قوانین":"Laws"},
+            {n:urgent.length, l:lang==="ur"?"فوری":"Urgent"},
+            {n:news.length,   l:lang==="ur"?"خبریں":"News"},
+            {n:`${laws.length?Math.max(0,100-Math.round((urgent.length/laws.length)*50)):100}%`, l:lang==="ur"?"اسکور":"Score"},
+          ].map((s,i)=>(
+            <div key={i} style={{border:`1px solid ${TH.border2}`,borderRadius:12,padding:"10px 6px",textAlign:"center",background:"transparent"}}>
+              <div style={{fontSize:20,fontWeight:500,color:TH.gold,lineHeight:1,marginBottom:4}}>{s.n}</div>
+              <div style={{fontSize:10,color:TH.text3,letterSpacing:".06em"}}>{s.l}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* CONTENT */}
+      <div style={{padding:"16px 18px 110px",background:TH.bg2}}>
+
+        {/* Closing time */}
+        {closingLaw && (
+          <div onClick={()=>onLaw(closingLaw)} style={{background:TH.bg,border:`1px solid ${TH.border2}`,borderRadius:14,padding:"16px",marginBottom:16,cursor:"pointer"}}>
+            <div style={{fontSize:11,color:TH.gold,letterSpacing:".12em",textTransform:"uppercase",marginBottom:8,opacity:.8}}>
+              <i className="ti ti-clock" style={{fontSize:12,marginRight:6,verticalAlign:"-1px"}}/>
+              {lang==="ur"?"آج رات بند کرنے کا وقت":"Closing time tonight"}
+            </div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div style={{fontSize:32,fontWeight:500,color:TH.text,letterSpacing:"-1px"}}>{myClosing}</div>
+              <div style={{border:`1px solid ${TH.border2}`,borderRadius:20,padding:"5px 14px",fontSize:11,color:TH.gold}}>PKR 25,000 fine</div>
+            </div>
+          </div>
+        )}
+
+        {/* Quick tools */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:20}}>
+          {[
+            {icon:"ti-calendar-event", label:lang==="ur"?"کیلنڈر":"Calendar",  nav:"calendar"},
+            {icon:"ti-calculator",     label:lang==="ur"?"جرمانہ":"Fine Calc", nav:"finecalc"},
+            {icon:"ti-scan",           label:lang==="ur"?"اسکین":"Scan Doc",   nav:"scandoc"},
+            {icon:"ti-user-check",     label:lang==="ur"?"CA تلاش":"Find CA",  nav:"findca"},
+          ].map(q=>(
+            <div key={q.nav} onClick={()=>onNav(q.nav)} style={{background:TH.bg,border:`0.5px solid ${TH.border}`,borderRadius:14,padding:"16px 14px",display:"flex",alignItems:"center",gap:12,cursor:"pointer"}}>
+              <i className={`ti ${q.icon}`} style={{fontSize:24,color:TH.gold,flexShrink:0}}/>
+              <span style={{fontSize:13,color:TH.text2}}>{q.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* My Laws */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+          <span style={{fontSize:14,fontWeight:500,color:TH.text}}>
+            <i className="ti ti-scale" style={{fontSize:16,color:TH.gold,marginRight:8,verticalAlign:"-2px"}}/>
+            {lang==="ur"?"آپ کے قوانین":"Your Laws"} ({laws.length})
+          </span>
+          <span onClick={()=>onNav("laws")} style={{fontSize:12,color:TH.gold,cursor:"pointer"}}>
+            {lang==="ur"?"سب دیکھیں":"See all"} <i className="ti ti-arrow-right" style={{fontSize:12,verticalAlign:"-1px"}}/>
+          </span>
+        </div>
+
+        {laws.length===0 && (
+          <div style={{textAlign:"center",padding:"30px",background:TH.bg,borderRadius:14,fontSize:13,color:TH.text3,border:`0.5px solid ${TH.border}`,marginBottom:14}}>
+            No laws matched. Update your profile.
+          </div>
+        )}
+
+        {laws.slice(0,5).map(law=>{
+          const d=daysUntil(law.deadline);
+          const urg=d!==null&&d<60;
+          const catIcon={Tax:"ti-receipt-tax",Labour:"ti-moneybag","Food Safety":"ti-tools-kitchen-2",Licensing:"ti-license",Operations:"ti-clock",Medical:"ti-medical-cross"}[law.cat]||"ti-scale";
+          return (
+            <div key={law.id} onClick={()=>onLaw(law)} style={{background:TH.bg,border:urg?`1px solid ${TH.redBorder}`:`0.5px solid ${TH.border}`,borderRadius:14,padding:"14px 16px",marginBottom:10,display:"flex",gap:14,alignItems:"center",cursor:"pointer",boxShadow:urg?`0 0 0 3px ${TH.redFaint}`:"none"}}>
+              <div style={{width:44,height:44,borderRadius:12,background:urg?TH.redFaint:TH.goldFaint,border:`1px solid ${urg?TH.redBorder:TH.border2}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <i className={`ti ${catIcon}`} style={{fontSize:22,color:urg?TH.red:TH.gold}}/>
+              </div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:14,fontWeight:500,color:urg?TH.text:TH.text2,marginBottom:3,lineHeight:1.3}}>
+                  {lang==="ur"?law.titleUr:law.title}
+                </div>
+                <div style={{fontSize:11,color:TH.text3}}>{law.sub}</div>
+                {urg && (
+                  <div style={{fontSize:11,color:TH.red,marginTop:4,fontWeight:500}}>
+                    <i className="ti ti-alert-triangle" style={{fontSize:11,marginRight:4,verticalAlign:"-1px"}}/>
+                    {d>0?`${d} days left`:"Overdue"} · PKR {(law.penalty||0).toLocaleString()} fine
+                  </div>
+                )}
+              </div>
+              <i className="ti ti-chevron-right" style={{fontSize:18,color:TH.text3,flexShrink:0}}/>
+            </div>
+          );
+        })}
+
+        {laws.length>5 && (
+          <div onClick={()=>onNav("laws")} style={{textAlign:"center",padding:"12px",fontSize:13,color:TH.gold,cursor:"pointer",border:`1px solid ${TH.border2}`,borderRadius:12,marginBottom:16}}>
+            <i className="ti ti-plus" style={{fontSize:13,marginRight:5,verticalAlign:"-1px"}}/>
+            {laws.length-5} more laws
+          </div>
+        )}
+
+        {/* News */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"20px 0 12px"}}>
+          <span style={{fontSize:14,fontWeight:500,color:TH.text}}>
+            <i className="ti ti-news" style={{fontSize:16,color:TH.gold,marginRight:8,verticalAlign:"-2px"}}/>
+            {lang==="ur"?"تازہ خبریں":"Latest News"}
+          </span>
+          <span onClick={()=>onNav("news")} style={{fontSize:12,color:TH.gold,cursor:"pointer"}}>
+            {lang==="ur"?"خبریں":"News feed"} <i className="ti ti-arrow-right" style={{fontSize:12,verticalAlign:"-1px"}}/>
+          </span>
+        </div>
+        <div style={{display:"flex",gap:10,overflowX:"auto",paddingBottom:8}}>
+          {news.slice(0,5).map(n=>(
+            <div key={n.id} onClick={()=>onNews(n)} style={{flexShrink:0,width:180,borderRadius:14,overflow:"hidden",cursor:"pointer",border:`0.5px solid ${TH.border}`}}>
+              <div style={{height:100,background:`url(${n.img}) center/cover`}}/>
+              <div style={{padding:"10px 12px",background:TH.bg}}>
+                <div style={{fontSize:9,background:TH.goldFaint,color:TH.gold,border:`0.5px solid ${TH.border2}`,borderRadius:5,padding:"2px 7px",display:"inline-block",marginBottom:5,fontWeight:500}}>{n.cat}</div>
+                <div style={{fontSize:12,fontWeight:500,color:TH.text,lineHeight:1.4}}>{lang==="ur"?n.headlineUr:n.headline}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Kit */}
+        <div onClick={()=>onNav("kit")} style={{marginTop:16,background:TH.bg,border:`1px solid ${TH.border2}`,borderRadius:14,padding:"16px",cursor:"pointer",display:"flex",gap:14,alignItems:"center"}}>
+          <div style={{width:44,height:44,borderRadius:12,background:TH.goldFaint,border:`1px solid ${TH.border2}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+            <i className="ti ti-package" style={{fontSize:22,color:TH.gold}}/>
+          </div>
+          <div>
+            <div style={{fontSize:14,fontWeight:500,color:TH.gold,marginBottom:3}}>Compliance Kit</div>
+            <div style={{fontSize:12,color:TH.text2}}>All your letters in one place</div>
+          </div>
+          <i className="ti ti-arrow-right" style={{marginLeft:"auto",fontSize:18,color:TH.text3}}/>
+        </div>
+      </div>
+    </div>
+  );
+}
   const urgent = laws.filter(l=>{const d=daysUntil(l.deadline);return d!==null&&d<60;});
   const closingLaw = laws.find(l=>l.id==="punjab-closing"||l.id==="sindh-closing");
   const CT = {food:"10:00 PM",retail:"8:00 PM",wholesale:"8:00 PM",services:"8:00 PM",pharmacy:"24 hrs",medical:"24 hrs",it:"8:00 PM",education:"8:00 PM",manufacturing:"Anytime",construction:"Anytime",trading:"8:00 PM"};
@@ -661,55 +846,55 @@ function LawBook({ biz, onSelect, lang, allLaws, onNav }) {
   const catIcon = {Tax:"ti-receipt-tax",Labour:"ti-moneybag","Food Safety":"ti-tools-kitchen-2",Licensing:"ti-license",Operations:"ti-clock",Medical:"ti-medical-cross"};
 
   return (
-    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"#060606",direction:lang==="ur"?"rtl":"ltr"}}>
-      <div style={{background:"#060606",padding:"16px 18px 14px",flexShrink:0,borderBottom:"0.5px solid #111"}}>
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"var(--bg)",direction:lang==="ur"?"rtl":"ltr"}}>
+      <div style={{background:"var(--bg)",padding:"16px 18px 14px",flexShrink:0,borderBottom:"0.5px solid #111"}}>
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-          <div style={{width:36,height:36,borderRadius:10,border:"0.5px solid rgba(201,168,76,.25)",background:"rgba(201,168,76,.07)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <i className="ti ti-scale" style={{fontSize:20,color:"#C9A84C"}}/>
+          <div style={{width:36,height:36,borderRadius:10,border:"0.5px solid rgba(201,168,76,.25)",background:"var(--gold-faint)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <i className="ti ti-scale" style={{fontSize:20,color:"var(--gold)"}}/>
           </div>
           <div>
-            <div style={{fontSize:17,fontWeight:500,color:"#fff"}}>{t.lawBook}</div>
-            <div style={{fontSize:9,color:"#2a2a2a"}}>{allLaws.length} laws · tap any to read</div>
+            <div style={{fontSize:17,fontWeight:500,color:"var(--text)"}}>{t.lawBook}</div>
+            <div style={{fontSize:9,color:"var(--text3)"}}>{allLaws.length} laws · tap any to read</div>
           </div>
         </div>
         <div style={{display:"flex",gap:6,marginBottom:10}}>
           {[["mine",`${t.myLawsTab} (${myLaws.length})`],["all",`All (${allLaws.length})`]].map(([v,l])=>(
-            <button key={v} onClick={()=>setView(v)} style={{padding:"6px 14px",borderRadius:20,border:`0.5px solid ${view===v?"#C9A84C":"#1a1a1a"}`,background:view===v?"rgba(201,168,76,.1)":"transparent",color:view===v?"#C9A84C":"#2a2a2a",fontSize:10,fontWeight:500,cursor:"pointer",fontFamily:"inherit"}}>{l}</button>
+            <button key={v} onClick={()=>setView(v)} style={{padding:"6px 14px",borderRadius:20,border:`0.5px solid ${view===v?"var(--gold)":"var(--border)"}`,background:view===v?"rgba(201,168,76,.1)":"transparent",color:view===v?"var(--gold)":"var(--text3)",fontSize:10,fontWeight:500,cursor:"pointer",fontFamily:"inherit"}}>{l}</button>
           ))}
         </div>
         <div style={{position:"relative"}}>
-          <i className="ti ti-search" style={{position:"absolute",left:11,top:"50%",transform:"translateY(-50%)",fontSize:15,color:"#2a2a2a"}}/>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t.search} style={{width:"100%",padding:"9px 12px 9px 33px",borderRadius:10,border:"0.5px solid #1a1a1a",background:"#0c0c0c",color:"#aaa",fontSize:12,fontFamily:"inherit",outline:"none"}}/>
+          <i className="ti ti-search" style={{position:"absolute",left:11,top:"50%",transform:"translateY(-50%)",fontSize:15,color:"var(--text3)"}}/>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t.search} style={{width:"100%",padding:"9px 12px 9px 33px",borderRadius:10,border:"0.5px solid #1a1a1a",background:"var(--bg2)",color:"var(--text2)",fontSize:12,fontFamily:"inherit",outline:"none"}}/>
         </div>
       </div>
-      <div style={{display:"flex",gap:5,overflowX:"auto",padding:"10px 16px",background:"#080808",borderBottom:"0.5px solid #111",flexShrink:0}}>
+      <div style={{display:"flex",gap:5,overflowX:"auto",padding:"10px 16px",background:"var(--bg2)",borderBottom:"0.5px solid #111",flexShrink:0}}>
         {cats.map(c=>(
-          <button key={c} onClick={()=>setCat(c)} style={{padding:"5px 12px",borderRadius:20,border:`0.5px solid ${cat===c?"#C9A84C":"#1a1a1a"}`,background:cat===c?"rgba(201,168,76,.1)":"transparent",color:cat===c?"#C9A84C":"#2a2a2a",fontSize:10,fontWeight:500,cursor:"pointer",whiteSpace:"nowrap",fontFamily:"inherit",flexShrink:0}}>{c}</button>
+          <button key={c} onClick={()=>setCat(c)} style={{padding:"5px 12px",borderRadius:20,border:`0.5px solid ${cat===c?"var(--gold)":"var(--border)"}`,background:cat===c?"rgba(201,168,76,.1)":"transparent",color:cat===c?"var(--gold)":"var(--text3)",fontSize:10,fontWeight:500,cursor:"pointer",whiteSpace:"nowrap",fontFamily:"inherit",flexShrink:0}}>{c}</button>
         ))}
       </div>
-      <div style={{flex:1,overflowY:"auto",padding:"12px 16px 20px",background:"#080808"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"12px 16px 20px",background:"var(--bg2)"}}>
         {filtered.map(law=>{
           const d=daysUntil(law.deadline); const urg=d!==null&&d<60;
           const isMine=matchLaw(law,biz);
           const ci = catIcon[law.cat]||"ti-scale";
           return (
-            <div key={law.id} onClick={()=>onSelect(law)} style={{background:"#0c0c0c",border:urg?`1px solid rgba(239,68,68,.45)`:"0.5px solid #161616",boxShadow:urg?"0 0 0 2px rgba(239,68,68,.07)":"none",borderRadius:12,padding:"12px 14px",marginBottom:8,cursor:"pointer",display:"flex",gap:11,alignItems:"center"}}>
-              <div style={{width:36,height:36,borderRadius:10,background:urg?"rgba(239,68,68,.08)":"rgba(201,168,76,.07)",border:`0.5px solid ${urg?"rgba(239,68,68,.3)":"rgba(201,168,76,.2)"}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                <i className={`ti ${ci}`} style={{fontSize:18,color:urg?"#ef4444":"#C9A84C"}}/>
+            <div key={law.id} onClick={()=>onSelect(law)} style={{background:"var(--bg2)",border:urg?`1px solid rgba(239,68,68,.45)`:"0.5px solid #161616",boxShadow:urg?"0 0 0 2px rgba(239,68,68,.07)":"none",borderRadius:12,padding:"12px 14px",marginBottom:8,cursor:"pointer",display:"flex",gap:11,alignItems:"center"}}>
+              <div style={{width:36,height:36,borderRadius:10,background:urg?"var(--red-faint)":"var(--gold-faint)",border:`0.5px solid ${urg?"rgba(239,68,68,.3)":"var(--border2)"}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <i className={`ti ${ci}`} style={{fontSize:18,color:urg?"var(--red)":"var(--gold)"}}/>
               </div>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{display:"flex",justifyContent:"space-between",gap:6,marginBottom:2}}>
-                  <div style={{fontSize:12,fontWeight:500,color:isMine?"#fff":"#555",lineHeight:1.3}}>{lang==="ur"?law.titleUr:law.title}</div>
-                  {isMine && <span style={{fontSize:8,background:"rgba(201,168,76,.1)",color:"#C9A84C",border:"0.5px solid rgba(201,168,76,.2)",borderRadius:6,padding:"2px 6px",fontWeight:500,flexShrink:0,alignSelf:"flex-start"}}>{t.applies}</span>}
+                  <div style={{fontSize:12,fontWeight:500,color:isMine?"var(--text)":"var(--text2)",lineHeight:1.3}}>{lang==="ur"?law.titleUr:law.title}</div>
+                  {isMine && <span style={{fontSize:8,background:"rgba(201,168,76,.1)",color:"var(--gold)",border:"0.5px solid rgba(201,168,76,.2)",borderRadius:6,padding:"2px 6px",fontWeight:500,flexShrink:0,alignSelf:"flex-start"}}>{t.applies}</span>}
                 </div>
-                <div style={{fontSize:9,color:"#2a2a2a",marginBottom:urg?3:0}}>{law.sub}</div>
-                {urg && <div style={{fontSize:9,color:"#ef4444",fontWeight:500}}><i className="ti ti-alert-triangle" style={{fontSize:9,verticalAlign:"-1px",marginRight:3}}/>{d>0?`${d} days`:"Overdue"} · PKR {(law.penalty||0).toLocaleString()} fine</div>}
+                <div style={{fontSize:9,color:"var(--text3)",marginBottom:urg?3:0}}>{law.sub}</div>
+                {urg && <div style={{fontSize:9,color:"var(--red)",fontWeight:500}}><i className="ti ti-alert-triangle" style={{fontSize:9,verticalAlign:"-1px",marginRight:3}}/>{d>0?`${d} days`:"Overdue"} · PKR {(law.penalty||0).toLocaleString()} fine</div>}
               </div>
               <i className="ti ti-chevron-right" style={{fontSize:15,color:"#1c1c1c",flexShrink:0}}/>
             </div>
           );
         })}
-        {filtered.length===0 && <div style={{textAlign:"center",padding:"40px 20px",color:"#2a2a2a"}}><i className="ti ti-search" style={{fontSize:32,display:"block",marginBottom:10,color:"#1a1a1a"}}/><div style={{fontSize:13}}>No laws found</div></div>}
+        {filtered.length===0 && <div style={{textAlign:"center",padding:"40px 20px",color:"var(--text3)"}}><i className="ti ti-search" style={{fontSize:32,display:"block",marginBottom:10,color:"var(--border)"}}/><div style={{fontSize:13}}>No laws found</div></div>}
       </div>
     </div>
   );
@@ -728,51 +913,51 @@ function LawDetail({ law, biz, onBack, lang }) {
   const catIcon = {Tax:"ti-receipt-tax",Labour:"ti-moneybag","Food Safety":"ti-tools-kitchen-2",Licensing:"ti-license",Operations:"ti-clock",Medical:"ti-medical-cross"}[law.cat]||"ti-scale";
 
   return (
-    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"#060606",direction:lang==="ur"?"rtl":"ltr"}}>
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"var(--bg)",direction:lang==="ur"?"rtl":"ltr"}}>
       {/* Header */}
-      <div style={{background:"#060606",padding:"16px 18px 18px",borderBottom:"0.5px solid #111",flexShrink:0}}>
-        <button onClick={onBack} style={{background:"transparent",border:"0.5px solid rgba(201,168,76,.25)",color:"#C9A84C",borderRadius:8,padding:"5px 12px",cursor:"pointer",fontSize:12,marginBottom:12,fontFamily:"inherit",display:"flex",alignItems:"center",gap:5}}>
+      <div style={{background:"var(--bg)",padding:"16px 18px 18px",borderBottom:"0.5px solid #111",flexShrink:0}}>
+        <button onClick={onBack} style={{background:"transparent",border:"0.5px solid rgba(201,168,76,.25)",color:"var(--gold)",borderRadius:8,padding:"5px 12px",cursor:"pointer",fontSize:12,marginBottom:12,fontFamily:"inherit",display:"flex",alignItems:"center",gap:5}}>
           <i className="ti ti-arrow-left" style={{fontSize:14}}/> {t.back}
         </button>
         <div style={{display:"flex",gap:12,alignItems:"flex-start"}}>
-          <div style={{width:44,height:44,borderRadius:12,border:`0.5px solid ${urg?"rgba(239,68,68,.4)":"rgba(201,168,76,.25)"}`,background:urg?"rgba(239,68,68,.08)":"rgba(201,168,76,.07)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-            <i className={`ti ${catIcon}`} style={{fontSize:22,color:urg?"#ef4444":"#C9A84C"}}/>
+          <div style={{width:44,height:44,borderRadius:12,border:`0.5px solid ${urg?"var(--red-border)":"var(--border2)"}`,background:urg?"var(--red-faint)":"var(--gold-faint)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+            <i className={`ti ${catIcon}`} style={{fontSize:22,color:urg?"var(--red)":"var(--gold)"}}/>
           </div>
           <div style={{flex:1}}>
-            <div style={{fontSize:16,fontWeight:500,color:"#fff",lineHeight:1.3,marginBottom:6}}>{lang==="ur"?law.titleUr:law.title}</div>
+            <div style={{fontSize:16,fontWeight:500,color:"var(--text)",lineHeight:1.3,marginBottom:6}}>{lang==="ur"?law.titleUr:law.title}</div>
             <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-              {law.penalty>0 && <span style={{fontSize:9,border:"0.5px solid rgba(239,68,68,.3)",color:"#ef4444",borderRadius:6,padding:"2px 8px",fontWeight:500}}>{t.penalty}: PKR {law.penalty.toLocaleString()}</span>}
-              {law.deadline && <span style={{fontSize:9,border:"0.5px solid rgba(201,168,76,.25)",color:"#C9A84C",borderRadius:6,padding:"2px 8px"}}>{d>0?`${d} ${t.daysLeft}`:t.overdue}</span>}
+              {law.penalty>0 && <span style={{fontSize:9,border:"0.5px solid rgba(239,68,68,.3)",color:"var(--red)",borderRadius:6,padding:"2px 8px",fontWeight:500}}>{t.penalty}: PKR {law.penalty.toLocaleString()}</span>}
+              {law.deadline && <span style={{fontSize:9,border:"0.5px solid rgba(201,168,76,.25)",color:"var(--gold)",borderRadius:6,padding:"2px 8px"}}>{d>0?`${d} ${t.daysLeft}`:t.overdue}</span>}
             </div>
           </div>
         </div>
-        {law.phone && <div style={{marginTop:10,background:"#0c0c0c",border:"0.5px solid #1a1a1a",borderRadius:8,padding:"7px 12px",fontSize:11,color:"#444",display:"flex",alignItems:"center",gap:8}}>
-          <i className="ti ti-phone" style={{fontSize:14,color:"#C9A84C"}}/>{law.phone}{law.url && <><i className="ti ti-world" style={{fontSize:14,color:"#C9A84C",marginLeft:8}}/>{law.url}</>}
+        {law.phone && <div style={{marginTop:10,background:"var(--bg2)",border:"0.5px solid #1a1a1a",borderRadius:8,padding:"7px 12px",fontSize:11,color:"var(--text2)",display:"flex",alignItems:"center",gap:8}}>
+          <i className="ti ti-phone" style={{fontSize:14,color:"var(--gold)"}}/>{law.phone}{law.url && <><i className="ti ti-world" style={{fontSize:14,color:"var(--gold)",marginLeft:8}}/>{law.url}</>}
         </div>}
-        <div style={{marginTop:8,background:"rgba(201,168,76,.05)",border:"0.5px solid rgba(201,168,76,.15)",borderRadius:8,padding:"6px 12px",fontSize:10,color:"rgba(201,168,76,.6)"}}>
+        <div style={{marginTop:8,background:"var(--gold-faint)",border:"0.5px solid rgba(201,168,76,.15)",borderRadius:8,padding:"6px 12px",fontSize:10,color:"rgba(201,168,76,.6)"}}>
           <i className="ti ti-info-circle" style={{fontSize:11,verticalAlign:"-1px",marginRight:5}}/>{lang==="ur"?"ہمیشہ اپنے اکاؤنٹنٹ سے تصدیق کریں۔ قوانین بدل سکتے ہیں۔":"Always verify with your accountant. Laws change — Verifill shows best available information."}
         </div>
       </div>
       {/* Tabs */}
-      <div style={{display:"flex",background:"#080808",borderBottom:"0.5px solid #111",flexShrink:0}}>
+      <div style={{display:"flex",background:"var(--bg2)",borderBottom:"0.5px solid #111",flexShrink:0}}>
         {[["about",t.about,"ti-info-circle"],["steps",t.steps,"ti-list-check"],["letter",t.letter,"ti-file-text"]].map(([id,lbl,ic])=>(
-          <button key={id} onClick={()=>setTab(id)} style={{flex:1,padding:"12px 4px",border:"none",borderBottom:`2px solid ${tab===id?"#C9A84C":"transparent"}`,background:"transparent",color:tab===id?"#C9A84C":"#2a2a2a",fontSize:11,fontWeight:500,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
+          <button key={id} onClick={()=>setTab(id)} style={{flex:1,padding:"12px 4px",border:"none",borderBottom:`2px solid ${tab===id?"var(--gold)":"transparent"}`,background:"transparent",color:tab===id?"var(--gold)":"var(--text3)",fontSize:11,fontWeight:500,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
             <i className={`ti ${ic}`} style={{fontSize:14}}/>{lbl}
           </button>
         ))}
       </div>
-      <div style={{flex:1,overflowY:"auto",padding:"16px 16px 30px",background:"#080808"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"16px 16px 30px",background:"var(--bg2)"}}>
         {tab==="about" && (
           <div>
-            <div style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:12,padding:14,marginBottom:14,fontSize:13,color:"#888",lineHeight:1.8}}>{lang==="ur"?law.summaryUr:law.summaryEn}</div>
+            <div style={{background:"var(--bg2)",border:"0.5px solid #161616",borderRadius:12,padding:14,marginBottom:14,fontSize:13,color:"var(--text2)",lineHeight:1.8}}>{lang==="ur"?law.summaryUr:law.summaryEn}</div>
             {matchLaw(law,biz) && (
-              <div style={{background:"rgba(201,168,76,.05)",border:"0.5px solid rgba(201,168,76,.15)",borderRadius:12,padding:"12px 14px"}}>
-                <div style={{fontSize:11,fontWeight:500,color:"#C9A84C",marginBottom:8}}>
+              <div style={{background:"var(--gold-faint)",border:"0.5px solid rgba(201,168,76,.15)",borderRadius:12,padding:"12px 14px"}}>
+                <div style={{fontSize:11,fontWeight:500,color:"var(--gold)",marginBottom:8}}>
                   <i className="ti ti-check" style={{fontSize:12,marginRight:5}}/>{t.whyApplies}
                 </div>
                 {["Business type matches",law.provinces.includes("All")?"Federal — applies nationwide":`${biz.province} is in scope`,biz.revM>=(law.minRevM||0)?"Revenue threshold met":null,biz.emp>=(law.minEmp||1)?"Employee count qualifies":null].filter(Boolean).map((r,i)=>(
-                  <div key={i} style={{fontSize:11,color:"#666",padding:"5px 0",borderBottom:"0.5px solid #111",display:"flex",gap:8,alignItems:"center"}}>
-                    <i className="ti ti-circle-check" style={{fontSize:13,color:"#C9A84C",flexShrink:0}}/>{r}
+                  <div key={i} style={{fontSize:11,color:"var(--text2)",padding:"5px 0",borderBottom:"0.5px solid #111",display:"flex",gap:8,alignItems:"center"}}>
+                    <i className="ti ti-circle-check" style={{fontSize:13,color:"var(--gold)",flexShrink:0}}/>{r}
                   </div>
                 ))}
               </div>
@@ -781,32 +966,32 @@ function LawDetail({ law, biz, onBack, lang }) {
         )}
         {tab==="steps" && (
           <div>
-            <div style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:12,padding:12,marginBottom:14}}>
+            <div style={{background:"var(--bg2)",border:"0.5px solid #161616",borderRadius:12,padding:12,marginBottom:14}}>
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
-                <span style={{fontSize:11,fontWeight:500,color:"#C9A84C"}}>{done} / {total} {t.done}</span>
-                <span style={{fontSize:11,color:"#2a2a2a"}}>{total?Math.round((done/total)*100):0}%</span>
+                <span style={{fontSize:11,fontWeight:500,color:"var(--gold)"}}>{done} / {total} {t.done}</span>
+                <span style={{fontSize:11,color:"var(--text3)"}}>{total?Math.round((done/total)*100):0}%</span>
               </div>
-              <div style={{height:4,background:"#1a1a1a",borderRadius:2,overflow:"hidden"}}>
-                <div style={{width:`${total?(done/total)*100:0}%`,height:"100%",background:"#C9A84C",borderRadius:2,transition:"width .3s"}}/>
+              <div style={{height:4,background:"var(--border)",borderRadius:2,overflow:"hidden"}}>
+                <div style={{width:`${total?(done/total)*100:0}%`,height:"100%",background:"var(--gold)",borderRadius:2,transition:"width .3s"}}/>
               </div>
             </div>
             {(law.steps||[]).map((step,i)=>(
               <div key={i} onClick={()=>setChks(c=>{const n=[...c];n[i]=!n[i];return n;})} style={{display:"flex",gap:12,padding:"13px 14px",borderBottom:"0.5px solid #111",cursor:"pointer",background:chks[i]?"rgba(201,168,76,.04)":"transparent",borderRadius:i===0?"12px 12px 0 0":i===(law.steps.length-1)?"0 0 12px 12px":"0",border:"0.5px solid #111",marginBottom:i<(law.steps.length-1)?1:0}}>
-                <div style={{width:22,height:22,borderRadius:6,border:`1px solid ${chks[i]?"#C9A84C":"#1e1e1e"}`,background:chks[i]?"#C9A84C":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>
+                <div style={{width:22,height:22,borderRadius:6,border:`1px solid ${chks[i]?"var(--gold)":"var(--border)"}`,background:chks[i]?"var(--gold)":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>
                   {chks[i] && <i className="ti ti-check" style={{fontSize:12,color:"#000"}}/>}
                 </div>
-                <span style={{flex:1,fontSize:12,color:chks[i]?"#2a2a2a":"#888",textDecoration:chks[i]?"line-through":"none",lineHeight:1.6}}>{step}</span>
+                <span style={{flex:1,fontSize:12,color:chks[i]?"var(--text3)":"var(--text2)",textDecoration:chks[i]?"line-through":"none",lineHeight:1.6}}>{step}</span>
               </div>
             ))}
           </div>
         )}
         {tab==="letter" && law.letter && (
           <div>
-            <div style={{background:"rgba(201,168,76,.05)",border:"0.5px solid rgba(201,168,76,.15)",borderRadius:10,padding:12,marginBottom:12,fontSize:11,color:"rgba(201,168,76,.7)"}}>
+            <div style={{background:"var(--gold-faint)",border:"0.5px solid rgba(201,168,76,.15)",borderRadius:10,padding:12,marginBottom:12,fontSize:11,color:"rgba(201,168,76,.7)"}}>
               <i className="ti ti-bulb" style={{fontSize:12,marginRight:5,verticalAlign:"-1px"}}/>Pre-filled with your profile. Replace [BRACKETS].
             </div>
-            <div style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:12,padding:16,marginBottom:12,fontSize:12,color:"#666",lineHeight:1.9,whiteSpace:"pre-wrap",fontFamily:"'DM Mono',monospace"}}>{law.letter(biz)}</div>
-            <button onClick={()=>{navigator.clipboard.writeText(law.letter(biz));setCopied(true);setTimeout(()=>setCopied(false),2000);}} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:copied?"#1a1a1a":"linear-gradient(135deg,#C9A84C,#B8922A)",color:copied?"#C9A84C":"#000",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+            <div style={{background:"var(--bg2)",border:"0.5px solid #161616",borderRadius:12,padding:16,marginBottom:12,fontSize:12,color:"var(--text2)",lineHeight:1.9,whiteSpace:"pre-wrap",fontFamily:"'DM Mono',monospace"}}>{law.letter(biz)}</div>
+            <button onClick={()=>{navigator.clipboard.writeText(law.letter(biz));setCopied(true);setTimeout(()=>setCopied(false),2000);}} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:copied?"var(--border)":"linear-gradient(135deg,#C9A84C,#B8922A)",color:copied?"var(--gold)":"#000",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
               <i className={`ti ${copied?"ti-check":"ti-copy"}`} style={{fontSize:16}}/>{copied?t.copied:t.copy}
             </button>
           </div>
@@ -824,18 +1009,18 @@ function NewsFeed({ biz, onSelect, lang }) {
   const cats = ["all",...[...new Set(NEWS.map(n=>n.cat))]];
   const shown = filter==="all" ? applicable : applicable.filter(n=>n.cat===filter);
   return (
-    <div style={{height:"100vh",overflowY:"auto",fontFamily:"inherit",background:"#060606",direction:lang==="ur"?"rtl":"ltr"}}>
-      <div style={{background:"#060606",padding:"16px 18px 0",position:"sticky",top:0,zIndex:20,borderBottom:"0.5px solid #111"}}>
+    <div style={{height:"100vh",overflowY:"auto",fontFamily:"inherit",background:"var(--bg)",direction:lang==="ur"?"rtl":"ltr"}}>
+      <div style={{background:"var(--bg)",padding:"16px 18px 0",position:"sticky",top:0,zIndex:20,borderBottom:"0.5px solid #111"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <i className="ti ti-news" style={{fontSize:22,color:"#C9A84C"}}/>
-            <div style={{fontSize:17,fontWeight:500,color:"#fff"}}>News Feed</div>
+            <i className="ti ti-news" style={{fontSize:22,color:"var(--gold)"}}/>
+            <div style={{fontSize:17,fontWeight:500,color:"var(--text)"}}>News Feed</div>
           </div>
-          <div style={{fontSize:9,color:"#2a2a2a",border:"0.5px solid #1a1a1a",borderRadius:6,padding:"3px 8px"}}>🇵🇰 Pakistan</div>
+          <div style={{fontSize:9,color:"var(--text3)",border:"0.5px solid #1a1a1a",borderRadius:6,padding:"3px 8px"}}>🇵🇰 Pakistan</div>
         </div>
         <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:12}}>
           {cats.map(c=>(
-            <button key={c} onClick={()=>setFilter(c)} style={{padding:"5px 13px",borderRadius:20,border:`0.5px solid ${filter===c?"#C9A84C":"#1a1a1a"}`,background:filter===c?"rgba(201,168,76,.1)":"transparent",color:filter===c?"#C9A84C":"#2a2a2a",fontSize:10,fontWeight:500,cursor:"pointer",whiteSpace:"nowrap",fontFamily:"inherit",flexShrink:0}}>
+            <button key={c} onClick={()=>setFilter(c)} style={{padding:"5px 13px",borderRadius:20,border:`0.5px solid ${filter===c?"var(--gold)":"var(--border)"}`,background:filter===c?"rgba(201,168,76,.1)":"transparent",color:filter===c?"var(--gold)":"var(--text3)",fontSize:10,fontWeight:500,cursor:"pointer",whiteSpace:"nowrap",fontFamily:"inherit",flexShrink:0}}>
               {c==="all"?(lang==="ur"?"سب":"All"):c}
             </button>
           ))}
@@ -844,13 +1029,13 @@ function NewsFeed({ biz, onSelect, lang }) {
       <div style={{paddingBottom:80}}>
         {shown.map(n=><NewsCard key={n.id} n={n} biz={biz} onClick={()=>onSelect(n)} lang={lang}/>)}
         {notAppl.length>0 && <>
-          <div style={{padding:"12px 18px",fontSize:9,color:"#1e1e1e",fontWeight:500,textTransform:"uppercase",letterSpacing:".1em"}}>Not affecting your business</div>
+          <div style={{padding:"12px 18px",fontSize:9,color:"var(--border)",fontWeight:500,textTransform:"uppercase",letterSpacing:".1em"}}>Not affecting your business</div>
           {notAppl.map(n=>(
             <div key={n.id} style={{background:"#0a0a0a",margin:"0 0 1px",padding:"12px 16px",display:"flex",gap:12,alignItems:"center",opacity:.35}}>
               <div style={{width:44,height:44,borderRadius:8,background:`url(${n.img}) center/cover`,flexShrink:0}}/>
               <div>
-                <div style={{fontSize:11,fontWeight:500,color:"#fff",marginBottom:1}}>{lang==="ur"?n.headlineUr:n.headline}</div>
-                <div style={{fontSize:9,color:"#2a2a2a"}}>{n.source}</div>
+                <div style={{fontSize:11,fontWeight:500,color:"var(--text)",marginBottom:1}}>{lang==="ur"?n.headlineUr:n.headline}</div>
+                <div style={{fontSize:9,color:"var(--text3)"}}>{n.source}</div>
               </div>
             </div>
           ))}
@@ -864,46 +1049,46 @@ function NewsCard({ n, biz, onClick, lang }) {
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(n.likes);
   return (
-    <div style={{background:"#060606",marginBottom:1,borderBottom:"0.5px solid #111"}}>
+    <div style={{background:"var(--bg)",marginBottom:1,borderBottom:"0.5px solid #111"}}>
       <div style={{padding:"12px 16px",display:"flex",alignItems:"center",gap:10}}>
-        <div style={{width:36,height:36,borderRadius:"50%",background:"rgba(201,168,76,.08)",border:"0.5px solid rgba(201,168,76,.2)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-          <i className="ti ti-news" style={{fontSize:16,color:"#C9A84C"}}/>
+        <div style={{width:36,height:36,borderRadius:"50%",background:"var(--gold-faint)",border:"0.5px solid rgba(201,168,76,.2)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+          <i className="ti ti-news" style={{fontSize:16,color:"var(--gold)"}}/>
         </div>
         <div style={{flex:1}}>
-          <div style={{fontSize:12,fontWeight:500,color:"#888"}}>{n.source}</div>
-          <div style={{fontSize:9,color:"#2a2a2a"}}>{n.h}h ago · Pakistan</div>
+          <div style={{fontSize:12,fontWeight:500,color:"var(--text2)"}}>{n.source}</div>
+          <div style={{fontSize:9,color:"var(--text3)"}}>{n.h}h ago · Pakistan</div>
         </div>
-        <div style={{fontSize:8,background:"rgba(201,168,76,.08)",color:"#C9A84C",border:"0.5px solid rgba(201,168,76,.2)",padding:"2px 8px",borderRadius:6,fontWeight:500}}>{n.cat}</div>
+        <div style={{fontSize:8,background:"var(--gold-faint)",color:"var(--gold)",border:"0.5px solid rgba(201,168,76,.2)",padding:"2px 8px",borderRadius:6,fontWeight:500}}>{n.cat}</div>
       </div>
       <div onClick={onClick} style={{width:"100%",aspectRatio:"16/9",background:`url(${n.img}) center/cover`,cursor:"pointer",position:"relative"}}>
         <div style={{position:"absolute",bottom:0,left:0,right:0,background:"linear-gradient(transparent,rgba(0,0,0,.9)",padding:"24px 16px 14px"}}>
-          <div style={{fontSize:16,fontWeight:500,color:"#fff",lineHeight:1.35}}>{lang==="ur"?n.headlineUr:n.headline}</div>
+          <div style={{fontSize:16,fontWeight:500,color:"var(--text)",lineHeight:1.35}}>{lang==="ur"?n.headlineUr:n.headline}</div>
         </div>
       </div>
       <div style={{padding:"10px 16px 4px",display:"flex",gap:14,alignItems:"center"}}>
-        <button onClick={e=>{e.stopPropagation();setLiked(l=>!l);setLikes(l=>liked?l-1:l+1);}} style={{background:"none",border:"none",cursor:"pointer",padding:0,color:liked?"#C9A84C":"#2a2a2a"}}>
+        <button onClick={e=>{e.stopPropagation();setLiked(l=>!l);setLikes(l=>liked?l-1:l+1);}} style={{background:"none",border:"none",cursor:"pointer",padding:0,color:liked?"var(--gold)":"var(--text3)"}}>
           <i className={`ti ${liked?"ti-heart-filled":"ti-heart"}`} style={{fontSize:22}}/>
         </button>
-        <button onClick={onClick} style={{background:"none",border:"none",cursor:"pointer",padding:0,color:"#2a2a2a"}}>
+        <button onClick={onClick} style={{background:"none",border:"none",cursor:"pointer",padding:0,color:"var(--text3)"}}>
           <i className="ti ti-message-circle" style={{fontSize:22}}/>
         </button>
-        <button style={{background:"none",border:"none",cursor:"pointer",padding:0,color:"#2a2a2a"}}>
+        <button style={{background:"none",border:"none",cursor:"pointer",padding:0,color:"var(--text3)"}}>
           <i className="ti ti-share" style={{fontSize:22}}/>
         </button>
       </div>
-      <div style={{padding:"2px 16px 8px",fontSize:11,fontWeight:500,color:"#444"}}>{likes.toLocaleString()} interested</div>
+      <div style={{padding:"2px 16px 8px",fontSize:11,fontWeight:500,color:"var(--text2)"}}>{likes.toLocaleString()} interested</div>
       <div style={{padding:"0 16px",display:"flex",gap:6,marginBottom:10}}>
         {n.stats.map((s,i)=>(
-          <div key={i} style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:8,padding:"6px 8px",flex:1,textAlign:"center"}}>
-            <div style={{fontSize:11,fontWeight:500,color:"#C9A84C"}}>{s.n}</div>
-            <div style={{fontSize:8,color:"#2a2a2a",marginTop:1}}>{s.l}</div>
+          <div key={i} style={{background:"var(--bg2)",border:"0.5px solid #161616",borderRadius:8,padding:"6px 8px",flex:1,textAlign:"center"}}>
+            <div style={{fontSize:11,fontWeight:500,color:"var(--gold)"}}>{s.n}</div>
+            <div style={{fontSize:8,color:"var(--text3)",marginTop:1}}>{s.l}</div>
           </div>
         ))}
       </div>
-      <div onClick={onClick} style={{margin:"0 16px 14px",background:"#0c0c0c",border:"0.5px solid rgba(201,168,76,.15)",borderRadius:10,padding:"10px 13px",cursor:"pointer"}}>
-        <div style={{fontSize:8,color:"#2a2a2a",textTransform:"uppercase",letterSpacing:".08em",marginBottom:4}}>What to do — {biz.name}</div>
-        <div style={{fontSize:11,color:"#888",lineHeight:1.6}}>{lang==="ur"?n.actionUr:n.action}</div>
-        <div style={{fontSize:9,color:"#C9A84C",marginTop:5,fontWeight:500}}>Read full article <i className="ti ti-arrow-right" style={{fontSize:9,verticalAlign:"-1px"}}/></div>
+      <div onClick={onClick} style={{margin:"0 16px 14px",background:"var(--bg2)",border:"0.5px solid rgba(201,168,76,.15)",borderRadius:10,padding:"10px 13px",cursor:"pointer"}}>
+        <div style={{fontSize:8,color:"var(--text3)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:4}}>What to do — {biz.name}</div>
+        <div style={{fontSize:11,color:"var(--text2)",lineHeight:1.6}}>{lang==="ur"?n.actionUr:n.action}</div>
+        <div style={{fontSize:9,color:"var(--gold)",marginTop:5,fontWeight:500}}>Read full article <i className="ti ti-arrow-right" style={{fontSize:9,verticalAlign:"-1px"}}/></div>
       </div>
     </div>
   );
@@ -912,33 +1097,33 @@ function NewsCard({ n, biz, onClick, lang }) {
 /* ── NEWS DETAIL ──────────────────────────────────────────── */
 function NewsDetail({ news: n, biz, onBack, lang }) {
   return (
-    <div style={{height:"100vh",overflowY:"auto",fontFamily:"inherit",background:"#060606",direction:lang==="ur"?"rtl":"ltr"}}>
+    <div style={{height:"100vh",overflowY:"auto",fontFamily:"inherit",background:"var(--bg)",direction:lang==="ur"?"rtl":"ltr"}}>
       <div style={{height:240,background:`url(${n.img}) center/cover`,position:"relative"}}>
         <div style={{position:"absolute",inset:0,background:"linear-gradient(transparent 30%,#060606)"}}/>
-        <button onClick={onBack} style={{position:"absolute",top:16,left:16,background:"rgba(0,0,0,.6)",border:"0.5px solid rgba(201,168,76,.3)",color:"#C9A84C",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontSize:12,fontFamily:"inherit",display:"flex",alignItems:"center",gap:5}}>
+        <button onClick={onBack} style={{position:"absolute",top:16,left:16,background:"rgba(0,0,0,.6)",border:"0.5px solid rgba(201,168,76,.3)",color:"var(--gold)",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontSize:12,fontFamily:"inherit",display:"flex",alignItems:"center",gap:5}}>
           <i className="ti ti-arrow-left" style={{fontSize:14}}/> Back
         </button>
         <div style={{position:"absolute",bottom:16,left:18,right:18}}>
-          <div style={{fontSize:8,background:"rgba(201,168,76,.15)",color:"#C9A84C",border:"0.5px solid rgba(201,168,76,.3)",borderRadius:6,padding:"2px 8px",display:"inline-block",marginBottom:8,fontWeight:500}}>{n.cat}</div>
-          <div style={{fontSize:18,fontWeight:500,color:"#fff",lineHeight:1.35}}>{lang==="ur"?n.headlineUr:n.headline}</div>
-          <div style={{fontSize:10,color:"#444",marginTop:5}}>{n.source} · {n.h}h ago</div>
+          <div style={{fontSize:8,background:"var(--border2)",color:"var(--gold)",border:"0.5px solid rgba(201,168,76,.3)",borderRadius:6,padding:"2px 8px",display:"inline-block",marginBottom:8,fontWeight:500}}>{n.cat}</div>
+          <div style={{fontSize:18,fontWeight:500,color:"var(--text)",lineHeight:1.35}}>{lang==="ur"?n.headlineUr:n.headline}</div>
+          <div style={{fontSize:10,color:"var(--text2)",marginTop:5}}>{n.source} · {n.h}h ago</div>
         </div>
       </div>
       <div style={{padding:"16px 18px 100px"}}>
         <div style={{display:"grid",gridTemplateColumns:`repeat(${n.stats.length},1fr)`,gap:8,marginBottom:16}}>
           {n.stats.map((s,i)=>(
-            <div key={i} style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:10,padding:"11px",textAlign:"center"}}>
-              <div style={{fontSize:17,fontWeight:500,color:"#C9A84C"}}>{s.n}</div>
-              <div style={{fontSize:9,color:"#2a2a2a",marginTop:3}}>{s.l}</div>
+            <div key={i} style={{background:"var(--bg2)",border:"0.5px solid #161616",borderRadius:10,padding:"11px",textAlign:"center"}}>
+              <div style={{fontSize:17,fontWeight:500,color:"var(--gold)"}}>{s.n}</div>
+              <div style={{fontSize:9,color:"var(--text3)",marginTop:3}}>{s.l}</div>
             </div>
           ))}
         </div>
-        <div style={{fontSize:13,color:"#666",lineHeight:1.8,marginBottom:16}}>{lang==="ur"?n.captionUr:n.caption}</div>
-        <div style={{background:"rgba(201,168,76,.05)",border:"0.5px solid rgba(201,168,76,.2)",borderRadius:12,padding:"14px"}}>
-          <div style={{fontSize:11,fontWeight:500,color:"#C9A84C",marginBottom:7}}>
+        <div style={{fontSize:13,color:"var(--text2)",lineHeight:1.8,marginBottom:16}}>{lang==="ur"?n.captionUr:n.caption}</div>
+        <div style={{background:"var(--gold-faint)",border:"0.5px solid rgba(201,168,76,.2)",borderRadius:12,padding:"14px"}}>
+          <div style={{fontSize:11,fontWeight:500,color:"var(--gold)",marginBottom:7}}>
             <i className="ti ti-circle-check" style={{fontSize:13,marginRight:5,verticalAlign:"-1px"}}/>Action for {biz.name}
           </div>
-          <div style={{fontSize:13,color:"#888",lineHeight:1.75}}>{lang==="ur"?n.actionUr:n.action}</div>
+          <div style={{fontSize:13,color:"var(--text2)",lineHeight:1.75}}>{lang==="ur"?n.actionUr:n.action}</div>
         </div>
       </div>
     </div>
@@ -959,16 +1144,16 @@ function ComplianceCalendar({ laws, lang, onNav }) {
   const gcalLink = l=>{const d=new Date(l.deadline);const f=dt=>dt.toISOString().replace(/[-:]/g,"").split(".")[0]+"Z";return`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(l.title)}&dates=${f(d)}/${f(d)}`;};
 
   return (
-    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"#060606",direction:lang==="ur"?"rtl":"ltr"}}>
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"var(--bg)",direction:lang==="ur"?"rtl":"ltr"}}>
       <PageHeader title={t.calTitle} sub={t.calSub} icon="ti-calendar-event" onBack={()=>onNav("dash")}/>
-      <div style={{background:"#080808",padding:"12px 16px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:"0.5px solid #111",flexShrink:0}}>
-        <button onClick={()=>{if(month===0){setMonth(11);setYear(y=>y-1);}else setMonth(m=>m-1);}} style={{background:"#0c0c0c",border:"0.5px solid #1a1a1a",color:"#C9A84C",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontSize:14,fontFamily:"inherit"}}>‹</button>
-        <span style={{fontSize:14,fontWeight:500,color:"#fff"}}>{MONTHS[month]} {year}</span>
-        <button onClick={()=>{if(month===11){setMonth(0);setYear(y=>y+1);}else setMonth(m=>m+1);}} style={{background:"#0c0c0c",border:"0.5px solid #1a1a1a",color:"#C9A84C",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontSize:14,fontFamily:"inherit"}}>›</button>
+      <div style={{background:"var(--bg2)",padding:"12px 16px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:"0.5px solid #111",flexShrink:0}}>
+        <button onClick={()=>{if(month===0){setMonth(11);setYear(y=>y-1);}else setMonth(m=>m-1);}} style={{background:"var(--bg2)",border:"0.5px solid #1a1a1a",color:"var(--gold)",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontSize:14,fontFamily:"inherit"}}>‹</button>
+        <span style={{fontSize:14,fontWeight:500,color:"var(--text)"}}>{MONTHS[month]} {year}</span>
+        <button onClick={()=>{if(month===11){setMonth(0);setYear(y=>y+1);}else setMonth(m=>m+1);}} style={{background:"var(--bg2)",border:"0.5px solid #1a1a1a",color:"var(--gold)",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontSize:14,fontFamily:"inherit"}}>›</button>
       </div>
-      <div style={{flex:1,overflowY:"auto",padding:"12px 16px 80px",background:"#080808"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"12px 16px 80px",background:"var(--bg2)"}}>
         <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2,marginBottom:16}}>
-          {["S","M","T","W","T","F","S"].map((d,i)=><div key={i} style={{textAlign:"center",fontSize:9,fontWeight:500,color:"#1e1e1e",padding:"4px 0"}}>{d}</div>)}
+          {["S","M","T","W","T","F","S"].map((d,i)=><div key={i} style={{textAlign:"center",fontSize:9,fontWeight:500,color:"var(--border)",padding:"4px 0"}}>{d}</div>)}
           {Array.from({length:firstDay}).map((_,i)=><div key={`e${i}`}/>)}
           {Array.from({length:daysInMonth}).map((_,i)=>{
             const day=i+1;
@@ -976,29 +1161,29 @@ function ComplianceCalendar({ laws, lang, onNav }) {
             const isToday=day===now.getDate()&&month===now.getMonth()&&year===now.getFullYear();
             return (
               <div key={day} style={{textAlign:"center",padding:"7px 2px",borderRadius:8,background:hasDeadline?"rgba(239,68,68,.1)":isToday?"rgba(201,168,76,.1)":"transparent",border:hasDeadline?"0.5px solid rgba(239,68,68,.3)":isToday?"0.5px solid rgba(201,168,76,.3)":"none"}}>
-                <span style={{fontSize:11,fontWeight:isToday||hasDeadline?500:400,color:hasDeadline?"#ef4444":isToday?"#C9A84C":"#2a2a2a"}}>{day}</span>
-                {hasDeadline&&<div style={{width:4,height:4,borderRadius:"50%",background:"#ef4444",margin:"2px auto 0"}}/>}
+                <span style={{fontSize:11,fontWeight:isToday||hasDeadline?500:400,color:hasDeadline?"var(--red)":isToday?"var(--gold)":"var(--text3)"}}>{day}</span>
+                {hasDeadline&&<div style={{width:4,height:4,borderRadius:"50%",background:"var(--red)",margin:"2px auto 0"}}/>}
               </div>
             );
           })}
         </div>
-        <div style={{fontSize:9,fontWeight:500,color:"#2a2a2a",marginBottom:10,textTransform:"uppercase",letterSpacing:".1em"}}>{deadlines.length===0?t.noDeadlines:`${deadlines.length} deadlines`}</div>
+        <div style={{fontSize:9,fontWeight:500,color:"var(--text3)",marginBottom:10,textTransform:"uppercase",letterSpacing:".1em"}}>{deadlines.length===0?t.noDeadlines:`${deadlines.length} deadlines`}</div>
         {deadlines.sort((a,b)=>a.date-b.date).map(law=>{
           const d=daysUntil(law.deadline);
           const passed=d!==null&&d<0; const near=d!==null&&d>=0&&d<=14;
           return (
-            <div key={law.id} style={{background:"#0c0c0c",border:passed||near?`1px solid ${passed?"rgba(239,68,68,.4)":"rgba(201,168,76,.25)"}`:"0.5px solid #161616",borderRadius:12,padding:"13px 14px",marginBottom:8,display:"flex",gap:12,alignItems:"center"}}>
-              <div style={{width:36,height:36,borderRadius:10,background:passed?"rgba(239,68,68,.08)":near?"rgba(201,168,76,.08)":"#111",border:`0.5px solid ${passed?"rgba(239,68,68,.3)":near?"rgba(201,168,76,.2)":"#1a1a1a"}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                <i className="ti ti-calendar-event" style={{fontSize:18,color:passed?"#ef4444":near?"#C9A84C":"#2a2a2a"}}/>
+            <div key={law.id} style={{background:"var(--bg2)",border:passed||near?`1px solid ${passed?"var(--red-border)":"var(--border2)"}`:"0.5px solid #161616",borderRadius:12,padding:"13px 14px",marginBottom:8,display:"flex",gap:12,alignItems:"center"}}>
+              <div style={{width:36,height:36,borderRadius:10,background:passed?"var(--red-faint)":near?"var(--gold-faint)":"var(--bg3)",border:`0.5px solid ${passed?"rgba(239,68,68,.3)":near?"var(--border2)":"var(--border)"}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <i className="ti ti-calendar-event" style={{fontSize:18,color:passed?"var(--red)":near?"var(--gold)":"var(--text3)"}}/>
               </div>
               <div style={{flex:1}}>
-                <div style={{fontSize:12,fontWeight:500,color:"#ccc",marginBottom:2}}>{lang==="ur"?law.titleUr:law.title}</div>
-                <div style={{fontSize:9,color:"#2a2a2a"}}>{new Date(law.deadline).toLocaleDateString("en-PK",{day:"numeric",month:"long",year:"numeric"})}</div>
-                <div style={{fontSize:9,fontWeight:500,color:passed?"#ef4444":near?"#C9A84C":"#2a2a2a",marginTop:2}}>
+                <div style={{fontSize:12,fontWeight:500,color:"var(--text2)",marginBottom:2}}>{lang==="ur"?law.titleUr:law.title}</div>
+                <div style={{fontSize:9,color:"var(--text3)"}}>{new Date(law.deadline).toLocaleDateString("en-PK",{day:"numeric",month:"long",year:"numeric"})}</div>
+                <div style={{fontSize:9,fontWeight:500,color:passed?"var(--red)":near?"var(--gold)":"var(--text3)",marginTop:2}}>
                   {passed?"Overdue":d===0?"Today!!!":`${d} days left`}
                 </div>
               </div>
-              <a href={gcalLink(law)} target="_blank" rel="noreferrer" style={{fontSize:9,background:"rgba(201,168,76,.08)",color:"#C9A84C",border:"0.5px solid rgba(201,168,76,.2)",borderRadius:7,padding:"4px 9px",textDecoration:"none",fontWeight:500,flexShrink:0,display:"flex",alignItems:"center",gap:4}}>
+              <a href={gcalLink(law)} target="_blank" rel="noreferrer" style={{fontSize:9,background:"var(--gold-faint)",color:"var(--gold)",border:"0.5px solid rgba(201,168,76,.2)",borderRadius:7,padding:"4px 9px",textDecoration:"none",fontWeight:500,flexShrink:0,display:"flex",alignItems:"center",gap:4}}>
                 <i className="ti ti-brand-google" style={{fontSize:11}}/>Google
               </a>
             </div>
@@ -1021,40 +1206,40 @@ function FineCalculator({ laws, lang, onNav }) {
   const calc = () => { if(sel&&days>0) setHistory(h=>[{law:lang==="ur"?sel.titleUr:sel.title,days,fine,date:new Date().toLocaleDateString()},...h.slice(0,4)]); };
 
   return (
-    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"#060606",direction:lang==="ur"?"rtl":"ltr"}}>
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"var(--bg)",direction:lang==="ur"?"rtl":"ltr"}}>
       <PageHeader title={t.fineTitle} sub={t.fineSub} icon="ti-calculator" onBack={()=>onNav("dash")}/>
-      <div style={{flex:1,overflowY:"auto",padding:"16px 16px 80px",background:"#080808"}}>
-        <div style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:14,padding:18,marginBottom:14}}>
-          <label style={{fontSize:10,fontWeight:500,color:"#2a2a2a",display:"block",marginBottom:6,textTransform:"uppercase",letterSpacing:".08em"}}>{t.selectLaw}</label>
-          <select value={selId} onChange={e=>setSelId(e.target.value)} style={{width:"100%",padding:"11px 13px",borderRadius:10,border:"0.5px solid #1a1a1a",background:"#111",color:"#aaa",fontSize:12,fontFamily:"inherit",outline:"none",appearance:"none",marginBottom:14}}>
+      <div style={{flex:1,overflowY:"auto",padding:"16px 16px 80px",background:"var(--bg2)"}}>
+        <div style={{background:"var(--bg2)",border:"0.5px solid #161616",borderRadius:14,padding:18,marginBottom:14}}>
+          <label style={{fontSize:10,fontWeight:500,color:"var(--text3)",display:"block",marginBottom:6,textTransform:"uppercase",letterSpacing:".08em"}}>{t.selectLaw}</label>
+          <select value={selId} onChange={e=>setSelId(e.target.value)} style={{width:"100%",padding:"11px 13px",borderRadius:10,border:"0.5px solid #1a1a1a",background:"var(--bg3)",color:"var(--text2)",fontSize:12,fontFamily:"inherit",outline:"none",appearance:"none",marginBottom:14}}>
             <option value="">{lang==="ur"?"قانون منتخب کریں…":"Select a law…"}</option>
             {lawsWithPenalty.map(l=><option key={l.id} value={l.id}>{lang==="ur"?l.titleUr:l.title}</option>)}
           </select>
-          <label style={{fontSize:10,fontWeight:500,color:"#2a2a2a",display:"block",marginBottom:6,textTransform:"uppercase",letterSpacing:".08em"}}>{t.daysOverdue}</label>
-          <input type="number" min="0" max="1825" value={days} onChange={e=>setDays(Math.max(0,parseInt(e.target.value)||0))} style={{width:"100%",padding:"11px 13px",borderRadius:10,border:"0.5px solid #1a1a1a",background:"#111",color:"#fff",fontSize:12,fontFamily:"inherit",outline:"none",marginBottom:14}}/>
+          <label style={{fontSize:10,fontWeight:500,color:"var(--text3)",display:"block",marginBottom:6,textTransform:"uppercase",letterSpacing:".08em"}}>{t.daysOverdue}</label>
+          <input type="number" min="0" max="1825" value={days} onChange={e=>setDays(Math.max(0,parseInt(e.target.value)||0))} style={{width:"100%",padding:"11px 13px",borderRadius:10,border:"0.5px solid #1a1a1a",background:"var(--bg3)",color:"var(--text)",fontSize:12,fontFamily:"inherit",outline:"none",marginBottom:14}}/>
           <button onClick={calc} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#C9A84C,#B8922A)",color:"#000",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
             <i className="ti ti-calculator" style={{fontSize:16}}/>{lang==="ur"?"جرمانہ حساب کریں":"Calculate Fine"}
           </button>
         </div>
         {sel && days>0 && (
-          <div style={{background:"#0c0c0c",border:`1px solid ${fine>100000?"rgba(239,68,68,.4)":"rgba(201,168,76,.3)"}`,borderRadius:14,padding:"20px 18px",marginBottom:14,textAlign:"center"}}>
-            <div style={{fontSize:10,color:"#2a2a2a",marginBottom:8,textTransform:"uppercase",letterSpacing:".1em"}}>{t.yourFine}</div>
-            <div style={{fontSize:36,fontWeight:500,color:fine>100000?"#ef4444":"#C9A84C",letterSpacing:"-1px"}}>PKR {fine.toLocaleString()}</div>
-            <div style={{fontSize:10,color:"#2a2a2a",marginTop:6}}>{lang==="ur"?sel.titleUr:sel.title} · {days} days overdue</div>
-            {sel.penaltyPerDay>0 && <div style={{fontSize:9,color:"#1e1e1e",marginTop:4}}>Daily penalty: PKR {sel.penaltyPerDay.toLocaleString()}</div>}
+          <div style={{background:"var(--bg2)",border:`1px solid ${fine>100000?"var(--red-border)":"rgba(201,168,76,.3)"}`,borderRadius:14,padding:"20px 18px",marginBottom:14,textAlign:"center"}}>
+            <div style={{fontSize:10,color:"var(--text3)",marginBottom:8,textTransform:"uppercase",letterSpacing:".1em"}}>{t.yourFine}</div>
+            <div style={{fontSize:36,fontWeight:500,color:fine>100000?"var(--red)":"var(--gold)",letterSpacing:"-1px"}}>PKR {fine.toLocaleString()}</div>
+            <div style={{fontSize:10,color:"var(--text3)",marginTop:6}}>{lang==="ur"?sel.titleUr:sel.title} · {days} days overdue</div>
+            {sel.penaltyPerDay>0 && <div style={{fontSize:9,color:"var(--border)",marginTop:4}}>Daily penalty: PKR {sel.penaltyPerDay.toLocaleString()}</div>}
           </div>
         )}
-        {sel && days===0 && <div style={{background:"rgba(201,168,76,.05)",border:"0.5px solid rgba(201,168,76,.15)",borderRadius:12,padding:16,textAlign:"center",fontSize:12,color:"#C9A84C"}}><i className="ti ti-circle-check" style={{fontSize:18,display:"block",marginBottom:6}}/>{t.notOverdue}</div>}
+        {sel && days===0 && <div style={{background:"var(--gold-faint)",border:"0.5px solid rgba(201,168,76,.15)",borderRadius:12,padding:16,textAlign:"center",fontSize:12,color:"var(--gold)"}}><i className="ti ti-circle-check" style={{fontSize:18,display:"block",marginBottom:6}}/>{t.notOverdue}</div>}
         {history.length>0 && (
           <div>
-            <div style={{fontSize:9,fontWeight:500,color:"#2a2a2a",marginBottom:8,marginTop:10,textTransform:"uppercase",letterSpacing:".1em"}}>Recent calculations</div>
+            <div style={{fontSize:9,fontWeight:500,color:"var(--text3)",marginBottom:8,marginTop:10,textTransform:"uppercase",letterSpacing:".1em"}}>Recent calculations</div>
             {history.map((h,i)=>(
-              <div key={i} style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:11,padding:"11px 14px",marginBottom:7,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div key={i} style={{background:"var(--bg2)",border:"0.5px solid #161616",borderRadius:11,padding:"11px 14px",marginBottom:7,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div>
-                  <div style={{fontSize:11,fontWeight:500,color:"#888"}}>{h.law}</div>
-                  <div style={{fontSize:9,color:"#2a2a2a"}}>{h.days} days · {h.date}</div>
+                  <div style={{fontSize:11,fontWeight:500,color:"var(--text2)"}}>{h.law}</div>
+                  <div style={{fontSize:9,color:"var(--text3)"}}>{h.days} days · {h.date}</div>
                 </div>
-                <div style={{fontSize:14,fontWeight:500,color:"#ef4444"}}>PKR {h.fine.toLocaleString()}</div>
+                <div style={{fontSize:14,fontWeight:500,color:"var(--red)"}}>PKR {h.fine.toLocaleString()}</div>
               </div>
             ))}
           </div>
@@ -1094,54 +1279,54 @@ function DocScanner({ lang, onNav }) {
   };
 
   return (
-    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"#060606",direction:lang==="ur"?"rtl":"ltr"}}>
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"var(--bg)",direction:lang==="ur"?"rtl":"ltr"}}>
       <PageHeader title={t.scanTitle} sub="Claude AI reads your licence automatically" icon="ti-scan" onBack={()=>onNav("dash")}/>
-      <div style={{flex:1,overflowY:"auto",padding:"16px 16px 80px",background:"#080808"}}>
-        <div onClick={()=>fileRef.current?.click()} style={{background:"#0c0c0c",border:"1px dashed #1a1a1a",borderRadius:14,padding:"32px 20px",textAlign:"center",marginBottom:16,cursor:"pointer"}}>
-          <i className="ti ti-cloud-upload" style={{fontSize:44,color:"#1e1e1e",display:"block",marginBottom:12}}/>
-          <div style={{fontSize:14,fontWeight:500,color:"#555",marginBottom:6}}>{t.upload}</div>
-          <div style={{fontSize:11,color:"#2a2a2a",marginBottom:4}}>Trade Licence · PFA · NTN · EOBI · Any govt doc</div>
-          <div style={{fontSize:10,color:"#1e1e1e"}}>Claude AI extracts the expiry date</div>
+      <div style={{flex:1,overflowY:"auto",padding:"16px 16px 80px",background:"var(--bg2)"}}>
+        <div onClick={()=>fileRef.current?.click()} style={{background:"var(--bg2)",border:"1px dashed #1a1a1a",borderRadius:14,padding:"32px 20px",textAlign:"center",marginBottom:16,cursor:"pointer"}}>
+          <i className="ti ti-cloud-upload" style={{fontSize:44,color:"var(--border)",display:"block",marginBottom:12}}/>
+          <div style={{fontSize:14,fontWeight:500,color:"var(--text2)",marginBottom:6}}>{t.upload}</div>
+          <div style={{fontSize:11,color:"var(--text3)",marginBottom:4}}>Trade Licence · PFA · NTN · EOBI · Any govt doc</div>
+          <div style={{fontSize:10,color:"var(--border)"}}>Claude AI extracts the expiry date</div>
           <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} style={{display:"none"}}/>
         </div>
         {state==="scanning" && (
-          <div style={{background:"#0c0c0c",border:"0.5px solid rgba(201,168,76,.2)",borderRadius:12,padding:24,textAlign:"center"}}>
-            <div style={{width:40,height:40,border:"2px solid #1a1a1a",borderTopColor:"#C9A84C",borderRadius:"50%",animation:"spin .7s linear infinite",margin:"0 auto 14px"}}/>
-            <div style={{fontSize:14,fontWeight:500,color:"#C9A84C",marginBottom:4}}>Claude AI is reading your document…</div>
-            <div style={{fontSize:11,color:"#2a2a2a"}}>Extracting licence type, expiry date, and authority</div>
+          <div style={{background:"var(--bg2)",border:"0.5px solid rgba(201,168,76,.2)",borderRadius:12,padding:24,textAlign:"center"}}>
+            <div style={{width:40,height:40,border:"2px solid #1a1a1a",borderTopColor:"var(--gold)",borderRadius:"50%",animation:"spin .7s linear infinite",margin:"0 auto 14px"}}/>
+            <div style={{fontSize:14,fontWeight:500,color:"var(--gold)",marginBottom:4}}>Claude AI is reading your document…</div>
+            <div style={{fontSize:11,color:"var(--text3)"}}>Extracting licence type, expiry date, and authority</div>
           </div>
         )}
         {state==="done" && result && (
           <div style={{marginBottom:14}}>
-            <div style={{background:"#0c0c0c",border:`1px solid ${result.isExpired?"rgba(239,68,68,.4)":result.daysLeft!==null&&result.daysLeft<30?"rgba(201,168,76,.3)":"rgba(201,168,76,.2)"}`,borderRadius:14,padding:18,marginBottom:10}}>
-              <div style={{fontSize:13,fontWeight:500,color:result.isExpired?"#ef4444":result.daysLeft!==null&&result.daysLeft<30?"#C9A84C":"#C9A84C",marginBottom:12,display:"flex",alignItems:"center",gap:6}}>
+            <div style={{background:"var(--bg2)",border:`1px solid ${result.isExpired?"var(--red-border)":result.daysLeft!==null&&result.daysLeft<30?"rgba(201,168,76,.3)":"var(--border2)"}`,borderRadius:14,padding:18,marginBottom:10}}>
+              <div style={{fontSize:13,fontWeight:500,color:result.isExpired?"var(--red)":result.daysLeft!==null&&result.daysLeft<30?"var(--gold)":"var(--gold)",marginBottom:12,display:"flex",alignItems:"center",gap:6}}>
                 <i className={`ti ${result.isExpired?"ti-alert-circle":"ti-circle-check"}`} style={{fontSize:16}}/>
                 {result.isExpired?"EXPIRED — Renew immediately":result.daysLeft!==null&&result.daysLeft<30?"Expiring soon":"Valid document"}
               </div>
               {[["Document type",result.docType],["Business name",result.bizName],["Issued by",result.authority],["Licence number",result.licenceNo],["City",result.city],["Expiry date",result.expDate],[result.daysLeft!==null?"Days remaining":null,result.daysLeft!==null?(result.daysLeft>0?`${result.daysLeft} days`:`Expired ${Math.abs(result.daysLeft)} days ago`):null]].filter(([k,v])=>k&&v).map(([k,v],i)=>(
                 <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:"0.5px solid #111",fontSize:12}}>
-                  <span style={{color:"#2a2a2a"}}>{k}</span>
-                  <span style={{color:"#aaa",fontWeight:500,textAlign:"right",maxWidth:"60%"}}>{v}</span>
+                  <span style={{color:"var(--text3)"}}>{k}</span>
+                  <span style={{color:"var(--text2)",fontWeight:500,textAlign:"right",maxWidth:"60%"}}>{v}</span>
                 </div>
               ))}
             </div>
-            <div style={{fontSize:10,color:"#1e1e1e",textAlign:"center"}}>
+            <div style={{fontSize:10,color:"var(--border)",textAlign:"center"}}>
               <i className="ti ti-info-circle" style={{fontSize:10,marginRight:4,verticalAlign:"-1px"}}/>Always verify with the original document.
             </div>
           </div>
         )}
         {docs.length>0 && (
           <div>
-            <div style={{fontSize:9,fontWeight:500,color:"#2a2a2a",marginBottom:8,textTransform:"uppercase",letterSpacing:".1em"}}>
-              <i className="ti ti-files" style={{fontSize:11,color:"#C9A84C",marginRight:5,verticalAlign:"-1px"}}/>Scanned documents
+            <div style={{fontSize:9,fontWeight:500,color:"var(--text3)",marginBottom:8,textTransform:"uppercase",letterSpacing:".1em"}}>
+              <i className="ti ti-files" style={{fontSize:11,color:"var(--gold)",marginRight:5,verticalAlign:"-1px"}}/>Scanned documents
             </div>
             {docs.map((d,i)=>(
-              <div key={i} style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:11,padding:"11px 13px",marginBottom:7,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div key={i} style={{background:"var(--bg2)",border:"0.5px solid #161616",borderRadius:11,padding:"11px 13px",marginBottom:7,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div>
-                  <div style={{fontSize:11,fontWeight:500,color:"#888"}}>{d.docType||d.name}</div>
-                  <div style={{fontSize:9,color:"#2a2a2a"}}>Expires: {d.expDate} · {d.scanned}</div>
+                  <div style={{fontSize:11,fontWeight:500,color:"var(--text2)"}}>{d.docType||d.name}</div>
+                  <div style={{fontSize:9,color:"var(--text3)"}}>Expires: {d.expDate} · {d.scanned}</div>
                 </div>
-                <div style={{fontSize:10,fontWeight:500,color:d.isExpired?"#ef4444":d.daysLeft!==null&&d.daysLeft<30?"#C9A84C":"#444"}}>
+                <div style={{fontSize:10,fontWeight:500,color:d.isExpired?"var(--red)":d.daysLeft!==null&&d.daysLeft<30?"var(--gold)":"var(--text2)"}}>
                   {d.isExpired?"Expired":d.daysLeft!==null?`${d.daysLeft}d`:"—"}
                 </div>
               </div>
@@ -1158,30 +1343,30 @@ function FindCA({ biz, lang, onNav }) {
   const t = T[lang];
   const nearby = CA_LISTINGS.filter(ca=>ca.city===biz.city).concat(CA_LISTINGS.filter(ca=>ca.city!==biz.city)).slice(0,6);
   return (
-    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"#060606",direction:lang==="ur"?"rtl":"ltr"}}>
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"var(--bg)",direction:lang==="ur"?"rtl":"ltr"}}>
       <PageHeader title={t.caTitle} sub={`${t.caSub} · ${biz.city}`} icon="ti-user-check" onBack={()=>onNav("dash")}/>
-      <div style={{flex:1,overflowY:"auto",padding:"14px 16px 80px",background:"#080808"}}>
-        <div style={{background:"rgba(201,168,76,.05)",border:"0.5px solid rgba(201,168,76,.15)",borderRadius:10,padding:"10px 13px",marginBottom:14,fontSize:11,color:"rgba(201,168,76,.7)"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"14px 16px 80px",background:"var(--bg2)"}}>
+        <div style={{background:"var(--gold-faint)",border:"0.5px solid rgba(201,168,76,.15)",borderRadius:10,padding:"10px 13px",marginBottom:14,fontSize:11,color:"rgba(201,168,76,.7)"}}>
           <i className="ti ti-info-circle" style={{fontSize:12,marginRight:5,verticalAlign:"-1px"}}/>Confirm fees before engaging. City-matched shown first.
         </div>
         {nearby.map((ca,i)=>(
-          <div key={i} style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:14,padding:"15px 16px",marginBottom:10}}>
+          <div key={i} style={{background:"var(--bg2)",border:"0.5px solid #161616",borderRadius:14,padding:"15px 16px",marginBottom:10}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
               <div style={{display:"flex",alignItems:"center",gap:10}}>
-                <div style={{width:38,height:38,borderRadius:10,background:"rgba(201,168,76,.08)",border:"0.5px solid rgba(201,168,76,.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <i className="ti ti-user-tie" style={{fontSize:19,color:"#C9A84C"}}/>
+                <div style={{width:38,height:38,borderRadius:10,background:"var(--gold-faint)",border:"0.5px solid rgba(201,168,76,.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <i className="ti ti-user-tie" style={{fontSize:19,color:"var(--gold)"}}/>
                 </div>
                 <div>
-                  <div style={{fontSize:12,fontWeight:500,color:"#ccc",marginBottom:1}}>{ca.name}</div>
-                  <div style={{fontSize:9,color:"#2a2a2a"}}>{ca.area}, {ca.city}</div>
+                  <div style={{fontSize:12,fontWeight:500,color:"var(--text2)",marginBottom:1}}>{ca.name}</div>
+                  <div style={{fontSize:9,color:"var(--text3)"}}>{ca.area}, {ca.city}</div>
                 </div>
               </div>
-              <span style={{fontSize:8,background:"rgba(201,168,76,.08)",color:"#C9A84C",border:"0.5px solid rgba(201,168,76,.2)",borderRadius:6,padding:"2px 7px",fontWeight:500}}>Verified</span>
+              <span style={{fontSize:8,background:"var(--gold-faint)",color:"var(--gold)",border:"0.5px solid rgba(201,168,76,.2)",borderRadius:6,padding:"2px 7px",fontWeight:500}}>Verified</span>
             </div>
             <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:12}}>
-              <span style={{fontSize:9,background:"#111",color:"#555",border:"0.5px solid #1a1a1a",borderRadius:6,padding:"2px 8px"}}>{ca.speciality}</span>
-              <span style={{fontSize:9,background:"#111",color:"#555",border:"0.5px solid #1a1a1a",borderRadius:6,padding:"2px 8px"}}>{ca.fee}</span>
-              <span style={{fontSize:9,background:"#111",color:"#555",border:"0.5px solid #1a1a1a",borderRadius:6,padding:"2px 8px"}}>⭐ {ca.rating} ({ca.reviews})</span>
+              <span style={{fontSize:9,background:"var(--bg3)",color:"var(--text2)",border:"0.5px solid #1a1a1a",borderRadius:6,padding:"2px 8px"}}>{ca.speciality}</span>
+              <span style={{fontSize:9,background:"var(--bg3)",color:"var(--text2)",border:"0.5px solid #1a1a1a",borderRadius:6,padding:"2px 8px"}}>{ca.fee}</span>
+              <span style={{fontSize:9,background:"var(--bg3)",color:"var(--text2)",border:"0.5px solid #1a1a1a",borderRadius:6,padding:"2px 8px"}}>⭐ {ca.rating} ({ca.reviews})</span>
             </div>
             <a href={`tel:${ca.phone}`} style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,textAlign:"center",background:"linear-gradient(135deg,#C9A84C,#B8922A)",color:"#000",borderRadius:10,padding:"10px",fontSize:12,fontWeight:600,textDecoration:"none"}}>
               <i className="ti ti-phone" style={{fontSize:15}}/>{ca.phone}
@@ -1202,21 +1387,21 @@ function ComplianceKit({ laws, biz, lang, onNav }) {
   const kit = lawsWithLetters.map(l=>`════════════════════\n${lang==="ur"?l.titleUr:l.title}\n════════════════════\n\n${l.letter(biz)}\n\n`).join("\n");
 
   return (
-    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"#060606",direction:lang==="ur"?"rtl":"ltr"}}>
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"var(--bg)",direction:lang==="ur"?"rtl":"ltr"}}>
       <PageHeader title={t.kitTitle} sub={t.kitSub} icon="ti-package" onBack={()=>onNav("dash")}/>
-      <div style={{flex:1,overflowY:"auto",padding:"16px 16px 80px",background:"#080808"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"16px 16px 80px",background:"var(--bg2)"}}>
         {!generated ? (
           <div>
-            <div style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:14,padding:18,marginBottom:14}}>
-              <div style={{fontSize:10,fontWeight:500,color:"#2a2a2a",marginBottom:12,textTransform:"uppercase",letterSpacing:".1em"}}>This kit includes</div>
+            <div style={{background:"var(--bg2)",border:"0.5px solid #161616",borderRadius:14,padding:18,marginBottom:14}}>
+              <div style={{fontSize:10,fontWeight:500,color:"var(--text3)",marginBottom:12,textTransform:"uppercase",letterSpacing:".1em"}}>This kit includes</div>
               {lawsWithLetters.map((l,i)=>(
                 <div key={i} style={{display:"flex",gap:10,alignItems:"center",padding:"9px 0",borderBottom:i<lawsWithLetters.length-1?"0.5px solid #111":"none"}}>
-                  <div style={{width:30,height:30,borderRadius:8,background:"rgba(201,168,76,.07)",border:"0.5px solid rgba(201,168,76,.15)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                    <i className="ti ti-file-text" style={{fontSize:15,color:"#C9A84C"}}/>
+                  <div style={{width:30,height:30,borderRadius:8,background:"var(--gold-faint)",border:"0.5px solid rgba(201,168,76,.15)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                    <i className="ti ti-file-text" style={{fontSize:15,color:"var(--gold)"}}/>
                   </div>
                   <div>
-                    <div style={{fontSize:11,fontWeight:500,color:"#888"}}>{lang==="ur"?l.titleUr:l.title}</div>
-                    <div style={{fontSize:9,color:"#2a2a2a"}}>Pre-filled compliance letter</div>
+                    <div style={{fontSize:11,fontWeight:500,color:"var(--text2)"}}>{lang==="ur"?l.titleUr:l.title}</div>
+                    <div style={{fontSize:9,color:"var(--text3)"}}>Pre-filled compliance letter</div>
                   </div>
                 </div>
               ))}
@@ -1227,18 +1412,18 @@ function ComplianceKit({ laws, biz, lang, onNav }) {
           </div>
         ) : (
           <div>
-            <div style={{background:"rgba(201,168,76,.05)",border:"0.5px solid rgba(201,168,76,.2)",borderRadius:12,padding:14,marginBottom:14,display:"flex",gap:10,alignItems:"center"}}>
-              <i className="ti ti-circle-check" style={{fontSize:24,color:"#C9A84C"}}/>
+            <div style={{background:"var(--gold-faint)",border:"0.5px solid rgba(201,168,76,.2)",borderRadius:12,padding:14,marginBottom:14,display:"flex",gap:10,alignItems:"center"}}>
+              <i className="ti ti-circle-check" style={{fontSize:24,color:"var(--gold)"}}/>
               <div>
-                <div style={{fontSize:12,fontWeight:500,color:"#C9A84C"}}>{t.kitReady}</div>
-                <div style={{fontSize:10,color:"#2a2a2a"}}>{lawsWithLetters.length} letters · {biz.name}</div>
+                <div style={{fontSize:12,fontWeight:500,color:"var(--gold)"}}>{t.kitReady}</div>
+                <div style={{fontSize:10,color:"var(--text3)"}}>{lawsWithLetters.length} letters · {biz.name}</div>
               </div>
             </div>
-            <button onClick={()=>{navigator.clipboard.writeText(kit);setCopied(true);setTimeout(()=>setCopied(false),2500);}} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:copied?"#1a1a1a":"linear-gradient(135deg,#C9A84C,#B8922A)",color:copied?"#C9A84C":"#000",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+            <button onClick={()=>{navigator.clipboard.writeText(kit);setCopied(true);setTimeout(()=>setCopied(false),2500);}} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:copied?"var(--border)":"linear-gradient(135deg,#C9A84C,#B8922A)",color:copied?"var(--gold)":"#000",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
               <i className={`ti ${copied?"ti-check":"ti-copy"}`} style={{fontSize:16}}/>{copied?`${lang==="ur"?"کاپی ہو گئی!":"Copied!"}`:t.copyAll}
             </button>
-            <div style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:12,padding:"14px 16px",maxHeight:300,overflowY:"auto"}}>
-              <pre style={{fontSize:10,color:"#444",lineHeight:1.8,whiteSpace:"pre-wrap",fontFamily:"'DM Mono',monospace",margin:0}}>{kit}</pre>
+            <div style={{background:"var(--bg2)",border:"0.5px solid #161616",borderRadius:12,padding:"14px 16px",maxHeight:300,overflowY:"auto"}}>
+              <pre style={{fontSize:10,color:"var(--text2)",lineHeight:1.8,whiteSpace:"pre-wrap",fontFamily:"'DM Mono',monospace",margin:0}}>{kit}</pre>
             </div>
           </div>
         )}
@@ -1258,72 +1443,72 @@ function ProfileScreen({ biz, onUpdate, lang }) {
     onUpdate({...d,typeLabel:bl(d.type,"en"),revLabel:REV_BANDS.find(b=>b.v===d.revM)?.l||"",empLabel:EMP_BANDS.find(b=>b.v===d.emp)?.l||""});
     setSaved(true);setTimeout(()=>setSaved(false),2200);
   };
-  const inp = {width:"100%",padding:"11px 13px",borderRadius:10,border:"0.5px solid #1a1a1a",background:"#0c0c0c",color:"#aaa",fontSize:12,fontFamily:"inherit",outline:"none",marginBottom:12};
+  const inp = {width:"100%",padding:"11px 13px",borderRadius:10,border:"0.5px solid #1a1a1a",background:"var(--bg2)",color:"var(--text2)",fontSize:12,fontFamily:"inherit",outline:"none",marginBottom:12};
   const sel = {...inp,appearance:"none",cursor:"pointer"};
 
   return (
-    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"#060606",direction:lang==="ur"?"rtl":"ltr"}}>
-      <div style={{background:"#060606",padding:"16px 18px 18px",borderBottom:"0.5px solid #111",flexShrink:0}}>
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:"var(--bg)",direction:lang==="ur"?"rtl":"ltr"}}>
+      <div style={{background:"var(--bg)",padding:"16px 18px 18px",borderBottom:"0.5px solid #111",flexShrink:0}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <div style={{width:38,height:38,borderRadius:10,border:"0.5px solid rgba(201,168,76,.25)",background:"rgba(201,168,76,.07)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <i className="ti ti-user" style={{fontSize:20,color:"#C9A84C"}}/>
+          <div style={{width:38,height:38,borderRadius:10,border:"0.5px solid rgba(201,168,76,.25)",background:"var(--gold-faint)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <i className="ti ti-user" style={{fontSize:20,color:"var(--gold)"}}/>
           </div>
           <div>
-            <div style={{fontSize:17,fontWeight:500,color:"#fff"}}>Business Profile</div>
-            <div style={{fontSize:9,color:"#2a2a2a"}}>Update to re-filter all laws</div>
+            <div style={{fontSize:17,fontWeight:500,color:"var(--text)"}}>Business Profile</div>
+            <div style={{fontSize:9,color:"var(--text3)"}}>Update to re-filter all laws</div>
           </div>
         </div>
       </div>
-      <div style={{flex:1,overflowY:"auto",padding:"14px 16px 100px",background:"#080808"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"14px 16px 100px",background:"var(--bg2)"}}>
         {/* Summary */}
-        <div style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:12,padding:14,marginBottom:14}}>
+        <div style={{background:"var(--bg2)",border:"0.5px solid #161616",borderRadius:12,padding:14,marginBottom:14}}>
           {[["Business",biz.name],["Owner",`${biz.ownerName} (${biz.designation})`],["Type",bl(biz.type,lang)],["Location",`${biz.city}, ${biz.province}`],["Revenue",biz.revLabel||"—"],["Employees",biz.empLabel||"—"],["NTN",biz.ntn||"Not registered"]].map(([k,v])=>(
             <div key={k} style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:"0.5px solid #111",fontSize:12}}>
-              <span style={{color:"#2a2a2a"}}>{k}</span>
-              <span style={{color:"#888",fontWeight:500,textAlign:"right",maxWidth:"65%",fontSize:11}}>{v}</span>
+              <span style={{color:"var(--text3)"}}>{k}</span>
+              <span style={{color:"var(--text2)",fontWeight:500,textAlign:"right",maxWidth:"65%",fontSize:11}}>{v}</span>
             </div>
           ))}
         </div>
         {/* Edit */}
-        <div style={{background:"#0c0c0c",border:"0.5px solid #161616",borderRadius:12,padding:16}}>
+        <div style={{background:"var(--bg2)",border:"0.5px solid #161616",borderRadius:12,padding:16}}>
           {[{l:"Business name",k:"name"},{l:"Owner name",k:"ownerName"},{l:"Phone",k:"phone"},{l:"NTN",k:"ntn"}].map(f=>(
             <div key={f.k} style={{marginBottom:0}}>
-              <label style={{fontSize:9,fontWeight:500,color:"#2a2a2a",display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{f.l}</label>
+              <label style={{fontSize:9,fontWeight:500,color:"var(--text3)",display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{f.l}</label>
               <input value={d[f.k]||""} onChange={e=>upd(f.k,e.target.value)} style={inp}/>
             </div>
           ))}
-          <label style={{fontSize:9,fontWeight:500,color:"#2a2a2a",display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{t.bizType}</label>
+          <label style={{fontSize:9,fontWeight:500,color:"var(--text3)",display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{t.bizType}</label>
           <select value={d.type} onChange={e=>upd("type",e.target.value)} style={sel}>
             {BIZ_TYPES.map(tp=><option key={tp.v} value={tp.v}>{lang==="ur"?tp.lUr:tp.l}</option>)}
           </select>
-          <label style={{fontSize:9,fontWeight:500,color:"#2a2a2a",display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{t.province}</label>
+          <label style={{fontSize:9,fontWeight:500,color:"var(--text3)",display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{t.province}</label>
           <select value={d.province} onChange={e=>{upd("province",e.target.value);upd("city","");}} style={sel}>
             {PROVINCES.map(p=><option key={p}>{p}</option>)}
           </select>
-          <label style={{fontSize:9,fontWeight:500,color:"#2a2a2a",display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{t.city}</label>
+          <label style={{fontSize:9,fontWeight:500,color:"var(--text3)",display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{t.city}</label>
           <select value={d.city} onChange={e=>upd("city",e.target.value)} style={sel}>
             {(CITIES[d.province]||[]).map(c=><option key={c}>{c}</option>)}
           </select>
-          <label style={{fontSize:9,fontWeight:500,color:"#2a2a2a",display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{t.revenue}</label>
+          <label style={{fontSize:9,fontWeight:500,color:"var(--text3)",display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{t.revenue}</label>
           <select value={d.revM} onChange={e=>upd("revM",parseFloat(e.target.value))} style={sel}>
             {REV_BANDS.map(b=><option key={b.v} value={b.v}>{lang==="ur"?b.lUr:b.l}</option>)}
           </select>
-          <label style={{fontSize:9,fontWeight:500,color:"#2a2a2a",display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{t.employees}</label>
+          <label style={{fontSize:9,fontWeight:500,color:"var(--text3)",display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{t.employees}</label>
           <select value={d.emp} onChange={e=>upd("emp",parseInt(e.target.value))} style={{...sel,marginBottom:14}}>
             {EMP_BANDS.map(b=><option key={b.v} value={b.v}>{lang==="ur"?b.lUr:b.l}</option>)}
           </select>
-          <label style={{fontSize:9,fontWeight:500,color:"#2a2a2a",display:"block",marginBottom:8,textTransform:"uppercase",letterSpacing:".08em"}}>{t.licences}</label>
+          <label style={{fontSize:9,fontWeight:500,color:"var(--text3)",display:"block",marginBottom:8,textTransform:"uppercase",letterSpacing:".08em"}}>{t.licences}</label>
           <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:16}}>
             {LICENCE_TYPES.map(l=>(
-              <div key={l} onClick={()=>toggleLic(l)} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:10,border:`0.5px solid ${d.licences.includes(l)?"rgba(201,168,76,.3)":"#1a1a1a"}`,background:d.licences.includes(l)?"rgba(201,168,76,.05)":"transparent",cursor:"pointer"}}>
-                <div style={{width:18,height:18,borderRadius:5,border:`1.5px solid ${d.licences.includes(l)?"#C9A84C":"#1e1e1e"}`,background:d.licences.includes(l)?"#C9A84C":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+              <div key={l} onClick={()=>toggleLic(l)} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:10,border:`0.5px solid ${d.licences.includes(l)?"rgba(201,168,76,.3)":"var(--border)"}`,background:d.licences.includes(l)?"var(--gold-faint)":"transparent",cursor:"pointer"}}>
+                <div style={{width:18,height:18,borderRadius:5,border:`1.5px solid ${d.licences.includes(l)?"var(--gold)":"var(--border)"}`,background:d.licences.includes(l)?"var(--gold)":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                   {d.licences.includes(l) && <i className="ti ti-check" style={{fontSize:11,color:"#000"}}/>}
                 </div>
-                <span style={{fontSize:11,color:d.licences.includes(l)?"#C9A84C":"#444"}}>{l}</span>
+                <span style={{fontSize:11,color:d.licences.includes(l)?"var(--gold)":"var(--text2)"}}>{l}</span>
               </div>
             ))}
           </div>
-          <button onClick={save} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:saved?"#1a1a1a":"linear-gradient(135deg,#C9A84C,#B8922A)",color:saved?"#C9A84C":"#000",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+          <button onClick={save} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:saved?"var(--border)":"linear-gradient(135deg,#C9A84C,#B8922A)",color:saved?"var(--gold)":"#000",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
             <i className={`ti ${saved?"ti-check":"ti-device-floppy"}`} style={{fontSize:16}}/>{saved?t.saved:t.updateSave}
           </button>
         </div>
@@ -1334,7 +1519,7 @@ function ProfileScreen({ biz, onUpdate, lang }) {
 
 
 /* ── BOTTOM NAV ───────────────────────────────────────────── */
-function BottomNav({ active, onNav, urgentCount, newsCount, lang }) {
+function BottomNav({ active, onNav, urgentCount, newsCount, lang, TH }) {
   const t = T[lang];
   const tabs = [
     {id:"dash",    icon:"ti-home",  label:t.home},
@@ -1343,13 +1528,13 @@ function BottomNav({ active, onNav, urgentCount, newsCount, lang }) {
     {id:"profile", icon:"ti-user",  label:t.profile},
   ];
   return (
-    <div style={{background:"#060606",borderTop:"0.5px solid #161616",display:"flex",padding:"10px 0 14px",flexShrink:0}}>
+    <div style={{background:TH.bg,borderTop:`0.5px solid ${TH.border}`,display:"flex",padding:"10px 0 14px",flexShrink:0}}>
       {tabs.map(tab=>(
         <button key={tab.id} onClick={()=>onNav(tab.id)} style={{flex:1,background:"transparent",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3,position:"relative",padding:"2px 0"}}>
-          <i className={`ti ${tab.icon}`} style={{fontSize:26,color:active===tab.id?"#C9A84C":"#222"}}/>
-          <span style={{fontSize:10,fontWeight:500,color:active===tab.id?"#C9A84C":"#222",fontFamily:"inherit",letterSpacing:".03em"}}>{tab.label}</span>
-          {active===tab.id && <div style={{position:"absolute",bottom:-14,width:16,height:2,background:"#C9A84C",borderRadius:1}}/>}
-          {(tab.badge||0)>0 && <span style={{position:"absolute",top:0,right:"14%",background:"#ef4444",color:"#fff",fontSize:8,fontWeight:700,borderRadius:8,padding:"1px 4px",minWidth:13,textAlign:"center"}}>{tab.badge}</span>}
+          <i className={`ti ${tab.icon}`} style={{fontSize:26,color:active===tab.id?TH.gold:TH.border}}/>
+          <span style={{fontSize:10,fontWeight:500,color:active===tab.id?TH.gold:TH.text3,fontFamily:"inherit"}}>{tab.label}</span>
+          {active===tab.id && <div style={{position:"absolute",bottom:-14,width:16,height:2,background:TH.gold,borderRadius:1}}/>}
+          {(tab.badge||0)>0 && <span style={{position:"absolute",top:0,right:"14%",background:TH.red,color:"var(--text)",fontSize:8,fontWeight:700,borderRadius:8,padding:"1px 4px",minWidth:13,textAlign:"center"}}>{tab.badge}</span>}
         </button>
       ))}
     </div>
@@ -1367,6 +1552,22 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false);
   const [dbLaws, setDbLaws] = useState([]);
+  const [dark, setDark] = useState(true);
+
+  /* Theme colours — passed to all components */
+  const TH = dark ? {
+    bg:"var(--bg)", bg2:"var(--bg2)", bg3:"var(--bg3)",
+    border:"var(--border)", border2:"var(--border2)",
+    text:"var(--text)", text2:"#888888", text3:"var(--text3)",
+    gold:"var(--gold)", goldFaint:"var(--gold-faint)",
+    red:"var(--red)", redFaint:"var(--red-faint)", redBorder:"var(--red-border)",
+  } : {
+    bg:"var(--text)", bg2:"#fdf8ef", bg3:"#f5ede0",
+    border:"#ede8d8", border2:"rgba(184,146,42,.3)",
+    text:"var(--bg3)", text2:"#666666", text3:"#aaaaaa",
+    gold:"#B8922A", goldFaint:"rgba(184,146,42,.08)",
+    red:"#dc2626", redFaint:"rgba(220,38,38,.06)", redBorder:"rgba(220,38,38,.35)",
+  };
 
   /* Auth */
   useEffect(() => {
@@ -1453,30 +1654,30 @@ export default function App() {
 
   /* 1. Show loading ONLY on first open before laws are ready */
   if (!ready && !biz) return (
-    <div style={{height:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"#060606",gap:16,fontFamily:"inherit"}}>
-      <div style={{fontSize:16,fontWeight:500,color:"#C9A84C",letterSpacing:"1px"}}>Verifill</div>
-      <div style={{width:28,height:28,border:"2px solid #1a1a1a",borderTopColor:"#C9A84C",borderRadius:"50%",animation:"spin .7s linear infinite"}}/>
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"var(--bg)",gap:16,fontFamily:"inherit"}}>
+      <div style={{fontSize:16,fontWeight:500,color:"var(--gold)",letterSpacing:"1px"}}>Verifill</div>
+      <div style={{width:28,height:28,border:"2px solid #1a1a1a",borderTopColor:"var(--gold)",borderRadius:"50%",animation:"spin .7s linear infinite"}}/>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
   /* 2. Show sign in if no user and no biz */
   if (!user && !biz) return (
-    <div style={{height:"100vh",overflowY:"auto",background:"#060606",fontFamily:"inherit"}}>
+    <div style={{height:"100vh",overflowY:"auto",background:"var(--bg)",fontFamily:"inherit"}}>
       <div style={{maxWidth:480,margin:"0 auto",padding:"60px 24px",textAlign:"center"}}>
         <div style={{display:"inline-flex",alignItems:"center",gap:10,marginBottom:32}}>
-          <div style={{width:40,height:40,borderRadius:11,border:"1px solid rgba(201,168,76,.4)",background:"rgba(201,168,76,.08)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <i className="ti ti-shield-check" style={{fontSize:20,color:"#C9A84C"}}/>
+          <div style={{width:40,height:40,borderRadius:11,border:"1px solid rgba(201,168,76,.4)",background:"var(--gold-faint)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <i className="ti ti-shield-check" style={{fontSize:20,color:"var(--gold)"}}/>
           </div>
           <div style={{textAlign:"left"}}>
-            <div style={{fontSize:18,fontWeight:500,color:"#C9A84C",letterSpacing:"1px"}}>Verifill</div>
+            <div style={{fontSize:18,fontWeight:500,color:"var(--gold)",letterSpacing:"1px"}}>Verifill</div>
             <div style={{fontSize:9,color:"rgba(201,168,76,.3)",letterSpacing:".2em",textTransform:"uppercase"}}>Pakistan Compliance</div>
           </div>
         </div>
-        <div style={{background:"#0c0c0c",border:"0.5px solid #1a1a1a",borderRadius:16,padding:"28px 22px"}}>
-          <div style={{fontSize:18,fontWeight:500,color:"#fff",marginBottom:8}}>Welcome</div>
-          <div style={{fontSize:12,color:"#2a2a2a",marginBottom:24,lineHeight:1.7}}>Sign in to save your profile permanently.</div>
-          <button onClick={signInWithGoogle} style={{width:"100%",padding:"13px 16px",borderRadius:12,border:"0.5px solid #2a2a2a",background:"#fff",color:"#3c4043",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:12,marginBottom:14}}>
+        <div style={{background:"var(--bg2)",border:"0.5px solid #1a1a1a",borderRadius:16,padding:"28px 22px"}}>
+          <div style={{fontSize:18,fontWeight:500,color:"var(--text)",marginBottom:8}}>Welcome</div>
+          <div style={{fontSize:12,color:"var(--text3)",marginBottom:24,lineHeight:1.7}}>Sign in to save your profile permanently.</div>
+          <button onClick={signInWithGoogle} style={{width:"100%",padding:"13px 16px",borderRadius:12,border:"0.5px solid #2a2a2a",background:"var(--text)",color:"#3c4043",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:12,marginBottom:14}}>
             <svg width="18" height="18" viewBox="0 0 48 48">
               <path fill="#4285F4" d="M44.5 20H24v8.5h11.8C34.7 33.9 29.8 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/>
               <path fill="#34A853" d="M6.3 14.7l7 5.1C15 16.1 19.2 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16.3 2 9.7 7.4 6.3 14.7z"/>
@@ -1486,9 +1687,9 @@ export default function App() {
             Continue with Google
           </button>
           <div style={{display:"flex",alignItems:"center",gap:10,margin:"4px 0 14px"}}>
-            <div style={{flex:1,height:"0.5px",background:"#1a1a1a"}}/>
-            <span style={{fontSize:11,color:"#2a2a2a"}}>or</span>
-            <div style={{flex:1,height:"0.5px",background:"#1a1a1a"}}/>
+            <div style={{flex:1,height:"0.5px",background:"var(--border)"}}/>
+            <span style={{fontSize:11,color:"var(--text3)"}}>or</span>
+            <div style={{flex:1,height:"0.5px",background:"var(--border)"}}/>
           </div>
           <button onClick={()=>setBiz("onboard")} style={{width:"100%",padding:"12px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#C9A84C,#B8922A)",color:"#000",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
             Continue without saving
@@ -1516,24 +1717,24 @@ export default function App() {
   const mainScreens = ["dash","news","laws","profile"];
 
   const renderScreen = () => {
-    if (selLaw)  return <LawDetail  law={selLaw}  biz={biz} onBack={()=>setSelLaw(null)}  lang={lang}/>;
-    if (selNews) return <NewsDetail news={selNews} biz={biz} onBack={()=>setSelNews(null)} lang={lang}/>;
+    if (selLaw)  return <LawDetail  law={selLaw}  biz={biz} onBack={()=>setSelLaw(null)}  lang={lang} TH={TH}/>;
+    if (selNews) return <NewsDetail news={selNews} biz={biz} onBack={()=>setSelNews(null)} lang={lang} TH={TH}/>;
     switch(screen) {
-      case "dash":     return <Dashboard     biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut}/>;
-      case "news":     return <NewsFeed      biz={biz} onSelect={setSelNews} lang={lang}/>;
-      case "laws":     return <LawBook       biz={biz} onSelect={setSelLaw} lang={lang} allLaws={LAWS} onNav={nav}/>;
-      case "profile":  return <ProfileScreen biz={biz} onUpdate={b=>{ setBiz(b); saveProfile(b); nav("dash"); }} lang={lang}/>;
-      case "calendar": return <ComplianceCalendar laws={myLaws} lang={lang} onNav={nav}/>;
-      case "finecalc": return <FineCalculator     laws={myLaws} lang={lang} onNav={nav}/>;
-      case "scandoc":  return <DocScanner         lang={lang} onNav={nav}/>;
-      case "findca":   return <FindCA             biz={biz} lang={lang} onNav={nav}/>;
-      case "kit":      return <ComplianceKit      laws={myLaws} biz={biz} lang={lang} onNav={nav}/>;
-      default:         return <Dashboard          biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut}/>;
+      case "dash":     return <Dashboard     biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut} dark={dark} setDark={setDark} TH={TH}/>;
+      case "news":     return <NewsFeed      biz={biz} onSelect={setSelNews} lang={lang} TH={TH}/>;
+      case "laws":     return <LawBook       biz={biz} onSelect={setSelLaw} lang={lang} allLaws={LAWS} onNav={nav} TH={TH}/>;
+      case "profile":  return <ProfileScreen biz={biz} onUpdate={b=>{ setBiz(b); saveProfile(b); nav("dash"); }} lang={lang} TH={TH}/>;
+      case "calendar": return <ComplianceCalendar laws={myLaws} lang={lang} onNav={nav} TH={TH}/>;
+      case "finecalc": return <FineCalculator     laws={myLaws} lang={lang} onNav={nav} TH={TH}/>;
+      case "scandoc":  return <DocScanner         lang={lang} onNav={nav} TH={TH}/>;
+      case "findca":   return <FindCA             biz={biz} lang={lang} onNav={nav} TH={TH}/>;
+      case "kit":      return <ComplianceKit      laws={myLaws} biz={biz} lang={lang} onNav={nav} TH={TH}/>;
+      default:         return <Dashboard          biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut} dark={dark} setDark={setDark} TH={TH}/>;
     }
   };
 
   return (
-    <div style={{maxWidth:480,margin:"0 auto",height:"100vh",background:"#060606",position:"relative",fontFamily:"inherit",display:"flex",flexDirection:"column"}}>
+    <div style={{maxWidth:480,margin:"0 auto",height:"100vh",background:TH.bg,position:"relative",fontFamily:"inherit",display:"flex",flexDirection:"column"}}>
       <style>{`
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
@@ -1541,6 +1742,21 @@ export default function App() {
         select,input,button{font-family:inherit}
         ::-webkit-scrollbar{display:none}
         .ti{font-family:"tabler-icons"!important}
+        :root {
+          --bg: ${TH.bg};
+          --bg2: ${TH.bg2};
+          --bg3: ${TH.bg3};
+          --border: ${TH.border};
+          --border2: ${TH.border2};
+          --text: ${TH.text};
+          --text2: ${TH.text2};
+          --text3: ${TH.text3};
+          --gold: ${TH.gold};
+          --gold-faint: ${TH.goldFaint};
+          --red: ${TH.red};
+          --red-faint: ${TH.redFaint};
+          --red-border: ${TH.redBorder};
+        }
       `}</style>
       <div style={{flex:1,overflowY:"auto"}}>
         {renderScreen()}
@@ -1549,7 +1765,7 @@ export default function App() {
         <BottomNav active={screen} onNav={nav}
           urgentCount={myLaws.filter(l=>{const d=daysUntil(l.deadline);return d!==null&&d<60;}).length}
           newsCount={myNews.filter(n=>n.mag==="high").length}
-          lang={lang}
+          lang={lang} TH={TH}
         />
       )}
     </div>
