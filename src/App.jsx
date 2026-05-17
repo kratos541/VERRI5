@@ -681,8 +681,6 @@ function Dashboard({ biz, laws, news, onNav, onLaw, onNews, lang, setLang, user,
           {[
             {icon:"ti-calendar-event", label:lang==="ur"?"کیلنڈر":"Calendar",  nav:"calendar"},
             {icon:"ti-calculator",     label:lang==="ur"?"جرمانہ":"Fine Calc", nav:"finecalc"},
-            {icon:"ti-scan",           label:lang==="ur"?"اسکین":"Scan Doc",   nav:"scandoc"},
-            {icon:"ti-user-check",     label:lang==="ur"?"CA تلاش":"Find CA",  nav:"findca"},
           ].map(q=>(
             <div key={q.nav} onClick={()=>onNav(q.nav)} style={{background:TH.bg,border:`0.5px solid ${TH.border}`,borderRadius:14,padding:"16px 14px",display:"flex",alignItems:"center",gap:12,cursor:"pointer"}}>
               <i className={`ti ${q.icon}`} style={{fontSize:24,color:TH.gold,flexShrink:0}}/>
@@ -763,17 +761,6 @@ function Dashboard({ biz, laws, news, onNav, onLaw, onNews, lang, setLang, user,
           ))}
         </div>
 
-        {/* Kit */}
-        <div onClick={()=>onNav("kit")} style={{marginTop:16,background:TH.bg,border:`1px solid ${TH.border2}`,borderRadius:14,padding:"16px",cursor:"pointer",display:"flex",gap:14,alignItems:"center"}}>
-          <div style={{width:44,height:44,borderRadius:12,background:TH.goldFaint,border:`1px solid ${TH.border2}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-            <i className="ti ti-package" style={{fontSize:22,color:TH.gold}}/>
-          </div>
-          <div>
-            <div style={{fontSize:14,fontWeight:500,color:TH.gold,marginBottom:3}}>Compliance Kit</div>
-            <div style={{fontSize:12,color:TH.text2}}>All your letters in one place</div>
-          </div>
-          <i className="ti ti-arrow-right" style={{marginLeft:"auto",fontSize:18,color:TH.text3}}/>
-        </div>
       </div>
     </div>
   );
@@ -1675,8 +1662,8 @@ export default function App() {
       case "profile":  return <ProfileScreen biz={biz} onUpdate={b=>{ setBiz(b); saveProfile(b); nav("dash"); }} lang={lang} TH={TH}/>;
       case "calendar": return <ComplianceCalendar laws={myLaws} lang={lang} onNav={nav} TH={TH}/>;
       case "finecalc": return <FineCalculator     laws={myLaws} lang={lang} onNav={nav} TH={TH}/>;
-      case "scandoc":  return <DocScanner         lang={lang} onNav={nav} TH={TH}/>;
-      case "findca":   return <FindCA             biz={biz} lang={lang} onNav={nav} TH={TH}/>;
+      case "scandoc":  return <Dashboard biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut} dark={dark} setDark={setDark} TH={TH}/>;
+      case "findca":   return <Dashboard biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut} dark={dark} setDark={setDark} TH={TH}/>;
       case "kit":      return <ComplianceKit      laws={myLaws} biz={biz} lang={lang} onNav={nav} TH={TH}/>;
       default:         return <Dashboard          biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut} dark={dark} setDark={setDark} TH={TH}/>;
     }
