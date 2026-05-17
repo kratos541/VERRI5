@@ -395,15 +395,15 @@ function Onboarding({ onDone, lang, setLang }) {
   return (
     <div style={{height:"100vh",overflowY:"auto",background:"radial-gradient(ellipse at 20% 10%,#01411C,#070714 60%)",fontFamily:G.b,direction:lang==="ur"?"rtl":"ltr"}}>
       <style>{`@keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}} @keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      <div style={{maxWidth:480,margin:"0 auto",padding:"24px 20px 60px",animation:"up .4s ease"}}>
+      <div style={{maxWidth:"100%",margin:"0 auto",padding:"24px 20px 60px",animation:"up .4s ease"}}>
 
         {/* Logo */}
         <div style={{textAlign:"center",marginBottom:24}}>
           <div style={{display:"inline-flex",alignItems:"center",gap:12,background:"rgba(255,255,255,.07)",border:"1px solid rgba(255,255,255,.12)",borderRadius:16,padding:"10px 20px",marginBottom:10}}>
             <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#01411C,#059669)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>✓</div>
             <div>
-              <div style={{fontFamily:G.h,fontSize:26,color:"#fff",letterSpacing:"-1px",lineHeight:1}}>Verifill</div>
-              <div style={{fontSize:9,color:"rgba(255,255,255,.3)",letterSpacing:".15em",textTransform:"uppercase",marginTop:1}}>Pakistan Compliance AI 🇵🇰</div>
+              <div style={{fontFamily:G.h,fontSize:26,color:"#fff",letterSpacing:"-1px",lineHeight:1}}>Paaband</div>
+              <div style={{fontSize:9,color:"rgba(255,255,255,.3)",letterSpacing:".15em",textTransform:"uppercase",marginTop:1}}>پابند · قانون</div>
             </div>
           </div>
           <div style={{display:"flex",justifyContent:"center",gap:8}}>
@@ -599,11 +599,19 @@ function Dashboard({ biz, laws, news, onNav, onLaw, onNews, lang, setLang, user,
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
             <div style={{width:36,height:36,borderRadius:10,border:`1px solid ${TH.border2}`,background:TH.goldFaint,display:"flex",alignItems:"center",justifyContent:"center"}}>
-              <i className="ti ti-shield-check" style={{fontSize:18,color:TH.gold}}/>
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                <line x1="11" y1="2" x2="11" y2="20" stroke={TH.gold} strokeWidth="1.5"/>
+                <line x1="4" y1="6" x2="18" y2="6" stroke={TH.gold} strokeWidth="1.5"/>
+                <line x1="4" y1="6" x2="1" y2="13" stroke={TH.gold} strokeWidth="1"/>
+                <line x1="18" y1="6" x2="21" y2="13" stroke={TH.gold} strokeWidth="1"/>
+                <path d="M0 13 Q1 17 2 13" fill="none" stroke={TH.gold} strokeWidth="1"/>
+                <path d="M20 13 Q21 17 22 13" fill="none" stroke={TH.gold} strokeWidth="1"/>
+                <line x1="8" y1="20" x2="14" y2="20" stroke={TH.gold} strokeWidth="1.5"/>
+              </svg>
             </div>
             <div>
-              <div style={{fontSize:16,fontWeight:500,color:TH.gold,letterSpacing:".5px"}}>Verifill</div>
-              <div style={{fontSize:9,color:TH.text3,letterSpacing:".15em",textTransform:"uppercase"}}>Pakistan Compliance</div>
+              <div style={{fontSize:16,fontWeight:500,color:TH.gold,letterSpacing:".5px"}}>Paaband</div>
+              <div style={{fontSize:9,color:TH.text3,letterSpacing:".15em",textTransform:"uppercase"}}>پابند · قانون</div>
             </div>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
@@ -876,7 +884,7 @@ function LawDetail({ law, biz, onBack, lang, TH }) {
           <i className="ti ti-phone" style={{fontSize:14,color:TH.gold}}/>{law.phone}{law.url && <><i className="ti ti-world" style={{fontSize:14,color:TH.gold,marginLeft:8}}/>{law.url}</>}
         </div>}
         <div style={{marginTop:8,background:TH.goldFaint,border:"0.5px solid rgba(201,168,76,.15)",borderRadius:8,padding:"6px 12px",fontSize:10,color:"rgba(201,168,76,.6)"}}>
-          <i className="ti ti-info-circle" style={{fontSize:11,verticalAlign:"-1px",marginRight:5}}/>{lang==="ur"?"ہمیشہ اپنے اکاؤنٹنٹ سے تصدیق کریں۔ قوانین بدل سکتے ہیں۔":"Always verify with your accountant. Laws change — Verifill shows best available information."}
+          <i className="ti ti-info-circle" style={{fontSize:11,verticalAlign:"-1px",marginRight:5}}/>{lang==="ur"?"ہمیشہ اپنے اکاؤنٹنٹ سے تصدیق کریں۔ قوانین بدل سکتے ہیں۔":"Always verify with your accountant. Laws change — Paaband shows best available information."}
         </div>
       </div>
       {/* Tabs */}
@@ -1596,7 +1604,7 @@ export default function App() {
   /* 1. Show loading ONLY on first open before laws are ready */
   if (!ready && !biz) return (
     <div style={{height:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:TH.bg,gap:16,fontFamily:"inherit"}}>
-      <div style={{fontSize:16,fontWeight:500,color:TH.gold,letterSpacing:"1px"}}>Verifill</div>
+      <div style={{fontSize:16,fontWeight:500,color:TH.gold,letterSpacing:"1px"}}>Paaband</div>
       <div style={{width:28,height:28,border:"2px solid #1a1a1a",borderTopColor:"#C9A84C",borderRadius:"50%",animation:"spin .7s linear infinite"}}/>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
@@ -1605,14 +1613,14 @@ export default function App() {
   /* 2. Show sign in if no user and no biz */
   if (!user && !biz) return (
     <div style={{height:"100vh",overflowY:"auto",background:TH.bg,fontFamily:"inherit"}}>
-      <div style={{maxWidth:480,margin:"0 auto",padding:"60px 24px",textAlign:"center"}}>
+      <div style={{maxWidth:"100%",margin:"0 auto",padding:"60px 24px",textAlign:"center"}}>
         <div style={{display:"inline-flex",alignItems:"center",gap:10,marginBottom:32}}>
           <div style={{width:40,height:40,borderRadius:11,border:"1px solid rgba(201,168,76,.4)",background:TH.goldFaint,display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <i className="ti ti-shield-check" style={{fontSize:20,color:TH.gold}}/>
+            <i className="ti ti-scale" style={{fontSize:20,color:TH.gold}}/>
           </div>
           <div style={{textAlign:"left"}}>
-            <div style={{fontSize:18,fontWeight:500,color:TH.gold,letterSpacing:"1px"}}>Verifill</div>
-            <div style={{fontSize:9,color:"rgba(201,168,76,.3)",letterSpacing:".2em",textTransform:"uppercase"}}>Pakistan Compliance</div>
+            <div style={{fontSize:18,fontWeight:500,color:TH.gold,letterSpacing:"1px"}}>Paaband</div>
+            <div style={{fontSize:9,color:"rgba(201,168,76,.3)",letterSpacing:".2em",textTransform:"uppercase"}}>پابند · قانون</div>
           </div>
         </div>
         <div style={{background:TH.bg2,border:`0.5px solid ${TH.border}`,borderRadius:16,padding:"28px 22px"}}>
@@ -1675,7 +1683,7 @@ export default function App() {
   };
 
   return (
-    <div style={{maxWidth:480,margin:"0 auto",height:"100vh",background:TH.bg,position:"relative",fontFamily:"inherit",display:"flex",flexDirection:"column"}}>
+    <div style={{width:"100%",maxWidth:"100%",margin:0,height:"100vh",background:TH.bg,position:"relative",fontFamily:"inherit",display:"flex",flexDirection:"column"}}>
       <style>{`
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
