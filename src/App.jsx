@@ -765,6 +765,26 @@ function Dashboard({ biz, laws, news, onNav, onLaw, onNews, lang, setLang, user,
     </div>
   );
 }
+/* ── PAGE HEADER ──────────────────────────────────────────── */
+function PageHeader({ title, sub, icon, onBack, TH }) {
+  return (
+    <div style={{background:TH.bg,padding:"16px 18px 18px",borderBottom:`0.5px solid ${TH.border}`,flexShrink:0}}>
+      <button onClick={onBack} style={{background:"transparent",border:`0.5px solid ${TH.border2}`,color:TH.gold,borderRadius:8,padding:"5px 12px",cursor:"pointer",fontSize:12,marginBottom:12,fontFamily:"inherit",display:"flex",alignItems:"center",gap:5}}>
+        <i className="ti ti-arrow-left" style={{fontSize:14}}/> Back
+      </button>
+      <div style={{display:"flex",alignItems:"center",gap:12}}>
+        <div style={{width:40,height:40,borderRadius:11,border:`0.5px solid ${TH.border2}`,background:TH.goldFaint,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+          <i className={`ti ${icon}`} style={{fontSize:22,color:TH.gold}}/>
+        </div>
+        <div>
+          <div style={{fontSize:18,fontWeight:500,color:TH.text,letterSpacing:"-.3px"}}>{title}</div>
+          {sub && <div style={{fontSize:10,color:TH.text3,marginTop:2}}>{sub}</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── LAW BOOK ─────────────────────────────────────────────── */
 function LawBook({ biz, onSelect, lang, allLaws, onNav, TH }) {
   const t = T[lang];
@@ -1081,7 +1101,7 @@ function ComplianceCalendar({ laws, lang, onNav, TH }) {
 
   return (
     <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:TH.bg,direction:lang==="ur"?"rtl":"ltr"}}>
-      <PageHeader title={t.calTitle} sub={t.calSub} icon="ti-calendar-event" onBack={()=>onNav("dash")}/>
+      <PageHeader title={t.calTitle} sub={t.calSub} icon="ti-calendar-event" onBack={()=>onNav("dash")} TH={TH}/>
       <div style={{background:TH.bg2,padding:"12px 16px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:`0.5px solid ${TH.border}`,flexShrink:0}}>
         <button onClick={()=>{if(month===0){setMonth(11);setYear(y=>y-1);}else setMonth(m=>m-1);}} style={{background:TH.bg2,border:`0.5px solid ${TH.border}`,color:TH.gold,borderRadius:8,padding:"6px 14px",cursor:"pointer",fontSize:14,fontFamily:"inherit"}}>‹</button>
         <span style={{fontSize:14,fontWeight:500,color:TH.text}}>{MONTHS[month]} {year}</span>
@@ -1143,7 +1163,7 @@ function FineCalculator({ laws, lang, onNav, TH }) {
 
   return (
     <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:TH.bg,direction:lang==="ur"?"rtl":"ltr"}}>
-      <PageHeader title={t.fineTitle} sub={t.fineSub} icon="ti-calculator" onBack={()=>onNav("dash")}/>
+      <PageHeader title={t.fineTitle} sub={t.fineSub} icon="ti-calculator" onBack={()=>onNav("dash")} TH={TH}/>
       <div style={{flex:1,overflowY:"auto",padding:"16px 16px 80px",background:TH.bg2}}>
         <div style={{background:TH.bg2,border:`0.5px solid ${TH.border}`,borderRadius:14,padding:18,marginBottom:14}}>
           <label style={{fontSize:10,fontWeight:500,color:TH.text3,display:"block",marginBottom:6,textTransform:"uppercase",letterSpacing:".08em"}}>{t.selectLaw}</label>
