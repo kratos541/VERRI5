@@ -1691,6 +1691,141 @@ function UpgradeScreen({ lang, TH, onActivate, onBack }) {
   );
 }
 
+/* ── AUTH SCREEN ──────────────────────────────────────────── */
+function AuthScreen({ TH, lang, setLang, onSuccess, onSkip }) {
+  const [mode, setMode] = useState("login"); // login | signup | forgot
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [showPass, setShowPass] = useState(false);
+
+  const handleSubmit = async () => {
+    setError(""); setSuccess("");
+    if (!email.trim()) { setError("Enter your email"); return; }
+    if (mode !== "forgot" && password.length < 6) { setError("Password must be at least 6 characters"); return; }
+    if (mode === "signup" && !name.trim()) { setError("Enter your name"); return; }
+    setLoading(true);
+    try {
+      if (mode === "login") {
+        const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        if (error) { setError(error.message); setLoading(false); return; }
+        onSuccess(data.user);
+      } else if (mode === "signup") {
+        const { data, error } = await supabase.auth.signUp({ email: email.trim(), password, options:{ data:{ name } } });
+        if (error) { setError(error.message); setLoading(false); return; }
+        if (data.user) onSuccess(data.user);
+        else setSuccess("Check your email to confirm your account, then log in.");
+      } else if (mode === "forgot") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo:"https://verri-5.vercel.app" });
+        if (error) { setError(error.message); } else { setSuccess("Password reset email sent. Check your inbox."); }
+      }
+    } catch(e) { setError("Something went wrong. Check your internet."); }
+    setLoading(false);
+  };
+
+  const inp = { width:"100%", padding:"13px 14px", borderRadius:10, border:`0.5px solid ${error?TH.red:TH.border}`, background:TH.bg, color:TH.text, fontSize:14, fontFamily:"inherit", outline:"none", marginBottom:12 };
+
+  return (
+    <div style={{height:"100vh",overflowY:"auto",background:TH.bg,fontFamily:"inherit"}}>
+      <div style={{padding:"50px 24px 40px",maxWidth:"100%"}}>
+
+        {/* Logo */}
+        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:36}}>
+          <div style={{width:44,height:44,borderRadius:12,border:`1px solid ${TH.border2}`,background:TH.goldFaint,display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <svg width="24" height="24" viewBox="0 0 22 22" fill="none">
+              <line x1="11" y1="2" x2="11" y2="20" stroke={TH.gold} strokeWidth="1.5"/>
+              <line x1="4" y1="6" x2="18" y2="6" stroke={TH.gold} strokeWidth="1.5"/>
+              <line x1="4" y1="6" x2="1" y2="13" stroke={TH.gold} strokeWidth="1"/>
+              <line x1="18" y1="6" x2="21" y2="13" stroke={TH.gold} strokeWidth="1"/>
+              <path d="M0 13 Q1 17 2 13" fill="none" stroke={TH.gold} strokeWidth="1"/>
+              <path d="M20 13 Q21 17 22 13" fill="none" stroke={TH.gold} strokeWidth="1"/>
+              <line x1="8" y1="20" x2="14" y2="20" stroke={TH.gold} strokeWidth="1.5"/>
+            </svg>
+          </div>
+          <div>
+            <div style={{fontSize:22,fontWeight:500,color:TH.gold,letterSpacing:".5px"}}>Paaband</div>
+            <div style={{fontSize:10,color:TH.text3,letterSpacing:".15em",textTransform:"uppercase"}}>پابند · قانون</div>
+          </div>
+        </div>
+
+        {/* Title */}
+        <div style={{fontSize:24,fontWeight:500,color:TH.text,marginBottom:6}}>
+          {mode==="login"?"Welcome back":mode==="signup"?"Create account":"Reset password"}
+        </div>
+        <div style={{fontSize:13,color:TH.text3,marginBottom:28,lineHeight:1.7}}>
+          {mode==="login"?"Sign in to access your compliance dashboard.":mode==="signup"?"Create a free account to save your profile and laws.":"Enter your email and we will send a reset link."}
+        </div>
+
+        {/* Form */}
+        <div style={{background:TH.bg2,border:`0.5px solid ${TH.border}`,borderRadius:16,padding:"22px 18px"}}>
+
+          {mode==="signup" && (
+            <input value={name} onChange={e=>{setName(e.target.value);setError("");}} placeholder="Your full name" style={inp}/>
+          )}
+
+          <input value={email} onChange={e=>{setEmail(e.target.value);setError("");}} placeholder="Email address" type="email" style={inp}/>
+
+          {mode !== "forgot" && (
+            <div style={{position:"relative",marginBottom:12}}>
+              <input value={password} onChange={e=>{setPassword(e.target.value);setError("");}} placeholder="Password" type={showPass?"text":"password"} style={{...inp,marginBottom:0,paddingRight:46}}/>
+              <button onClick={()=>setShowPass(s=>!s)} style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:TH.text3}}>
+                <i className={`ti ${showPass?"ti-eye-off":"ti-eye"}`} style={{fontSize:18}}/>
+              </button>
+            </div>
+          )}
+
+          {error && <div style={{fontSize:12,color:TH.red,marginBottom:10,padding:"8px 12px",background:TH.redFaint,border:`0.5px solid ${TH.redBorder}`,borderRadius:8}}>
+            <i className="ti ti-alert-circle" style={{fontSize:13,marginRight:5,verticalAlign:"-1px"}}/>{error}
+          </div>}
+
+          {success && <div style={{fontSize:12,color:"#059669",marginBottom:10,padding:"8px 12px",background:"rgba(5,150,105,.08)",border:"0.5px solid rgba(5,150,105,.2)",borderRadius:8}}>
+            <i className="ti ti-circle-check" style={{fontSize:13,marginRight:5,verticalAlign:"-1px"}}/>{success}
+          </div>}
+
+          <button onClick={handleSubmit} disabled={loading} style={{width:"100%",padding:"14px",borderRadius:12,border:"none",background:`linear-gradient(135deg,${TH.gold},${TH.goldFaint})`,color:"#000",fontSize:15,fontWeight:600,cursor:loading?"not-allowed":"pointer",fontFamily:"inherit",marginTop:4,display:"flex",alignItems:"center",justifyContent:"center",gap:8,opacity:loading?.7:1}}>
+            {loading ? <><div style={{width:18,height:18,border:"2px solid rgba(0,0,0,.3)",borderTopColor:"#000",borderRadius:"50%",animation:"spin .7s linear infinite"}}/> Please wait...</> :
+              mode==="login"?"Sign In":mode==="signup"?"Create Account":"Send Reset Link"}
+          </button>
+        </div>
+
+        {/* Switch mode links */}
+        <div style={{textAlign:"center",marginTop:20}}>
+          {mode==="login" && <>
+            <button onClick={()=>{setMode("forgot");setError("");setSuccess("");}} style={{background:"none",border:"none",color:TH.gold,fontSize:13,cursor:"pointer",fontFamily:"inherit",display:"block",width:"100%",marginBottom:10}}>Forgot password?</button>
+            <button onClick={()=>{setMode("signup");setError("");setSuccess("");}} style={{background:"none",border:"none",color:TH.text3,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>Don't have an account? <span style={{color:TH.gold,fontWeight:500}}>Sign up free</span></button>
+          </>}
+          {mode==="signup" && (
+            <button onClick={()=>{setMode("login");setError("");setSuccess("");}} style={{background:"none",border:"none",color:TH.text3,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>Already have an account? <span style={{color:TH.gold,fontWeight:500}}>Sign in</span></button>
+          )}
+          {mode==="forgot" && (
+            <button onClick={()=>{setMode("login");setError("");setSuccess("");}} style={{background:"none",border:"none",color:TH.text3,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}><span style={{color:TH.gold,fontWeight:500}}>← Back to sign in</span></button>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div style={{display:"flex",alignItems:"center",gap:10,margin:"20px 0"}}>
+          <div style={{flex:1,height:"0.5px",background:TH.border}}/>
+          <span style={{fontSize:11,color:TH.text3}}>or</span>
+          <div style={{flex:1,height:"0.5px",background:TH.border}}/>
+        </div>
+
+        {/* Skip */}
+        <button onClick={onSkip} style={{width:"100%",padding:"12px",borderRadius:12,border:`0.5px solid ${TH.border}`,background:"transparent",color:TH.text3,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>
+          Continue without account
+        </button>
+
+        <div style={{textAlign:"center",marginTop:16,fontSize:11,color:TH.text3,lineHeight:1.8}}>
+          🔒 Your data is never sold or shared<br/>
+          No bank details collected
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── BOTTOM NAV ───────────────────────────────────────────── */
 function BottomNav({ active, onNav, urgentCount, newsCount, lang, TH }) {
   const t = T[lang];
@@ -1728,9 +1863,7 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false);
   const [dbLaws, setDbLaws] = useState([]);
-  const [paid, setPaid] = useState(()=>{
-    try { return localStorage.getItem("paaband_paid") === "true"; } catch(e){ return false; }
-  });
+  const [paid, setPaid] = useState(false); /* Always checked from server */
   const [dark, setDark] = useState(()=>{
     try { return localStorage.getItem("paaband_dark") !== "false"; } catch(e){ return true; }
   });
@@ -1740,15 +1873,26 @@ export default function App() {
     try { localStorage.setItem("paaband_dark", dark ? "true" : "false"); } catch(e){}
   }, [dark]);
 
-  /* Activate licence */
-  const activateLicence = (code) => {
+  /* Check paid status from Supabase whenever user changes */
+  useEffect(()=>{
+    if (!user) { setPaid(false); return; }
+    supabase.from("user_profiles").select("paid").eq("id", user.id).single()
+      .then(({ data }) => {
+        if (data && data.paid === true) setPaid(true);
+        else setPaid(false);
+      }).catch(()=>setPaid(false));
+  }, [user]);
+
+  /* Activate licence — saves to Supabase AND locally */
+  const activateLicence = async (code) => {
     const clean = code.trim().toUpperCase();
-    if (VALID_CODES.includes(clean)) {
-      setPaid(true);
-      try { localStorage.setItem("paaband_paid","true"); localStorage.setItem("paaband_code",clean); } catch(e){}
-      return true;
+    if (!VALID_CODES.includes(clean)) return false;
+    if (user) {
+      await supabase.from("user_profiles").upsert({ id: user.id, paid: true, licence_code: clean, paid_at: new Date().toISOString() });
     }
-    return false;
+    setPaid(true);
+    try { localStorage.setItem("paaband_paid","true"); } catch(e){}
+    return true;
   };
 
   /* Load saved profile from localStorage on first open */
@@ -1888,40 +2032,10 @@ export default function App() {
 
   /* 2. Show sign in if no user and no biz */
   if (!user && !biz) return (
-    <div style={{height:"100vh",overflowY:"auto",background:TH.bg,fontFamily:"inherit"}}>
-      <div style={{maxWidth:"100%",margin:"0 auto",padding:"60px 24px",textAlign:"center"}}>
-        <div style={{display:"inline-flex",alignItems:"center",gap:10,marginBottom:32}}>
-          <div style={{width:40,height:40,borderRadius:11,border:"1px solid rgba(201,168,76,.4)",background:TH.goldFaint,display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <i className="ti ti-scale" style={{fontSize:20,color:TH.gold}}/>
-          </div>
-          <div style={{textAlign:"left"}}>
-            <div style={{fontSize:18,fontWeight:500,color:TH.gold,letterSpacing:"1px"}}>Paaband</div>
-            <div style={{fontSize:9,color:"rgba(201,168,76,.3)",letterSpacing:".2em",textTransform:"uppercase"}}>پابند · قانون</div>
-          </div>
-        </div>
-        <div style={{background:TH.bg2,border:`0.5px solid ${TH.border}`,borderRadius:16,padding:"28px 22px"}}>
-          <div style={{fontSize:18,fontWeight:500,color:TH.text,marginBottom:8}}>Welcome to Paaband</div>
-          <div style={{fontSize:12,color:TH.text3,marginBottom:24,lineHeight:1.7}}>Sign in to save your profile. Or continue without an account.</div>
-          <button onClick={signInWithGoogle} style={{width:"100%",padding:"13px 16px",borderRadius:12,border:"0.5px solid #ddd",background:"#ffffff",color:"#3c4043",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:12,marginBottom:14}}>
-            <svg width="18" height="18" viewBox="0 0 48 48">
-              <path fill="#4285F4" d="M44.5 20H24v8.5h11.8C34.7 33.9 29.8 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/>
-              <path fill="#34A853" d="M6.3 14.7l7 5.1C15 16.1 19.2 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16.3 2 9.7 7.4 6.3 14.7z"/>
-              <path fill="#FBBC05" d="M24 46c5.6 0 10.6-1.9 14.5-5.1l-6.7-5.5C29.8 37 27 38 24 38c-5.8 0-10.7-3.1-11.8-7.5l-7 5.4C9.7 42.6 16.3 46 24 46z"/>
-              <path fill="#EA4335" d="M44.5 20H24v8.5h11.8c-1 3-3.5 5.5-6.8 7l6.7 5.5C40.8 37.3 44.5 31 44.5 24c0-1.3-.2-2.7-.5-4z"/>
-            </svg>
-            Continue with Google
-          </button>
-          <div style={{display:"flex",alignItems:"center",gap:10,margin:"4px 0 14px"}}>
-            <div style={{flex:1,height:"0.5px",background:TH.bg3}}/>
-            <span style={{fontSize:11,color:TH.text3}}>or</span>
-            <div style={{flex:1,height:"0.5px",background:TH.bg3}}/>
-          </div>
-          <button onClick={()=>setBiz("onboard")} style={{width:"100%",padding:"12px",borderRadius:12,border:"none",background:`linear-gradient(135deg,${TH.gold},${TH.goldFaint})`,color:"#000",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
-            Continue without account
-          </button>
-        </div>
-      </div>
-    </div>
+    <AuthScreen TH={TH} lang={lang} setLang={setLang}
+      onSuccess={u=>setUser(u)}
+      onSkip={()=>setBiz("onboard")}
+    />
   );
 
   /* 3. Show onboarding if no real profile yet */
