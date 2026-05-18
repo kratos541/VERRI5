@@ -3,8 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 
 /* ── SUPABASE CLIENT ──────────────────────────────────────── */
 const supabase = createClient(
-  "https://kyonlfvtwtunypbumtju.supabase.co || "https://kyonlfvtwtunypbumtju.supabase.co",
-  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt5b25sZnZ0d3R1bnlwYnVtdGp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxNzM5NzMsImV4cCI6MjA2Mjc0OTk3M30.TXyDFGrxCNQDHulXQxSMNb7cOMXIBxEimXe7nnO-Gkc || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt5b25sZnZ0d3R1bnlwYnVtdGp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxNzM5NzMsImV4cCI6MjA2Mjc0OTk3M30.TXyDFGrxCNQDHulXQxSMNb7cOMXIBxEimXe7nnO-Gkc"
+  "https://kyonlfvtwtunypbumtju.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt5b25sZnZ0d3R1bnlwYnVtdGp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxNzM5NzMsImV4cCI6MjA2Mjc0OTk3M30.TXyDFGrxCNQDHulXQxSMNb7cOMXIBxEimXe7nnO-Gkc"
 );
 
 /* ── TRANSLATIONS ─────────────────────────────────────────── */
@@ -152,9 +152,6 @@ const ALL_LAWS = [
   { id:"pmc-clinic", title:"PMC Clinic Registration", titleUr:"PMC کلینک رجسٹریشن", cat:"Medical", sub:"Federal · Clinics", provinces:["All"], types:["medical"], minRevM:0, minEmp:1, badge:"Before opening", deadline:null, penalty:1000000, penaltyPerDay:0, summaryEn:"Every medical clinic must be registered with Pakistan Medical Commission. All doctors must have valid PMC registration.", summaryUr:"ہر میڈیکل کلینک کو PMC کے ساتھ رجسٹر ہونا چاہیے۔", steps:["Register clinic at pmc.gov.pk","Ensure all doctors have valid PMC registration","Display PMC certificate at reception"], authority:"Pakistan Medical Commission", phone:"051-111-107-107", url:"https://pmc.gov.pk", letter:b=>`To: PMC\nSubject: Clinic Registration\n\n${b.name}, ${b.city}\n${b.ownerName}` },
   { id:"drug-storage", title:"Drug Storage Licence — Cold Chain", titleUr:"دوائیں ذخیرہ کرنے کا لائسنس", cat:"Medical", sub:"Federal · Pharmacies storing cold medicines", provinces:["All"], types:["pharmacy","medical"], minRevM:0, minEmp:1, badge:"Before storing medicines", deadline:null, penalty:200000, penaltyPerDay:0, summaryEn:"Pharmacies storing temperature-sensitive medicines must have DRAP cold chain licence. Requires refrigeration and temperature monitoring.", summaryUr:"درجہ حرارت کے لیے حساس دوائیں ذخیرہ کرنے والی فارمیسیوں کو DRAP کولڈ چین لائسنس لینا ہوگا۔", steps:["Install pharmaceutical grade refrigeration","Set up temperature monitoring system","Maintain temperature logs daily","Apply for DRAP cold chain licence"], authority:"DRAP", phone:"051-9106316", url:"https://dra.gov.pk", letter:b=>`To: DRAP\nSubject: Cold Chain Licence\n\n${b.name}, ${b.city}\n${b.ownerName}` },
   /* ── ANNUAL REMINDERS ── */
-  { id:"annual-tax-return", title:"Annual Tax Return — Due 30 Sep", titleUr:"سالانہ ٹیکس ریٹرن — 30 ستمبر", cat:"Tax", sub:"Federal · Reminder", provinces:["All"], types:["retail","wholesale","food","manufacturing","services","it","medical","pharmacy","education","construction","trading"], minRevM:0, minEmp:1, badge:"URGENT — 30 Sep deadline", deadline:"2025-09-30", penalty:100000, penaltyPerDay:1000, summaryEn:"Annual income tax return must be filed by September 30 every year. Missing costs PKR 100,000 minimum fine. Non-filers pay 6x bank tax.", summaryUr:"سالانہ انکم ٹیکس ریٹرن ہر سال 30 ستمبر تک فائل کرنی ہوگی۔", steps:["Compile all income and expense records","File at iris.fbr.gov.pk before September 30","Check ATL status within 24 hours"], authority:"FBR", phone:"051-111-772-772", url:"https://iris.fbr.gov.pk", letter:b=>`To: FBR\nSubject: Annual Return\n\nNTN: ${b.ntn||'[NTN]'}\n${b.name} confirms annual income tax return filed.\n${b.ownerName}` },
-  { id:"trade-licence-renewal", title:"Trade Licence Annual Renewal", titleUr:"تجارتی لائسنس سالانہ تجدید", cat:"Licensing", sub:"All provinces · Every business", provinces:["All"], types:["retail","wholesale","food","manufacturing","services","it","medical","pharmacy","education","construction","trading"], minRevM:0, minEmp:1, badge:"Renew by Dec 31", deadline:"2025-12-31", penalty:15000, penaltyPerDay:0, summaryEn:"Trade licences expire December 31. Must be renewed before that date. Municipal Corporation sealing begins in January for expired licences.", summaryUr:"تجارتی لائسنس 31 دسمبر کو ختم ہوتا ہے۔ اسے اس سے پہلے تجدید کریں۔", steps:["Visit Municipal Corporation before December 31","Bring last year licence, NTN, CNIC","Pay annual renewal fee","Display new licence immediately"], authority:"City Municipal Corporation", phone:null, url:null, letter:b=>`To: ${b.city} Municipal Corporation\nSubject: Trade Licence Renewal\n\n${b.name}, ${b.city}\n${b.ownerName}` },
-  { id:"eobi-annual", title:"EOBI Annual Compliance Certificate", titleUr:"EOBI سالانہ تعمیل سرٹیفکیٹ", cat:"Labour", sub:"Federal · EOBI registered businesses", provinces:["All"], types:["retail","wholesale","food","manufacturing","services","it","medical","pharmacy","education","construction","trading"], minRevM:0, minEmp:5, badge:"Annual requirement", deadline:"2025-12-31", penalty:50000, penaltyPerDay:0, summaryEn:"EOBI registered businesses must submit annual compliance certificate confirming all employees registered and contributions up to date.", summaryUr:"EOBI رجسٹرڈ کاروباروں کو سالانہ تعمیل سرٹیفکیٹ جمع کرانا ہوگا۔", steps:["Verify all employees are registered","Confirm all monthly contributions paid","Submit annual compliance certificate"], authority:"EOBI", phone:"111-000-231", url:"https://eobi.gov.pk", letter:b=>`To: EOBI\nSubject: Annual Compliance\n\n${b.name} confirms EOBI compliance for all employees.\n${b.ownerName}` },
 ];
 
 /* ── NEWS ─────────────────────────────────────────────────── */
@@ -584,7 +581,7 @@ function Onboarding({ onDone, lang, setLang }) {
 }
 
 /* ── DASHBOARD ────────────────────────────────────────────── */
-function Dashboard({ biz, laws, news, onNav, onLaw, onNews, lang, setLang, user, signOut, dark, setDark, TH }) {
+function Dashboard({ biz, laws, allLawsCount, news, onNav, onLaw, onNews, lang, setLang, user, signOut, dark, setDark, TH, paid }) {
   const urgent = laws.filter(l=>{const d=daysUntil(l.deadline);return d!==null&&d<60;});
   const closingLaw = laws.find(l=>l.id==="punjab-closing"||l.id==="sindh-closing");
   const CT = {food:"10:00 PM",retail:"8:00 PM",wholesale:"8:00 PM",services:"8:00 PM",pharmacy:"24 hrs",medical:"24 hrs",it:"8:00 PM",education:"8:00 PM",manufacturing:"Anytime",construction:"Anytime",trading:"8:00 PM"};
@@ -689,6 +686,20 @@ function Dashboard({ biz, laws, news, onNav, onLaw, onNews, lang, setLang, user,
           ))}
         </div>
 
+        {/* Upgrade banner for free users */}
+        {!paid && allLawsCount > 5 && (
+          <div onClick={()=>onNav("upgrade")} style={{background:`linear-gradient(135deg,${TH.gold},${TH.goldFaint})`,borderRadius:14,padding:"14px 16px",marginBottom:16,cursor:"pointer",display:"flex",gap:12,alignItems:"center"}}>
+            <i className="ti ti-crown" style={{fontSize:24,color:"#000",flexShrink:0}}/>
+            <div style={{flex:1}}>
+              <div style={{fontSize:13,fontWeight:600,color:"#000",marginBottom:2}}>
+                {allLawsCount-5} more laws hidden — Upgrade to Pro
+              </div>
+              <div style={{fontSize:11,color:"rgba(0,0,0,.6)"}}>PKR 999/month · All {allLawsCount} laws unlocked</div>
+            </div>
+            <i className="ti ti-arrow-right" style={{fontSize:18,color:"#000"}}/>
+          </div>
+        )}
+
         {/* My Laws */}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
           <span style={{fontSize:14,fontWeight:500,color:TH.text}}>
@@ -709,18 +720,20 @@ function Dashboard({ biz, laws, news, onNav, onLaw, onNews, lang, setLang, user,
         {laws.slice(0,5).map(law=>{
           const d=daysUntil(law.deadline);
           const urg=d!==null&&d<60;
+          const isDone = (() => { try { return localStorage.getItem(`paaband_done_${law.id}`) === "true"; } catch(e){ return false; } })();
           const catIcon={Tax:"ti-receipt-tax",Labour:"ti-moneybag","Food Safety":"ti-tools-kitchen-2",Licensing:"ti-license",Operations:"ti-clock",Medical:"ti-medical-cross"}[law.cat]||"ti-scale";
           return (
-            <div key={law.id} onClick={()=>onLaw(law)} style={{background:TH.bg,border:urg?`1px solid ${TH.redBorder}`:`0.5px solid ${TH.border}`,borderRadius:14,padding:"14px 16px",marginBottom:10,display:"flex",gap:14,alignItems:"center",cursor:"pointer",boxShadow:urg?`0 0 0 3px ${TH.redFaint}`:"none"}}>
-              <div style={{width:44,height:44,borderRadius:12,background:urg?TH.redFaint:TH.goldFaint,border:`1px solid ${urg?TH.redBorder:TH.border2}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                <i className={`ti ${catIcon}`} style={{fontSize:22,color:urg?TH.red:TH.gold}}/>
+            <div key={law.id} onClick={()=>onLaw(law)} style={{background:TH.bg,border:isDone?`0.5px solid rgba(5,150,105,.3)`:urg?`1px solid ${TH.redBorder}`:`0.5px solid ${TH.border}`,borderRadius:14,padding:"14px 16px",marginBottom:10,display:"flex",gap:14,alignItems:"center",cursor:"pointer",boxShadow:urg&&!isDone?`0 0 0 3px ${TH.redFaint}`:"none",opacity:isDone?.7:1}}>
+              <div style={{width:44,height:44,borderRadius:12,background:isDone?"rgba(5,150,105,.08)":urg?TH.redFaint:TH.goldFaint,border:`1px solid ${isDone?"rgba(5,150,105,.2)":urg?TH.redBorder:TH.border2}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <i className={`ti ${isDone?"ti-circle-check":catIcon}`} style={{fontSize:22,color:isDone?"#059669":urg?TH.red:TH.gold}}/>
               </div>
               <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:14,fontWeight:500,color:urg?TH.text:TH.text2,marginBottom:3,lineHeight:1.3}}>
+                <div style={{fontSize:14,fontWeight:500,color:TH.text,marginBottom:3,lineHeight:1.3}}>
                   {lang==="ur"?law.titleUr:law.title}
                 </div>
                 <div style={{fontSize:11,color:TH.text3}}>{law.sub}</div>
-                {urg && (
+                {isDone && <div style={{fontSize:11,color:"#059669",marginTop:3}}>✓ Marked as complied</div>}
+                {urg && !isDone && (
                   <div style={{fontSize:11,color:TH.red,marginTop:4,fontWeight:500}}>
                     <i className="ti ti-alert-triangle" style={{fontSize:11,marginRight:4,verticalAlign:"-1px"}}/>
                     {d>0?`${d} days left`:"Overdue"} · PKR {(law.penalty||0).toLocaleString()} fine
@@ -860,102 +873,201 @@ function LawBook({ biz, onSelect, lang, allLaws, onNav, TH }) {
 function LawDetail({ law, biz, onBack, lang, TH }) {
   const t = T[lang];
   const [tab, setTab] = useState("about");
-  const [chks, setChks] = useState((law.steps||[]).map(()=>false));
+  const [chks, setChks] = useState(()=>{
+    try { return JSON.parse(localStorage.getItem(`paaband_chk_${law.id}`)||"[]") || (law.steps||[]).map(()=>false); } catch(e){ return (law.steps||[]).map(()=>false); }
+  });
+  const [done, setDone] = useState(()=>{
+    try { return localStorage.getItem(`paaband_done_${law.id}`) === "true"; } catch(e){ return false; }
+  });
   const [copied, setCopied] = useState(false);
-  const done = chks.filter(Boolean).length;
+  const stepsCompleted = chks.filter(Boolean).length;
   const total = (law.steps||[]).length;
   const d = daysUntil(law.deadline);
-  const urg = d!==null&&d<60;
+  const urg = !done && d!==null && d<60;
   const catIcon = {Tax:"ti-receipt-tax",Labour:"ti-moneybag","Food Safety":"ti-tools-kitchen-2",Licensing:"ti-license",Operations:"ti-clock",Medical:"ti-medical-cross"}[law.cat]||"ti-scale";
+
+  const toggleStep = (i) => {
+    const n = [...chks]; n[i]=!n[i];
+    setChks(n);
+    try { localStorage.setItem(`paaband_chk_${law.id}`, JSON.stringify(n)); } catch(e){}
+  };
+
+  const markDone = () => {
+    const newDone = !done;
+    setDone(newDone);
+    try { localStorage.setItem(`paaband_done_${law.id}`, newDone?"true":"false"); } catch(e){}
+  };
+
+  /* Build why it applies */
+  const reasons = [];
+  if (law.provinces.includes("All")) reasons.push({icon:"ti-world",text:"Federal law — applies to all provinces in Pakistan"});
+  else reasons.push({icon:"ti-map-pin",text:`Applies in ${law.provinces.join(", ")} — your business is in ${biz.province}`});
+  if (law.types.includes(biz.type)) reasons.push({icon:"ti-building-store",text:`Applies to ${biz.typeLabel||biz.type} businesses — that is your business type`});
+  if ((law.minRevM||0)>0) reasons.push({icon:"ti-currency-rupee",text:`Required for businesses with revenue above PKR ${(law.minRevM*1000000).toLocaleString()} — your revenue qualifies`});
+  if ((law.minEmp||1)>1) reasons.push({icon:"ti-users",text:`Required for businesses with ${law.minEmp}+ employees — your business has ${biz.emp}+ employees`});
+  if ((law.minRevM||0)===0 && (law.minEmp||1)===1 && law.types.includes(biz.type)) reasons.push({icon:"ti-check",text:"Applies to every business of your type — no minimum size required"});
 
   return (
     <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:TH.bg,direction:lang==="ur"?"rtl":"ltr"}}>
       {/* Header */}
-      <div style={{background:TH.bg,padding:"16px 18px 18px",borderBottom:`0.5px solid ${TH.border}`,flexShrink:0}}>
-        <button onClick={onBack} style={{background:"transparent",border:"0.5px solid rgba(201,168,76,.25)",color:TH.gold,borderRadius:8,padding:"5px 12px",cursor:"pointer",fontSize:12,marginBottom:12,fontFamily:"inherit",display:"flex",alignItems:"center",gap:5}}>
-          <i className="ti ti-arrow-left" style={{fontSize:14}}/> {t.back}
-        </button>
-        <div style={{display:"flex",gap:12,alignItems:"flex-start"}}>
-          <div style={{width:44,height:44,borderRadius:12,border:`0.5px solid ${urg?"rgba(239,68,68,.4)":"rgba(201,168,76,.25)"}`,background:urg?"rgba(239,68,68,.08)":"rgba(201,168,76,.08)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-            <i className={`ti ${catIcon}`} style={{fontSize:22,color:urg?TH.red:TH.gold}}/>
+      <div style={{background:TH.bg,padding:"16px 18px 14px",borderBottom:`0.5px solid ${TH.border}`,flexShrink:0}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+          <button onClick={onBack} style={{background:"transparent",border:`0.5px solid ${TH.border2}`,color:TH.gold,borderRadius:8,padding:"5px 12px",cursor:"pointer",fontSize:12,fontFamily:"inherit",display:"flex",alignItems:"center",gap:5}}>
+            <i className="ti ti-arrow-left" style={{fontSize:14}}/> {t.back}
+          </button>
+          {/* Mark as Done toggle */}
+          <button onClick={markDone} style={{background:done?"rgba(5,150,105,.1)":TH.goldFaint,border:`1px solid ${done?"rgba(5,150,105,.3)":TH.border2}`,color:done?"#059669":TH.gold,borderRadius:8,padding:"5px 14px",cursor:"pointer",fontSize:12,fontFamily:"inherit",display:"flex",alignItems:"center",gap:6,fontWeight:500}}>
+            <i className={`ti ${done?"ti-circle-check":"ti-circle"}`} style={{fontSize:15}}/>
+            {done ? "Complied ✓" : "Mark Complied"}
+          </button>
+        </div>
+
+        <div style={{display:"flex",gap:12,alignItems:"flex-start",marginBottom:10}}>
+          <div style={{width:46,height:46,borderRadius:12,border:`0.5px solid ${done?"rgba(5,150,105,.3)":urg?"rgba(239,68,68,.4)":TH.border2}`,background:done?"rgba(5,150,105,.08)":urg?"rgba(239,68,68,.08)":TH.goldFaint,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+            <i className={`ti ${catIcon}`} style={{fontSize:22,color:done?"#059669":urg?TH.red:TH.gold}}/>
           </div>
           <div style={{flex:1}}>
-            <div style={{fontSize:16,fontWeight:500,color:TH.text,lineHeight:1.3,marginBottom:6}}>{lang==="ur"?law.titleUr:law.title}</div>
+            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
+              <span style={{fontSize:10,background:done?"rgba(5,150,105,.1)":urg?TH.redFaint:TH.goldFaint,color:done?"#059669":urg?TH.red:TH.gold,border:`0.5px solid ${done?"rgba(5,150,105,.3)":urg?TH.redBorder:TH.border2}`,borderRadius:5,padding:"1px 7px",fontWeight:500}}>{law.cat}</span>
+              {done && <span style={{fontSize:10,background:"rgba(5,150,105,.1)",color:"#059669",border:"0.5px solid rgba(5,150,105,.2)",borderRadius:5,padding:"1px 7px",fontWeight:500}}>✓ Complied</span>}
+              {urg && !done && <span style={{fontSize:10,background:TH.redFaint,color:TH.red,border:`0.5px solid ${TH.redBorder}`,borderRadius:5,padding:"1px 7px",fontWeight:500}}>⚠ Urgent</span>}
+            </div>
+            <div style={{fontSize:15,fontWeight:500,color:TH.text,lineHeight:1.3,marginBottom:6}}>{lang==="ur"?law.titleUr:law.title}</div>
             <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-              {law.penalty>0 && <span style={{fontSize:9,border:"0.5px solid rgba(239,68,68,.3)",color:TH.red,borderRadius:6,padding:"2px 8px",fontWeight:500}}>{t.penalty}: PKR {law.penalty.toLocaleString()}</span>}
-              {law.deadline && <span style={{fontSize:9,border:"0.5px solid rgba(201,168,76,.25)",color:TH.gold,borderRadius:6,padding:"2px 8px"}}>{d>0?`${d} ${t.daysLeft}`:t.overdue}</span>}
+              {law.penalty>0 && <span style={{fontSize:10,border:`0.5px solid ${TH.redBorder}`,color:TH.red,borderRadius:6,padding:"2px 8px",fontWeight:500}}>Fine: PKR {law.penalty.toLocaleString()}</span>}
+              {law.deadline && !done && <span style={{fontSize:10,border:`0.5px solid ${TH.border2}`,color:TH.gold,borderRadius:6,padding:"2px 8px"}}>{d!==null&&d>0?`${d} days left`:d===0?"Due today!":d!==null&&d<0?"Overdue":law.deadline}</span>}
             </div>
           </div>
         </div>
-        {law.phone && <div style={{marginTop:10,background:TH.bg2,border:`0.5px solid ${TH.border}`,borderRadius:8,padding:"7px 12px",fontSize:11,color:TH.text2,display:"flex",alignItems:"center",gap:8}}>
-          <i className="ti ti-phone" style={{fontSize:14,color:TH.gold}}/>{law.phone}{law.url && <><i className="ti ti-world" style={{fontSize:14,color:TH.gold,marginLeft:8}}/>{law.url}</>}
-        </div>}
-        <div style={{marginTop:8,background:TH.goldFaint,border:"0.5px solid rgba(201,168,76,.15)",borderRadius:8,padding:"6px 12px",fontSize:10,color:"rgba(201,168,76,.6)"}}>
-          <i className="ti ti-info-circle" style={{fontSize:11,verticalAlign:"-1px",marginRight:5}}/>{lang==="ur"?"ہمیشہ اپنے اکاؤنٹنٹ سے تصدیق کریں۔ قوانین بدل سکتے ہیں۔":"Always verify with your accountant. Laws change — Paaband shows best available information."}
+
+        {law.phone && (
+          <a href={`tel:${law.phone}`} style={{display:"flex",alignItems:"center",gap:8,background:TH.bg2,border:`0.5px solid ${TH.border}`,borderRadius:8,padding:"7px 12px",textDecoration:"none",marginBottom:6}}>
+            <i className="ti ti-phone" style={{fontSize:14,color:TH.gold}}/>
+            <span style={{fontSize:11,color:TH.text2}}>{law.phone}</span>
+            {law.url && <span style={{fontSize:11,color:TH.gold,marginLeft:"auto"}}>{law.url} →</span>}
+          </a>
+        )}
+
+        <div style={{background:TH.goldFaint,border:`0.5px solid ${TH.border2}`,borderRadius:8,padding:"6px 12px",fontSize:10,color:"rgba(201,168,76,.7)"}}>
+          <i className="ti ti-info-circle" style={{fontSize:11,verticalAlign:"-1px",marginRight:5}}/>
+          {lang==="ur"?"ہمیشہ اپنے اکاؤنٹنٹ سے تصدیق کریں۔":"Always verify with your CA. Laws change — Paaband shows best available info."}
         </div>
       </div>
+
       {/* Tabs */}
-      <div style={{display:"flex",background:TH.bg2,borderBottom:`0.5px solid ${TH.border}`,flexShrink:0}}>
-        {[["about",t.about,"ti-info-circle"],["steps",t.steps,"ti-list-check"],["letter",t.letter,"ti-file-text"]].map(([id,lbl,ic])=>(
-          <button key={id} onClick={()=>setTab(id)} style={{flex:1,padding:"12px 4px",border:"none",borderBottom:`2px solid ${tab===id?"#C9A84C":"transparent"}`,background:"transparent",color:tab===id?TH.gold:TH.text3,fontSize:11,fontWeight:500,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
-            <i className={`ti ${ic}`} style={{fontSize:14}}/>{lbl}
+      <div style={{display:"flex",background:TH.bg,borderBottom:`0.5px solid ${TH.border}`,flexShrink:0}}>
+        {[["about","About","ti-info-circle"],["why","Why Me","ti-help-circle"],["steps","Steps","ti-list-check"],["letter","Letter","ti-file-text"]].map(([id,lbl,ic])=>(
+          <button key={id} onClick={()=>setTab(id)} style={{flex:1,padding:"11px 2px",border:"none",borderBottom:`2px solid ${tab===id?TH.gold:"transparent"}`,background:"transparent",color:tab===id?TH.gold:TH.text3,fontSize:10,fontWeight:tab===id?600:400,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:4}}>
+            <i className={`ti ${ic}`} style={{fontSize:13}}/>{lbl}
           </button>
         ))}
       </div>
+
       <div style={{flex:1,overflowY:"auto",padding:"16px 16px 30px",background:TH.bg2}}>
+
+        {/* ABOUT TAB */}
         {tab==="about" && (
           <div>
-            <div style={{background:TH.bg2,border:`0.5px solid ${TH.border}`,borderRadius:12,padding:14,marginBottom:14,fontSize:13,color:TH.text2,lineHeight:1.8}}>{lang==="ur"?law.summaryUr:law.summaryEn}</div>
-            {matchLaw(law,biz) && (
-              <div style={{background:TH.goldFaint,border:"0.5px solid rgba(201,168,76,.15)",borderRadius:12,padding:"12px 14px"}}>
-                <div style={{fontSize:11,fontWeight:500,color:TH.gold,marginBottom:8}}>
-                  <i className="ti ti-check" style={{fontSize:12,marginRight:5}}/>{t.whyApplies}
+            <div style={{background:TH.bg,border:`0.5px solid ${TH.border}`,borderRadius:12,padding:16,marginBottom:14,fontSize:13,color:TH.text2,lineHeight:1.9}}>
+              {lang==="ur"?law.summaryUr:law.summaryEn}
+            </div>
+            {law.penalty>0 && (
+              <div style={{background:TH.redFaint,border:`0.5px solid ${TH.redBorder}`,borderRadius:12,padding:"12px 14px",marginBottom:14}}>
+                <div style={{fontSize:11,fontWeight:500,color:TH.red,marginBottom:6}}>
+                  <i className="ti ti-alert-triangle" style={{fontSize:12,marginRight:5,verticalAlign:"-1px"}}/>Penalty for non-compliance
                 </div>
-                {["Business type matches",law.provinces.includes("All")?"Federal — applies nationwide":`${biz.province} is in scope`,biz.revM>=(law.minRevM||0)?"Revenue threshold met":null,biz.emp>=(law.minEmp||1)?"Employee count qualifies":null].filter(Boolean).map((r,i)=>(
-                  <div key={i} style={{fontSize:11,color:TH.text2,padding:"5px 0",borderBottom:`0.5px solid ${TH.border}`,display:"flex",gap:8,alignItems:"center"}}>
-                    <i className="ti ti-circle-check" style={{fontSize:13,color:TH.gold,flexShrink:0}}/>{r}
-                  </div>
-                ))}
+                <div style={{fontSize:20,fontWeight:500,color:TH.red}}>PKR {law.penalty.toLocaleString()}</div>
+                {law.penaltyPerDay>0 && <div style={{fontSize:11,color:TH.red,opacity:.7,marginTop:3}}>+ PKR {law.penaltyPerDay.toLocaleString()} per day overdue</div>}
               </div>
             )}
           </div>
         )}
+
+        {/* WHY ME TAB */}
+        {tab==="why" && (
+          <div>
+            <div style={{background:TH.bg,border:`0.5px solid ${TH.border}`,borderRadius:12,padding:14,marginBottom:14}}>
+              <div style={{fontSize:12,fontWeight:500,color:TH.gold,marginBottom:12,display:"flex",alignItems:"center",gap:6}}>
+                <i className="ti ti-help-circle" style={{fontSize:14}}/>
+                Why this law applies to {biz.name}
+              </div>
+              {reasons.map((r,i)=>(
+                <div key={i} style={{display:"flex",gap:10,padding:"10px 0",borderBottom:i<reasons.length-1?`0.5px solid ${TH.border}`:"none",alignItems:"flex-start"}}>
+                  <div style={{width:30,height:30,borderRadius:8,background:TH.goldFaint,border:`0.5px solid ${TH.border2}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                    <i className={`ti ${r.icon}`} style={{fontSize:14,color:TH.gold}}/>
+                  </div>
+                  <span style={{fontSize:13,color:TH.text2,lineHeight:1.6,paddingTop:4}}>{r.text}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{background:TH.bg,border:`0.5px solid ${TH.border}`,borderRadius:12,padding:14}}>
+              <div style={{fontSize:11,fontWeight:500,color:TH.text3,marginBottom:10,textTransform:"uppercase",letterSpacing:".08em"}}>Your profile that matched</div>
+              {[
+                ["Business type", biz.typeLabel||biz.type],
+                ["Province", biz.province],
+                ["City", biz.city],
+                ["Monthly revenue", biz.revLabel||"—"],
+                ["Employees", biz.empLabel||"—"],
+              ].map(([k,v])=>(
+                <div key={k} style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:`0.5px solid ${TH.border}`,fontSize:12}}>
+                  <span style={{color:TH.text3}}>{k}</span>
+                  <span style={{color:TH.text,fontWeight:500}}>{v}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* STEPS TAB */}
         {tab==="steps" && (
           <div>
-            <div style={{background:TH.bg2,border:`0.5px solid ${TH.border}`,borderRadius:12,padding:12,marginBottom:14}}>
+            <div style={{background:TH.bg,border:`0.5px solid ${TH.border}`,borderRadius:12,padding:12,marginBottom:12}}>
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
-                <span style={{fontSize:11,fontWeight:500,color:TH.gold}}>{done} / {total} {t.done}</span>
-                <span style={{fontSize:11,color:TH.text3}}>{total?Math.round((done/total)*100):0}%</span>
+                <span style={{fontSize:12,fontWeight:500,color:TH.gold}}>{stepsCompleted} / {total} steps done</span>
+                <span style={{fontSize:12,color:TH.text3}}>{total?Math.round((stepsCompleted/total)*100):0}%</span>
               </div>
-              <div style={{height:4,background:TH.bg3,borderRadius:2,overflow:"hidden"}}>
-                <div style={{width:`${total?(done/total)*100:0}%`,height:"100%",background:TH.gold,borderRadius:2,transition:"width .3s"}}/>
+              <div style={{height:6,background:TH.bg3,borderRadius:3,overflow:"hidden"}}>
+                <div style={{width:`${total?(stepsCompleted/total)*100:0}%`,height:"100%",background:TH.gold,borderRadius:3,transition:"width .3s"}}/>
               </div>
             </div>
             {(law.steps||[]).map((step,i)=>(
-              <div key={i} onClick={()=>setChks(c=>{const n=[...c];n[i]=!n[i];return n;})} style={{display:"flex",gap:12,padding:"13px 14px",borderBottom:`0.5px solid ${TH.border}`,cursor:"pointer",background:chks[i]?"rgba(201,168,76,.04)":"transparent",borderRadius:i===0?"12px 12px 0 0":i===(law.steps.length-1)?"0 0 12px 12px":"0",border:`0.5px solid ${TH.border}`,marginBottom:i<(law.steps.length-1)?1:0}}>
-                <div style={{width:22,height:22,borderRadius:6,border:`1px solid ${chks[i]?TH.gold:TH.border}`,background:chks[i]?TH.gold:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>
-                  {chks[i] && <i className="ti ti-check" style={{fontSize:12,color:"#000"}}/>}
+              <div key={i} onClick={()=>toggleStep(i)} style={{display:"flex",gap:12,padding:"14px",marginBottom:6,background:chks[i]?TH.goldFaint:TH.bg,border:`0.5px solid ${chks[i]?TH.border2:TH.border}`,borderRadius:12,cursor:"pointer"}}>
+                <div style={{width:24,height:24,borderRadius:7,border:`1.5px solid ${chks[i]?TH.gold:TH.border}`,background:chks[i]?TH.gold:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>
+                  {chks[i] && <i className="ti ti-check" style={{fontSize:13,color:"#000"}}/>}
                 </div>
-                <span style={{flex:1,fontSize:12,color:chks[i]?"#333333":"#888888",textDecoration:chks[i]?"line-through":"none",lineHeight:1.6}}>{step}</span>
+                <div style={{flex:1}}>
+                  <span style={{fontSize:13,color:chks[i]?TH.text3:TH.text,textDecoration:chks[i]?"line-through":"none",lineHeight:1.6}}>{step}</span>
+                </div>
               </div>
             ))}
+            {total===0 && <div style={{textAlign:"center",padding:24,color:TH.text3,fontSize:13}}>No steps available for this law.</div>}
           </div>
         )}
-        {tab==="letter" && law.letter && (
+
+        {/* LETTER TAB */}
+        {tab==="letter" && (
           <div>
-            <div style={{background:TH.goldFaint,border:"0.5px solid rgba(201,168,76,.15)",borderRadius:10,padding:12,marginBottom:12,fontSize:11,color:"rgba(201,168,76,.7)"}}>
-              <i className="ti ti-bulb" style={{fontSize:12,marginRight:5,verticalAlign:"-1px"}}/>Pre-filled with your profile. Replace [BRACKETS].
-            </div>
-            <div style={{background:TH.bg2,border:`0.5px solid ${TH.border}`,borderRadius:12,padding:16,marginBottom:12,fontSize:12,color:TH.text2,lineHeight:1.9,whiteSpace:"pre-wrap",fontFamily:"'DM Mono',monospace"}}>{law.letter(biz)}</div>
-            <button onClick={()=>{navigator.clipboard.writeText(law.letter(biz));setCopied(true);setTimeout(()=>setCopied(false),2000);}} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:copied?TH.bg3:`linear-gradient(135deg,${TH.gold},${TH.goldFaint})`,color:copied?TH.gold:"#000",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-              <i className={`ti ${copied?"ti-check":"ti-copy"}`} style={{fontSize:16}}/>{copied?t.copied:t.copy}
-            </button>
+            {law.letter ? <>
+              <div style={{background:TH.goldFaint,border:`0.5px solid ${TH.border2}`,borderRadius:10,padding:12,marginBottom:12,fontSize:11,color:"rgba(201,168,76,.8)"}}>
+                <i className="ti ti-bulb" style={{fontSize:12,marginRight:5,verticalAlign:"-1px"}}/>Pre-filled with your business details. Replace anything in [BRACKETS].
+              </div>
+              <div style={{background:TH.bg,border:`0.5px solid ${TH.border}`,borderRadius:12,padding:16,marginBottom:12,fontSize:12,color:TH.text2,lineHeight:2,whiteSpace:"pre-wrap",fontFamily:"'DM Mono',monospace"}}>{law.letter(biz)}</div>
+              <button onClick={()=>{navigator.clipboard.writeText(law.letter(biz));setCopied(true);setTimeout(()=>setCopied(false),2000);}} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:copied?TH.bg3:`linear-gradient(135deg,${TH.gold},${TH.goldFaint})`,color:copied?TH.gold:"#000",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+                <i className={`ti ${copied?"ti-check":"ti-copy"}`} style={{fontSize:16}}/>{copied?"Copied!":"Copy Letter"}
+              </button>
+            </> : (
+              <div style={{textAlign:"center",padding:32,color:TH.text3,fontSize:13}}>
+                <i className="ti ti-file-x" style={{fontSize:32,display:"block",marginBottom:10,color:TH.text3}}/>
+                No letter template for this law.
+              </div>
+            )}
           </div>
         )}
       </div>
     </div>
   );
 }
+
 
 /* ── NEWS FEED ────────────────────────────────────────────── */
 function NewsFeed({ biz, onSelect, lang, TH }) {
@@ -1474,6 +1586,111 @@ function ProfileScreen({ biz, onUpdate, lang, TH }) {
 }
 
 
+/* ── UPGRADE SCREEN ───────────────────────────────────────── */
+function UpgradeScreen({ lang, TH, onActivate, onBack }) {
+  const [code, setCode] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const handleActivate = () => {
+    if (!code.trim()) { setError("Enter your licence code"); return; }
+    const ok = onActivate(code);
+    if (ok) { setSuccess(true); setError(""); }
+    else { setError("Invalid code. Check and try again."); }
+  };
+
+  if (success) return (
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:TH.bg,padding:32,textAlign:"center"}}>
+      <div style={{width:72,height:72,borderRadius:"50%",background:"rgba(201,168,76,.1)",border:`1px solid ${TH.border2}`,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:20}}>
+        <i className="ti ti-check" style={{fontSize:36,color:TH.gold}}/>
+      </div>
+      <div style={{fontSize:24,fontWeight:500,color:TH.text,marginBottom:8}}>Paaband Pro Activated!</div>
+      <div style={{fontSize:14,color:TH.text2,marginBottom:32,lineHeight:1.7}}>You now have access to all {`56`} laws, full calendar, and fine calculator.</div>
+      <button onClick={onBack} style={{padding:"14px 32px",borderRadius:12,border:"none",background:`linear-gradient(135deg,${TH.gold},${TH.goldFaint})`,color:"#000",fontSize:15,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
+        Go to Dashboard
+      </button>
+    </div>
+  );
+
+  return (
+    <div style={{height:"100vh",overflowY:"auto",background:TH.bg,fontFamily:"inherit"}}>
+      {/* Header */}
+      <div style={{background:TH.bg,padding:"20px 20px 0",borderBottom:`0.5px solid ${TH.border}`}}>
+        <button onClick={onBack} style={{background:"transparent",border:`0.5px solid ${TH.border2}`,color:TH.gold,borderRadius:8,padding:"5px 12px",cursor:"pointer",fontSize:12,marginBottom:16,fontFamily:"inherit",display:"flex",alignItems:"center",gap:5}}>
+          <i className="ti ti-arrow-left" style={{fontSize:14}}/> Back
+        </button>
+      </div>
+
+      <div style={{padding:"24px 20px 80px"}}>
+        {/* Hero */}
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <div style={{width:64,height:64,borderRadius:16,background:TH.goldFaint,border:`1px solid ${TH.border2}`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}>
+            <i className="ti ti-crown" style={{fontSize:30,color:TH.gold}}/>
+          </div>
+          <div style={{fontSize:26,fontWeight:500,color:TH.text,marginBottom:6}}>Paaband Pro</div>
+          <div style={{fontSize:14,color:TH.text2,lineHeight:1.7}}>Unlock all 56 laws and premium features</div>
+        </div>
+
+        {/* Price */}
+        <div style={{background:TH.bg2,border:`1px solid ${TH.border2}`,borderRadius:14,padding:20,marginBottom:16,textAlign:"center"}}>
+          <div style={{fontSize:36,fontWeight:500,color:TH.gold,letterSpacing:"-1px"}}>PKR 999</div>
+          <div style={{fontSize:12,color:TH.text3,marginTop:4}}>per month · cancel anytime</div>
+        </div>
+
+        {/* Features */}
+        <div style={{background:TH.bg2,border:`0.5px solid ${TH.border}`,borderRadius:14,padding:18,marginBottom:20}}>
+          {[
+            ["ti-scale","All 56 Pakistan laws unlocked"],
+            ["ti-calendar-event","Full compliance calendar"],
+            ["ti-calculator","Fine calculator — all laws"],
+            ["ti-bell","Deadline reminders (coming soon)"],
+            ["ti-file-text","Pre-filled government letters"],
+            ["ti-refresh","Lifetime updates — new laws added free"],
+          ].map(([icon,text],i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:i<5?`0.5px solid ${TH.border}`:"none"}}>
+              <i className={`ti ${icon}`} style={{fontSize:18,color:TH.gold,flexShrink:0,width:20}}/>
+              <span style={{fontSize:13,color:TH.text2}}>{text}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Pay button */}
+        <a href="https://paaband.gumroad.com/l/pro" target="_blank" rel="noreferrer" style={{display:"block",width:"100%",padding:"15px",borderRadius:12,background:`linear-gradient(135deg,${TH.gold},${TH.goldFaint})`,color:"#000",fontSize:15,fontWeight:600,textAlign:"center",textDecoration:"none",marginBottom:20,fontFamily:"inherit"}}>
+          <i className="ti ti-credit-card" style={{fontSize:16,marginRight:8,verticalAlign:"-2px"}}/>
+          Pay PKR 999 — Get Licence Code
+        </a>
+
+        {/* Divider */}
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20}}>
+          <div style={{flex:1,height:"0.5px",background:TH.border}}/>
+          <span style={{fontSize:11,color:TH.text3}}>Already have a code?</span>
+          <div style={{flex:1,height:"0.5px",background:TH.border}}/>
+        </div>
+
+        {/* Licence code input */}
+        <div style={{background:TH.bg2,border:`0.5px solid ${TH.border}`,borderRadius:14,padding:18}}>
+          <label style={{fontSize:11,fontWeight:500,color:TH.text3,display:"block",marginBottom:8,textTransform:"uppercase",letterSpacing:".08em"}}>Enter licence code</label>
+          <input
+            value={code}
+            onChange={e=>{ setCode(e.target.value.toUpperCase()); setError(""); }}
+            placeholder="e.g. PAAB-2025-PRO"
+            style={{width:"100%",padding:"12px 14px",borderRadius:10,border:`0.5px solid ${error?TH.red:TH.border}`,background:TH.bg,color:TH.text,fontSize:14,fontFamily:"'DM Mono',monospace",outline:"none",marginBottom:10,letterSpacing:"1px"}}
+          />
+          {error && <div style={{fontSize:11,color:TH.red,marginBottom:10}}><i className="ti ti-alert-circle" style={{fontSize:12,marginRight:4,verticalAlign:"-1px"}}/>{error}</div>}
+          <button onClick={handleActivate} style={{width:"100%",padding:"13px",borderRadius:10,border:`1px solid ${TH.border2}`,background:"transparent",color:TH.gold,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+            <i className="ti ti-key" style={{fontSize:15}}/>Activate Licence
+          </button>
+        </div>
+
+        <div style={{textAlign:"center",marginTop:16,fontSize:11,color:TH.text3,lineHeight:1.8}}>
+          Questions? WhatsApp: <span style={{color:TH.gold}}>+92 300 0000000</span><br/>
+          Your data is never sold or shared.
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── BOTTOM NAV ───────────────────────────────────────────── */
 function BottomNav({ active, onNav, urgentCount, newsCount, lang, TH }) {
   const t = T[lang];
@@ -1498,6 +1715,9 @@ function BottomNav({ active, onNav, urgentCount, newsCount, lang, TH }) {
 }
 
 /* ── ROOT ─────────────────────────────────────────────────── */
+/* Valid licence codes — add new ones here when someone pays */
+const VALID_CODES = ["PAAB-2025-PRO","PAAB-1111","PAAB-2222","PAAB-3333","PAAB-4444","PAAB-5555"];
+
 export default function App() {
   injectFonts();
   const [lang, setLang] = useState("en");
@@ -1508,7 +1728,42 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false);
   const [dbLaws, setDbLaws] = useState([]);
-  const [dark, setDark] = useState(true);
+  const [paid, setPaid] = useState(()=>{
+    try { return localStorage.getItem("paaband_paid") === "true"; } catch(e){ return false; }
+  });
+  const [dark, setDark] = useState(()=>{
+    try { return localStorage.getItem("paaband_dark") !== "false"; } catch(e){ return true; }
+  });
+
+  /* Save dark mode preference */
+  useEffect(()=>{
+    try { localStorage.setItem("paaband_dark", dark ? "true" : "false"); } catch(e){}
+  }, [dark]);
+
+  /* Activate licence */
+  const activateLicence = (code) => {
+    const clean = code.trim().toUpperCase();
+    if (VALID_CODES.includes(clean)) {
+      setPaid(true);
+      try { localStorage.setItem("paaband_paid","true"); localStorage.setItem("paaband_code",clean); } catch(e){}
+      return true;
+    }
+    return false;
+  };
+
+  /* Load saved profile from localStorage on first open */
+  useEffect(()=>{
+    try {
+      const saved = localStorage.getItem("paaband_biz");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.type && parsed.province) {
+          setBiz(parsed);
+        }
+      }
+    } catch(e){}
+    setReady(true);
+  }, []);
 
   /* Theme colours — passed to all components */
   const TH = dark ? {
@@ -1533,7 +1788,20 @@ export default function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setUser(session?.user ?? null);
     });
-    return () => subscription.unsubscribe();
+    /* Detect session when app comes back into focus from browser */
+    const handleFocus = () => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setUser(session?.user ?? null);
+      });
+    };
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") handleFocus();
+    });
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("focus", handleFocus);
+    };
   }, []);
 
   /* Laws from Supabase */
@@ -1596,7 +1864,7 @@ export default function App() {
       }).catch(()=>{});
   }, [user]);
 
-  const signInWithGoogle = () => supabase.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: window.location.origin }});
+  const signInWithGoogle = () => supabase.auth.signInWithOAuth({ provider:"google", options:{ redirectTo:"https://verri-5.vercel.app" }});
   const signOut = () => supabase.auth.signOut().then(()=>setBiz(null));
   const saveProfile = async (b) => {
     if (!user) return;
@@ -1604,7 +1872,8 @@ export default function App() {
   };
 
   const LAWS = dbLaws.length > 0 ? dbLaws : ALL_LAWS;
-  const myLaws = biz && biz.type ? LAWS.filter(l => matchLaw(l, biz)) : [];
+  const allMyLaws = biz && biz.type ? LAWS.filter(l => matchLaw(l, biz)) : [];
+  const myLaws = paid ? allMyLaws : allMyLaws.slice(0, 5);
   const myNews = biz && biz.type ? NEWS.filter(n => matchNews(n, biz)) : [];
   const nav = s => { setSelLaw(null); setSelNews(null); setScreen(s); };
 
@@ -1631,9 +1900,9 @@ export default function App() {
           </div>
         </div>
         <div style={{background:TH.bg2,border:`0.5px solid ${TH.border}`,borderRadius:16,padding:"28px 22px"}}>
-          <div style={{fontSize:18,fontWeight:500,color:TH.text,marginBottom:8}}>Welcome</div>
-          <div style={{fontSize:12,color:TH.text3,marginBottom:24,lineHeight:1.7}}>Sign in to save your profile permanently.</div>
-          <button onClick={signInWithGoogle} style={{width:"100%",padding:"13px 16px",borderRadius:12,border:"0.5px solid #2a2a2a",background:"#ffffff",color:"#3c4043",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:12,marginBottom:14}}>
+          <div style={{fontSize:18,fontWeight:500,color:TH.text,marginBottom:8}}>Welcome to Paaband</div>
+          <div style={{fontSize:12,color:TH.text3,marginBottom:24,lineHeight:1.7}}>Sign in to save your profile. Or continue without an account.</div>
+          <button onClick={signInWithGoogle} style={{width:"100%",padding:"13px 16px",borderRadius:12,border:"0.5px solid #ddd",background:"#ffffff",color:"#3c4043",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:12,marginBottom:14}}>
             <svg width="18" height="18" viewBox="0 0 48 48">
               <path fill="#4285F4" d="M44.5 20H24v8.5h11.8C34.7 33.9 29.8 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/>
               <path fill="#34A853" d="M6.3 14.7l7 5.1C15 16.1 19.2 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16.3 2 9.7 7.4 6.3 14.7z"/>
@@ -1647,8 +1916,8 @@ export default function App() {
             <span style={{fontSize:11,color:TH.text3}}>or</span>
             <div style={{flex:1,height:"0.5px",background:TH.bg3}}/>
           </div>
-          <button onClick={()=>setBiz("onboard")} style={{width:"100%",padding:"12px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#C9A84C,#B8922A)",color:"#000",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
-            Continue without saving
+          <button onClick={()=>setBiz("onboard")} style={{width:"100%",padding:"12px",borderRadius:12,border:"none",background:`linear-gradient(135deg,${TH.gold},${TH.goldFaint})`,color:"#000",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
+            Continue without account
           </button>
         </div>
       </div>
@@ -1659,8 +1928,10 @@ export default function App() {
   if (!biz || biz === "onboard" || !biz.type || !biz.province) return (
     <Onboarding
       onDone={b => {
-        setBiz({ ...b, typeLabel: bl(b.type,"en"), revLabel: REV_BANDS.find(r=>r.v===b.revM)?.l||"", empLabel: EMP_BANDS.find(r=>r.v===b.emp)?.l||"", licences: b.licences||[], products: b.products||"", ntn: b.ntn||"" });
-        saveProfile(b);
+        const safeBiz = { ...b, typeLabel: bl(b.type,"en"), revLabel: REV_BANDS.find(r=>r.v===b.revM)?.l||"", empLabel: EMP_BANDS.find(r=>r.v===b.emp)?.l||"", licences: b.licences||[], products: b.products||"", ntn: b.ntn||"" };
+        setBiz(safeBiz);
+        try { localStorage.setItem("paaband_biz", JSON.stringify(safeBiz)); } catch(e){}
+        saveProfile(safeBiz);
         setScreen("dash");
       }}
       lang={lang}
@@ -1676,16 +1947,16 @@ export default function App() {
     if (selLaw)  return <LawDetail  law={selLaw}  biz={biz} onBack={()=>setSelLaw(null)}  lang={lang} TH={TH}/>;
     if (selNews) return <NewsDetail news={selNews} biz={biz} onBack={()=>setSelNews(null)} lang={lang} TH={TH}/>;
     switch(screen) {
-      case "dash":     return <Dashboard     biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut} dark={dark} setDark={setDark} TH={TH}/>;
+      case "dash":     return <Dashboard     biz={biz} laws={myLaws} allLawsCount={allMyLaws.length} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut} dark={dark} setDark={setDark} TH={TH} paid={paid}/>;
       case "news":     return <NewsFeed      biz={biz} onSelect={setSelNews} lang={lang} TH={TH}/>;
-      case "laws":     return <LawBook       biz={biz} onSelect={setSelLaw} lang={lang} allLaws={LAWS} onNav={nav} TH={TH}/>;
-      case "profile":  return <ProfileScreen biz={biz} onUpdate={b=>{ setBiz(b); saveProfile(b); nav("dash"); }} lang={lang} TH={TH}/>;
+      case "laws":     return <LawBook       biz={biz} onSelect={setSelLaw} lang={lang} allLaws={paid?LAWS:LAWS.slice(0,20)} onNav={nav} TH={TH}/>;
+      case "profile":  return <ProfileScreen biz={biz} onUpdate={b=>{ setBiz(b); try{localStorage.setItem("paaband_biz",JSON.stringify(b));}catch(e){} saveProfile(b); nav("dash"); }} lang={lang} TH={TH}/>;
       case "calendar": return <ComplianceCalendar laws={myLaws} lang={lang} onNav={nav} TH={TH}/>;
       case "finecalc": return <FineCalculator     laws={myLaws} lang={lang} onNav={nav} TH={TH}/>;
-      case "scandoc":  return <Dashboard biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut} dark={dark} setDark={setDark} TH={TH}/>;
-      case "findca":   return <Dashboard biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut} dark={dark} setDark={setDark} TH={TH}/>;
-      case "kit":      return <ComplianceKit      laws={myLaws} biz={biz} lang={lang} onNav={nav} TH={TH}/>;
-      default:         return <Dashboard          biz={biz} laws={myLaws} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut} dark={dark} setDark={setDark} TH={TH}/>;
+      case "upgrade":  return <UpgradeScreen lang={lang} TH={TH} onActivate={activateLicence} onBack={()=>nav("dash")}/>;
+      case "scandoc":  return <Dashboard biz={biz} laws={myLaws} allLawsCount={allMyLaws.length} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut} dark={dark} setDark={setDark} TH={TH} paid={paid}/>;
+      case "findca":   return <Dashboard biz={biz} laws={myLaws} allLawsCount={allMyLaws.length} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut} dark={dark} setDark={setDark} TH={TH} paid={paid}/>;
+      default:         return <Dashboard biz={biz} laws={myLaws} allLawsCount={allMyLaws.length} news={myNews} onNav={nav} onLaw={setSelLaw} onNews={setSelNews} lang={lang} setLang={setLang} user={user} signOut={signOut} dark={dark} setDark={setDark} TH={TH} paid={paid}/>;
     }
   };
 
