@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paaband — Delete Account</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #060606; color: #888; line-height: 1.8; padding: 40px 24px; max-width: 600px; margin: 0 auto; }
+  h1 { color: #C9A84C; font-size: 26px; margin-bottom: 8px; }
+  h2 { color: #C9A84C; font-size: 16px; margin: 24px 0 8px; }
+  p { margin-bottom: 14px; color: #888; }
+  .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+  .logo-box { width: 44px; height: 44px; border-radius: 10px; border: 1px solid rgba(201,168,76,.4); background: rgba(201,168,76,.06); display: flex; align-items: center; justify-content: center; }
+  .brand { font-size: 22px; font-weight: 500; color: #C9A84C; }
+  .brand-sub { font-size: 10px; color: rgba(201,168,76,.4); letter-spacing: .2em; text-transform: uppercase; }
+  .warning { background: rgba(239,68,68,.06); border: 0.5px solid rgba(239,68,68,.3); border-radius: 10px; padding: 16px 18px; margin: 20px 0; }
+  .warning p { color: #ef4444; margin: 0; }
+  .steps { background: #0c0c0c; border: 0.5px solid #1a1a1a; border-radius: 10px; padding: 16px 18px; margin: 20px 0; }
+  .step { display: flex; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid #1a1a1a; }
+  .step:last-child { border-bottom: none; }
+  .step-num { width: 24px; height: 24px; border-radius: 50%; background: rgba(201,168,76,.1); border: 1px solid rgba(201,168,76,.3); color: #C9A84C; font-size: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .step-text { color: #888; font-size: 14px; }
+  .email-btn { display: block; width: 100%; padding: 14px; border-radius: 12px; background: linear-gradient(135deg, #C9A84C, #B8922A); color: #000; font-size: 15px; font-weight: 600; text-align: center; text-decoration: none; margin: 24px 0; }
+  ul { padding-left: 20px; margin-bottom: 14px; }
+  li { color: #888; margin-bottom: 6px; }
+  a { color: #C9A84C; }
+  .footer { text-align: center; font-size: 12px; color: #333; margin-top: 40px; }
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <div class="logo-box">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <line x1="11" y1="2" x2="11" y2="20" stroke="#C9A84C" stroke-width="1.5"/>
+      <line x1="4" y1="6" x2="18" y2="6" stroke="#C9A84C" stroke-width="1.5"/>
+      <line x1="4" y1="6" x2="1" y2="13" stroke="#C9A84C" stroke-width="1"/>
+      <line x1="18" y1="6" x2="21" y2="13" stroke="#C9A84C" stroke-width="1"/>
+      <path d="M0 13 Q1 17 2 13" fill="none" stroke="#C9A84C" stroke-width="1"/>
+      <path d="M20 13 Q21 17 22 13" fill="none" stroke="#C9A84C" stroke-width="1"/>
+      <line x1="8" y1="20" x2="14" y2="20" stroke="#C9A84C" stroke-width="1.5"/>
+    </svg>
+  </div>
+  <div>
+    <div class="brand">Paaband</div>
+    <div class="brand-sub">پابند · قانون</div>
+  </div>
+</div>
+
+<h1>Delete Your Account</h1>
+<p>We are sorry to see you go. You can delete your Paaband account and all associated data at any time.</p>
+
+<div class="warning">
+  <p>⚠️ Warning: Deleting your account is permanent and cannot be undone. All your data will be deleted within 30 days.</p>
+</div>
+
+<h2>What gets deleted</h2>
+<ul>
+  <li>Your account and login credentials</li>
+  <li>Your business profile and all information you entered</li>
+  <li>Your compliance progress and marked laws</li>
+  <li>Your licence and payment status</li>
+</ul>
+
+<h2>Option 1 — Delete from the app</h2>
+<div class="steps">
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-text">Open Paaband app on your phone</div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-text">Tap the Profile tab at the bottom</div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-text">Scroll down and tap "Delete Account"</div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-text">Confirm deletion — your account will be deleted immediately</div>
+  </div>
+</div>
+
+<h2>Option 2 — Request by email</h2>
+<p>Send us an email from your registered email address with the subject "Delete My Account" and we will delete your account within 7 days.</p>
+
+<a href="mailto:paaband.app@gmail.com?subject=Delete My Account&body=Please delete my Paaband account and all associated data. My registered email is: [YOUR EMAIL]" class="email-btn">
+  Send Delete Request Email
+</a>
+
+<h2>Need help?</h2>
+<p>If you have any questions contact us at <a href="mailto:paaband.app@gmail.com">paaband.app@gmail.com</a></p>
+
+<div class="footer">
+  🇵🇰 Paaband — Pakistan Business Compliance · Made in Pakistan
+</div>
+
+</body>
+</html>
