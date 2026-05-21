@@ -290,17 +290,17 @@ const G = {
   mono: "'DM Mono',monospace",
   /* Dark theme */
   night:"#060606", dark1:"#0c0c0c", dark2:"#111111", dark3:"#161616",
-  darkBorder:"rgba(201,168,76,.22)",
+  darkBorder:"rgba(140,95,10,.22)",
   /* Light theme */
-  card:"#ffffff", surface:"#faf6ed", lightBorder:"#f0e8cc", lightCard:"#fdf8ef",
-  /* Gold */
-  gold:"#C9A84C", goldDark:"#B8922A", goldFaint:"rgba(201,168,76,.08)",
-  goldBorder:"rgba(201,168,76,.25)",
+  card:"#ffffff", surface:"#f5f3ef", lightBorder:"#d8d2c8", lightCard:"#fdf8ef",
+  /* Gold — phone-app palette */
+  gold:"#8c5f0a", goldDark:"#6e4a07", goldFaint:"rgba(140,95,10,.08)",
+  goldBorder:"rgba(140,95,10,.35)",
   /* Semantic */
-  red:"#ef4444", redFaint:"rgba(239,68,68,.1)", redBorder:"rgba(239,68,68,.45)",
-  green:"#059669", muted:"#2a2a2a", lightMuted:"#bbb",
+  red:"#c0392b", redFaint:"rgba(192,57,43,.1)", redBorder:"rgba(192,57,43,.45)",
+  green:"#1a7a4a", muted:"#3d3428", lightMuted:"#7a7060",
   /* Legacy compat */
-  navy:"#111111", border:"#f0e8cc", pk:"#C9A84C", indigo:"#C9A84C", violet:"#B8922A", green2:"#059669",
+  navy:"#1a1510", border:"#d8d2c8", pk:"#8c5f0a", indigo:"#8c5f0a", violet:"#6e4a07", green2:"#1a7a4a",
 };
 
 /* Dark vs Light helpers */
@@ -452,7 +452,7 @@ function Onboarding({ onDone, lang, setLang }) {
               <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:5}}>{t.bizType}</label>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:14}}>
                 {BIZ_TYPES.map(tp=>(
-                  <button key={tp.v} onClick={()=>upd("type",tp.v)} style={{padding:"8px 8px",borderRadius:10,border:`2px solid ${form.type===tp.v?G.indigo:G.border}`,background:form.type===tp.v?"#eef2ff":"#fff",color:form.type===tp.v?G.indigo:G.navy,fontSize:11,fontWeight:500,cursor:"pointer",textAlign:"left",fontFamily:G.b,display:"flex",alignItems:"center",gap:5,transition:"all .15s"}}>
+                  <button key={tp.v} onClick={()=>upd("type",tp.v)} style={{padding:"8px 8px",borderRadius:10,border:`2px solid ${form.type===tp.v?G.indigo:G.border}`,background:form.type===tp.v?G.goldFaint:"#fff",color:form.type===tp.v?G.indigo:G.navy,fontSize:11,fontWeight:500,cursor:"pointer",textAlign:"left",fontFamily:G.b,display:"flex",alignItems:"center",gap:5,transition:"all .15s"}}>
                     <span style={{fontSize:14}}>{tp.i}</span>{lang==="ur"?tp.lUr:tp.l}
                   </button>
                 ))}
@@ -484,7 +484,7 @@ function Onboarding({ onDone, lang, setLang }) {
               <label style={{fontSize:12,fontWeight:600,color:G.navy,display:"block",marginBottom:5}}>{t.regType}</label>
               <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:14}}>
                 {REG_TYPES.map(r=>(
-                  <button key={r.v} onClick={()=>upd("regType",r.v)} style={{padding:"9px 12px",borderRadius:10,border:`2px solid ${form.regType===r.v?G.indigo:G.border}`,background:form.regType===r.v?"#eef2ff":"#fff",color:form.regType===r.v?G.indigo:G.navy,fontSize:12,fontWeight:500,cursor:"pointer",textAlign:"left",fontFamily:G.b,transition:"all .15s"}}>
+                  <button key={r.v} onClick={()=>upd("regType",r.v)} style={{padding:"9px 12px",borderRadius:10,border:`2px solid ${form.regType===r.v?G.indigo:G.border}`,background:form.regType===r.v?G.goldFaint:"#fff",color:form.regType===r.v?G.indigo:G.navy,fontSize:12,fontWeight:500,cursor:"pointer",textAlign:"left",fontFamily:G.b,transition:"all .15s"}}>
                     {lang==="ur"?r.lUr:r.l}
                   </button>
                 ))}
@@ -847,7 +847,7 @@ function LawBook({ biz, onSelect, lang, allLaws, onNav, TH }) {
           const isMine=matchLaw(law,biz);
           const ci = catIcon[law.cat]||"ti-scale";
           return (
-            <div key={law.id} onClick={()=>onSelect(law)} style={{background:TH.bg2,border:urg?`1px solid rgba(239,68,68,.45)`:"0.5px solid #161616",boxShadow:urg?"0 0 0 2px rgba(239,68,68,.07)":"none",borderRadius:12,padding:"12px 14px",marginBottom:8,cursor:"pointer",display:"flex",gap:11,alignItems:"center"}}>
+            <div key={law.id} onClick={()=>onSelect(law)} style={{background:TH.bg2,border:urg?`1px solid ${TH.redBorder}`:`0.5px solid ${TH.border}`,boxShadow:urg?`0 0 0 2px ${TH.redFaint}`:"none",borderRadius:12,padding:"12px 14px",marginBottom:8,cursor:"pointer",display:"flex",gap:11,alignItems:"center"}}>
               <div style={{width:36,height:36,borderRadius:10,background:urg?"rgba(239,68,68,.08)":"rgba(201,168,76,.08)",border:`0.5px solid ${urg?"rgba(239,68,68,.3)":"rgba(201,168,76,.25)"}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                 <i className={`ti ${ci}`} style={{fontSize:18,color:urg?TH.red:TH.gold}}/>
               </div>
@@ -859,7 +859,7 @@ function LawBook({ biz, onSelect, lang, allLaws, onNav, TH }) {
                 <div style={{fontSize:9,color:TH.text3,marginBottom:urg?3:0}}>{law.sub}</div>
                 {urg && <div style={{fontSize:9,color:TH.red,fontWeight:500}}><i className="ti ti-alert-triangle" style={{fontSize:9,verticalAlign:"-1px",marginRight:3}}/>{d>0?`${d} days`:"Overdue"} · PKR {(law.penalty||0).toLocaleString()} fine</div>}
               </div>
-              <i className="ti ti-chevron-right" style={{fontSize:15,color:"#1c1c1c",flexShrink:0}}/>
+              <i className="ti ti-chevron-right" style={{fontSize:15,color:TH.text3,flexShrink:0}}/>
             </div>
           );
         })}
@@ -1830,19 +1830,19 @@ function AuthScreen({ TH, lang, setLang, onSuccess, onSkip }) {
 function BottomNav({ active, onNav, urgentCount, newsCount, lang, TH }) {
   const t = T[lang];
   const tabs = [
-    {id:"dash",    icon:"ti-home",  label:t.home},
-    {id:"news",    icon:"ti-news",  label:t.news,   badge:newsCount},
-    {id:"laws",    icon:"ti-scale", label:t.laws,   badge:urgentCount},
-    {id:"profile", icon:"ti-user",  label:t.profile},
+    {id:"dash",    emoji:"🏠", label:t.home},
+    {id:"news",    emoji:"📰", label:t.news,   badge:newsCount},
+    {id:"laws",    emoji:"⚖️", label:t.laws,   badge:urgentCount},
+    {id:"profile", emoji:"👤", label:t.profile},
   ];
   return (
     <div style={{background:TH.bg,borderTop:`0.5px solid ${TH.border}`,display:"flex",padding:"10px 0 14px",flexShrink:0}}>
       {tabs.map(tab=>(
         <button key={tab.id} onClick={()=>onNav(tab.id)} style={{flex:1,background:"transparent",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3,position:"relative",padding:"2px 0"}}>
-          <i className={`ti ${tab.icon}`} style={{fontSize:26,color:active===tab.id?"#C9A84C":"#2a2a2a",fontWeight:900}}/>
-          <span style={{fontSize:10,fontWeight:active===tab.id?700:400,color:active===tab.id?"#C9A84C":"#2a2a2a",fontFamily:"inherit"}}>{tab.label}</span>
+          <span style={{fontSize:22,opacity:active===tab.id?1:0.45,lineHeight:1}}>{tab.emoji}</span>
+          <span style={{fontSize:10,fontWeight:active===tab.id?700:400,color:active===tab.id?TH.gold:TH.text3,fontFamily:"inherit"}}>{tab.label}</span>
           {active===tab.id && <div style={{position:"absolute",bottom:-14,width:16,height:2,background:TH.gold,borderRadius:1}}/>}
-          {(tab.badge||0)>0 && <span style={{position:"absolute",top:0,right:"14%",background:TH.red,color:TH.text,fontSize:8,fontWeight:700,borderRadius:8,padding:"1px 4px",minWidth:13,textAlign:"center"}}>{tab.badge}</span>}
+          {(tab.badge||0)>0 && <span style={{position:"absolute",top:0,right:"14%",background:TH.red,color:"#fff",fontSize:8,fontWeight:700,borderRadius:8,padding:"1px 4px",minWidth:13,textAlign:"center"}}>{tab.badge}</span>}
         </button>
       ))}
     </div>
@@ -1865,7 +1865,7 @@ export default function App() {
   const [dbLaws, setDbLaws] = useState([]);
   const [paid, setPaid] = useState(false); /* Always checked from server */
   const [dark, setDark] = useState(()=>{
-    try { return localStorage.getItem("paaband_dark") !== "false"; } catch(e){ return true; }
+    try { const s = localStorage.getItem("paaband_dark"); return s === null ? false : s === "true"; } catch(e){ return false; }
   });
 
   /* Save dark mode preference */
@@ -1917,11 +1917,11 @@ export default function App() {
     gold:"#C9A84C", goldFaint:"rgba(201,168,76,.08)",
     red:"#ef4444", redFaint:"rgba(239,68,68,.08)", redBorder:"rgba(239,68,68,.4)",
   } : {
-    bg:"#ffffff", bg2:"#fdf8ef", bg3:"#f5ede0",
-    border:"#ede8d8", border2:"rgba(184,146,42,.3)",
-    text:"#111111", text2:"#333333", text3:"#666666",
-    gold:"#B8922A", goldFaint:"rgba(184,146,42,.08)",
-    red:"#dc2626", redFaint:"rgba(220,38,38,.06)", redBorder:"rgba(220,38,38,.35)",
+    bg:"#f5f3ef", bg2:"#ffffff", bg3:"#edeae4",
+    border:"#d8d2c8", border2:"rgba(140,95,10,.35)",
+    text:"#1a1510", text2:"#3d3428", text3:"#7a7060",
+    gold:"#8c5f0a", goldFaint:"rgba(140,95,10,.08)",
+    red:"#c0392b", redFaint:"rgba(192,57,43,.08)", redBorder:"rgba(192,57,43,.35)",
   };
 
   /* Auth */
@@ -2025,7 +2025,7 @@ export default function App() {
   if (!ready && !biz) return (
     <div style={{height:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:TH.bg,gap:16,fontFamily:"inherit"}}>
       <div style={{fontSize:16,fontWeight:500,color:TH.gold,letterSpacing:"1px"}}>Paaband</div>
-      <div style={{width:28,height:28,border:"2px solid #1a1a1a",borderTopColor:"#C9A84C",borderRadius:"50%",animation:"spin .7s linear infinite"}}/>
+      <div style={{width:28,height:28,border:`2px solid ${TH.border}`,borderTopColor:TH.gold,borderRadius:"50%",animation:"spin .7s linear infinite"}}/>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
