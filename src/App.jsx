@@ -1893,6 +1893,7 @@ export default function App() {
   const [selNews, setSelNews] = useState(null);
   const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const [dbLaws, setDbLaws] = useState([]);
   const [paid, setPaid] = useState(false); /* Always checked from server */
   const [dark, setDark] = useState(()=>{
@@ -1955,28 +1956,14 @@ export default function App() {
     red:"#c0392b", redFaint:"rgba(192,57,43,.08)", redBorder:"rgba(192,57,43,.35)",
   };
 
-  /* Auth */
+  /* Auth — onAuthStateChange fires immediately with current session on subscribe,
+     and again after Google OAuth redirect. No getSession() race condition. */
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setUser(session?.user ?? null);
+      setAuthChecked(true);
     });
-    /* Detect session when app comes back into focus from browser */
-    const handleFocus = () => {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        setUser(session?.user ?? null);
-      });
-    };
-    window.addEventListener("focus", handleFocus);
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") handleFocus();
-    });
-    return () => {
-      subscription.unsubscribe();
-      window.removeEventListener("focus", handleFocus);
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   /* Laws from Supabase */
@@ -2052,8 +2039,8 @@ export default function App() {
   const myNews = biz && biz.type ? NEWS.filter(n => matchNews(n, biz)) : [];
   const nav = s => { setSelLaw(null); setSelNews(null); setScreen(s); };
 
-  /* 1. Show loading ONLY on first open before laws are ready */
-  if (!ready && !biz) return (
+  /* 1. Show loading until localStorage AND auth state are both known */
+  if ((!ready || !authChecked) && !biz) return (
     <div style={{height:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:TH.bg,gap:16,fontFamily:"inherit"}}>
       <div style={{fontSize:16,fontWeight:500,color:TH.gold,letterSpacing:"1px"}}>Paaband</div>
       <div style={{width:28,height:28,border:`2px solid ${TH.border}`,borderTopColor:TH.gold,borderRadius:"50%",animation:"spin .7s linear infinite"}}/>
