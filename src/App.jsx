@@ -629,14 +629,19 @@ function Dashboard({ biz, laws, allLawsCount, news, onNav, onLaw, onNews, lang, 
           </div>
         </div>
 
-        {/* Business info */}
-        <div style={{marginBottom:16}}>
-          <div style={{fontSize:22,fontWeight:500,color:TH.text,letterSpacing:"-.3px",marginBottom:4}}>
-            {(biz?.name||"").length>22?(biz?.name||"").slice(0,22)+"…":biz?.name||""}
+        {/* Greeting + avatar */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+          <div>
+            <div style={{fontSize:22,fontWeight:800,color:TH.text,letterSpacing:"-.5px",marginBottom:3}}>
+              {(()=>{const h=new Date().getHours();return h<12?"Good morning":h<17?"Good afternoon":"Good evening"})()}, {(biz?.ownerName||biz?.name||"").split(" ")[0]}
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:TH.text3}}>
+              <i className={`ti ${icon}`} style={{fontSize:14,color:TH.gold}}/>
+              {biz?.typeLabel||""} · {biz?.city||""}
+            </div>
           </div>
-          <div style={{display:"flex",alignItems:"center",gap:8,fontSize:13,color:TH.text2}}>
-            <i className={`ti ${icon}`} style={{fontSize:16,color:TH.gold}}/>
-            {biz?.typeLabel||""} · {biz?.city||""}{biz?.province?`, ${biz.province}`:""}
+          <div style={{width:40,height:40,borderRadius:20,background:`linear-gradient(135deg,${TH.gold},${TH.goldFaint})`,border:`2px solid ${TH.border2}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+            <span style={{fontSize:15,fontWeight:700,color:"#fff"}}>{(biz?.ownerName||biz?.name||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()}</span>
           </div>
         </div>
 
@@ -1505,81 +1510,126 @@ function ProfileScreen({ biz, onUpdate, lang, TH }) {
   const t = T[lang];
   const [d, setD] = useState({...biz});
   const [saved, setSaved] = useState(false);
+  const [editing, setEditing] = useState(false);
   const upd = (k,v) => setD(p=>({...p,[k]:v}));
   const toggleLic = l => setD(p=>({...p,licences:p.licences.includes(l)?p.licences.filter(x=>x!==l):[...p.licences,l]}));
   const save = () => {
     onUpdate({...d,typeLabel:bl(d.type,"en"),revLabel:REV_BANDS.find(b=>b.v===d.revM)?.l||"",empLabel:EMP_BANDS.find(b=>b.v===d.emp)?.l||""});
-    setSaved(true);setTimeout(()=>setSaved(false),2200);
+    setSaved(true); setEditing(false); setTimeout(()=>setSaved(false),2200);
   };
-  const inp = {width:"100%",padding:"11px 13px",borderRadius:10,border:`0.5px solid ${TH.border}`,background:TH.bg2,color:TH.text2,fontSize:12,fontFamily:"inherit",outline:"none",marginBottom:12};
+  const inp = {width:"100%",padding:"11px 13px",borderRadius:10,border:`1px solid ${TH.border}`,background:TH.bg,color:TH.text,fontSize:13,fontFamily:"inherit",outline:"none",marginBottom:12,boxSizing:"border-box"};
   const sel = {...inp,appearance:"none",cursor:"pointer"};
+  const initials = (biz.ownerName||biz.name||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+
+  const Row = ({label, value}) => (
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 0",borderBottom:`1px solid ${TH.border}`}}>
+      <span style={{fontSize:13,color:TH.text3}}>{label}</span>
+      <span style={{fontSize:13,color:TH.text,fontWeight:500,textAlign:"right",maxWidth:"60%"}}>{value||"—"}</span>
+    </div>
+  );
 
   return (
-    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:TH.bg,direction:lang==="ur"?"rtl":"ltr"}}>
-      <div style={{background:TH.bg,padding:"16px 18px 18px",borderBottom:`0.5px solid ${TH.border}`,flexShrink:0}}>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <div style={{width:38,height:38,borderRadius:10,border:"0.5px solid rgba(201,168,76,.25)",background:TH.goldFaint,display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <i className="ti ti-user" style={{fontSize:20,color:TH.gold}}/>
-          </div>
-          <div>
-            <div style={{fontSize:17,fontWeight:500,color:TH.text}}>Business Profile</div>
-            <div style={{fontSize:9,color:TH.text3}}>Update to re-filter all laws</div>
-          </div>
-        </div>
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",fontFamily:"inherit",background:TH.bg2,direction:lang==="ur"?"rtl":"ltr"}}>
+      {/* Header */}
+      <div style={{background:TH.bg,padding:"20px 18px 16px",borderBottom:`1px solid ${TH.border}`,flexShrink:0}}>
+        <div style={{fontSize:20,fontWeight:600,color:TH.text,marginBottom:2}}>Profile</div>
+        <div style={{fontSize:12,color:TH.text3}}>Your business details</div>
       </div>
-      <div style={{flex:1,overflowY:"auto",padding:"14px 16px 100px",background:TH.bg2}}>
-        {/* Summary */}
-        <div style={{background:TH.bg2,border:`0.5px solid ${TH.border}`,borderRadius:12,padding:14,marginBottom:14}}>
-          {[["Business",biz.name],["Owner",`${biz.ownerName} (${biz.designation})`],["Type",bl(biz.type,lang)],["Location",`${biz.city}, ${biz.province}`],["Revenue",biz.revLabel||"—"],["Employees",biz.empLabel||"—"],["NTN",biz.ntn||"Not registered"]].map(([k,v])=>(
-            <div key={k} style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:`0.5px solid ${TH.border}`,fontSize:12}}>
-              <span style={{color:TH.text3}}>{k}</span>
-              <span style={{color:TH.text2,fontWeight:500,textAlign:"right",maxWidth:"65%",fontSize:11}}>{v}</span>
-            </div>
-          ))}
+
+      <div style={{flex:1,overflowY:"auto",paddingBottom:100}}>
+
+        {/* Avatar card */}
+        <div style={{background:TH.bg,marginBottom:10,padding:"20px 18px",display:"flex",alignItems:"center",gap:14,borderBottom:`1px solid ${TH.border}`}}>
+          <div style={{width:54,height:54,borderRadius:27,background:`linear-gradient(135deg,${TH.gold},${TH.goldFaint})`,border:`2px solid ${TH.border2}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+            <span style={{fontSize:20,fontWeight:700,color:"#fff"}}>{initials}</span>
+          </div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:16,fontWeight:600,color:TH.text,marginBottom:2}}>{biz.ownerName||"—"}</div>
+            <div style={{fontSize:12,color:TH.text3}}>{biz.designation} · {biz.name}</div>
+            <div style={{fontSize:11,color:TH.text3,marginTop:2}}>{biz.city}, {biz.province}</div>
+          </div>
         </div>
-        {/* Edit */}
-        <div style={{background:TH.bg2,border:`0.5px solid ${TH.border}`,borderRadius:12,padding:16}}>
-          {[{l:"Business name",k:"name"},{l:"Owner name",k:"ownerName"},{l:"Phone",k:"phone"},{l:"NTN",k:"ntn"}].map(f=>(
-            <div key={f.k} style={{marginBottom:0}}>
-              <label style={{fontSize:9,fontWeight:500,color:TH.text3,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{f.l}</label>
-              <input value={d[f.k]||""} onChange={e=>upd(f.k,e.target.value)} style={inp}/>
-            </div>
-          ))}
-          <label style={{fontSize:9,fontWeight:500,color:TH.text3,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{t.bizType}</label>
-          <select value={d.type} onChange={e=>upd("type",e.target.value)} style={sel}>
-            {BIZ_TYPES.map(tp=><option key={tp.v} value={tp.v}>{lang==="ur"?tp.lUr:tp.l}</option>)}
-          </select>
-          <label style={{fontSize:9,fontWeight:500,color:TH.text3,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{t.province}</label>
-          <select value={d.province} onChange={e=>{upd("province",e.target.value);upd("city","");}} style={sel}>
-            {PROVINCES.map(p=><option key={p}>{p}</option>)}
-          </select>
-          <label style={{fontSize:9,fontWeight:500,color:TH.text3,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{t.city}</label>
-          <select value={d.city} onChange={e=>upd("city",e.target.value)} style={sel}>
-            {(CITIES[d.province]||[]).map(c=><option key={c}>{c}</option>)}
-          </select>
-          <label style={{fontSize:9,fontWeight:500,color:TH.text3,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{t.revenue}</label>
-          <select value={d.revM} onChange={e=>upd("revM",parseFloat(e.target.value))} style={sel}>
-            {REV_BANDS.map(b=><option key={b.v} value={b.v}>{lang==="ur"?b.lUr:b.l}</option>)}
-          </select>
-          <label style={{fontSize:9,fontWeight:500,color:TH.text3,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:".08em"}}>{t.employees}</label>
-          <select value={d.emp} onChange={e=>upd("emp",parseInt(e.target.value))} style={{...sel,marginBottom:14}}>
-            {EMP_BANDS.map(b=><option key={b.v} value={b.v}>{lang==="ur"?b.lUr:b.l}</option>)}
-          </select>
-          <label style={{fontSize:9,fontWeight:500,color:TH.text3,display:"block",marginBottom:8,textTransform:"uppercase",letterSpacing:".08em"}}>{t.licences}</label>
-          <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:16}}>
-            {LICENCE_TYPES.map(l=>(
-              <div key={l} onClick={()=>toggleLic(l)} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:10,border:`0.5px solid ${d.licences.includes(l)?"rgba(201,168,76,.3)":"#1e1e1e"}`,background:d.licences.includes(l)?"rgba(201,168,76,.08)":"transparent",cursor:"pointer"}}>
-                <div style={{width:18,height:18,borderRadius:5,border:`1.5px solid ${d.licences.includes(l)?"#C9A84C":"#1e1e1e"}`,background:d.licences.includes(l)?"#C9A84C":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                  {d.licences.includes(l) && <i className="ti ti-check" style={{fontSize:11,color:"#000"}}/>}
-                </div>
-                <span style={{fontSize:11,color:d.licences.includes(l)?"#C9A84C":"#888888"}}>{l}</span>
+
+        {/* Business details card */}
+        <div style={{background:TH.bg,marginBottom:10,padding:"0 18px",borderBottom:`1px solid ${TH.border}`,borderTop:`1px solid ${TH.border}`}}>
+          <div style={{fontSize:11,fontWeight:600,color:TH.gold,textTransform:"uppercase",letterSpacing:".08em",padding:"14px 0 8px"}}>Business Details</div>
+          <Row label="Business Name" value={biz.name}/>
+          <Row label="Type" value={bl(biz.type,lang)}/>
+          <Row label="Revenue" value={biz.revLabel}/>
+          <Row label="Employees" value={biz.empLabel}/>
+          <Row label="NTN" value={biz.ntn||"Not registered"}/>
+          <Row label="Phone" value={biz.phone}/>
+          <div style={{paddingBottom:4}}/>
+        </div>
+
+        {/* Licences card */}
+        <div style={{background:TH.bg,marginBottom:10,padding:"0 18px",borderBottom:`1px solid ${TH.border}`,borderTop:`1px solid ${TH.border}`}}>
+          <div style={{fontSize:11,fontWeight:600,color:TH.gold,textTransform:"uppercase",letterSpacing:".08em",padding:"14px 0 10px"}}>Your Licences</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:6,paddingBottom:14}}>
+            {(biz.licences||[]).length===0
+              ? <span style={{fontSize:12,color:TH.text3}}>None added yet</span>
+              : (biz.licences||[]).map(l=>(
+                <span key={l} style={{fontSize:11,background:TH.goldFaint,color:TH.gold,border:`1px solid ${TH.border2}`,borderRadius:20,padding:"4px 12px",fontWeight:500}}>{l}</span>
+              ))
+            }
+          </div>
+        </div>
+
+        {/* Edit section */}
+        {!editing ? (
+          <div style={{padding:"0 18px"}}>
+            <button onClick={()=>setEditing(true)} style={{width:"100%",padding:"14px",borderRadius:12,border:`1px solid ${TH.border2}`,background:TH.goldFaint,color:TH.gold,fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",marginBottom:10}}>
+              ✏️ Edit Profile
+            </button>
+          </div>
+        ) : (
+          <div style={{background:TH.bg,padding:"16px 18px",borderTop:`1px solid ${TH.border}`,borderBottom:`1px solid ${TH.border}`}}>
+            <div style={{fontSize:13,fontWeight:600,color:TH.text,marginBottom:14}}>Edit Details</div>
+            {[{l:"Business name",k:"name"},{l:"Owner name",k:"ownerName"},{l:"Phone",k:"phone"},{l:"NTN",k:"ntn"}].map(f=>(
+              <div key={f.k}>
+                <label style={{fontSize:11,fontWeight:500,color:TH.text3,display:"block",marginBottom:4}}>{f.l}</label>
+                <input value={d[f.k]||""} onChange={e=>upd(f.k,e.target.value)} style={inp}/>
               </div>
             ))}
+            <label style={{fontSize:11,fontWeight:500,color:TH.text3,display:"block",marginBottom:4}}>{t.bizType}</label>
+            <select value={d.type} onChange={e=>upd("type",e.target.value)} style={sel}>
+              {BIZ_TYPES.map(tp=><option key={tp.v} value={tp.v}>{lang==="ur"?tp.lUr:tp.l}</option>)}
+            </select>
+            <label style={{fontSize:11,fontWeight:500,color:TH.text3,display:"block",marginBottom:4}}>{t.province}</label>
+            <select value={d.province} onChange={e=>{upd("province",e.target.value);upd("city","");}} style={sel}>
+              {PROVINCES.map(p=><option key={p}>{p}</option>)}
+            </select>
+            <label style={{fontSize:11,fontWeight:500,color:TH.text3,display:"block",marginBottom:4}}>{t.city}</label>
+            <select value={d.city} onChange={e=>upd("city",e.target.value)} style={sel}>
+              {(CITIES[d.province]||[]).map(c=><option key={c}>{c}</option>)}
+            </select>
+            <label style={{fontSize:11,fontWeight:500,color:TH.text3,display:"block",marginBottom:4}}>{t.revenue}</label>
+            <select value={d.revM} onChange={e=>upd("revM",parseFloat(e.target.value))} style={sel}>
+              {REV_BANDS.map(b=><option key={b.v} value={b.v}>{lang==="ur"?b.lUr:b.l}</option>)}
+            </select>
+            <label style={{fontSize:11,fontWeight:500,color:TH.text3,display:"block",marginBottom:4}}>{t.employees}</label>
+            <select value={d.emp} onChange={e=>upd("emp",parseInt(e.target.value))} style={{...sel,marginBottom:14}}>
+              {EMP_BANDS.map(b=><option key={b.v} value={b.v}>{lang==="ur"?b.lUr:b.l}</option>)}
+            </select>
+            <label style={{fontSize:11,fontWeight:500,color:TH.text3,display:"block",marginBottom:8}}>{t.licences}</label>
+            <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:16}}>
+              {LICENCE_TYPES.map(l=>(
+                <div key={l} onClick={()=>toggleLic(l)} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:10,border:`1px solid ${d.licences.includes(l)?TH.border2:TH.border}`,background:d.licences.includes(l)?TH.goldFaint:TH.bg,cursor:"pointer"}}>
+                  <div style={{width:18,height:18,borderRadius:5,border:`2px solid ${d.licences.includes(l)?TH.gold:TH.border}`,background:d.licences.includes(l)?TH.gold:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                    {d.licences.includes(l) && <span style={{color:"#fff",fontSize:11,fontWeight:700}}>✓</span>}
+                  </div>
+                  <span style={{fontSize:12,color:d.licences.includes(l)?TH.gold:TH.text2}}>{l}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{display:"flex",gap:10}}>
+              <button onClick={()=>setEditing(false)} style={{flex:1,padding:"13px",borderRadius:12,border:`1px solid ${TH.border}`,background:"transparent",color:TH.text3,fontSize:13,fontWeight:500,cursor:"pointer",fontFamily:"inherit"}}>Cancel</button>
+              <button onClick={save} style={{flex:2,padding:"13px",borderRadius:12,border:"none",background:`linear-gradient(135deg,${TH.gold},${TH.goldFaint})`,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
+                {saved ? "✓ Saved!" : t.updateSave}
+              </button>
+            </div>
           </div>
-          <button onClick={save} style={{width:"100%",padding:"13px",borderRadius:12,border:"none",background:saved?"#1e1e1e":"linear-gradient(135deg,#C9A84C,#B8922A)",color:saved?"#C9A84C":"#000",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-            <i className={`ti ${saved?"ti-check":"ti-device-floppy"}`} style={{fontSize:16}}/>{saved?t.saved:t.updateSave}
-          </button>
-        </div>
+        )}
       </div>
     </div>
   );
