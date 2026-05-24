@@ -4,7 +4,8 @@ import { createClient } from "@supabase/supabase-js";
 /* ── SUPABASE CLIENT ──────────────────────────────────────── */
 const supabase = createClient(
   "https://kyonlfvtwtunypbumtju.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt5b25sZnZ0d3R1bnlwYnVtdGp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxNzM5NzMsImV4cCI6MjA2Mjc0OTk3M30.TXyDFGrxCNQDHulXQxSMNb7cOMXIBxEimXe7nnO-Gkc"
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt5b25sZnZ0d3R1bnlwYnVtdGp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxNzM5NzMsImV4cCI6MjA2Mjc0OTk3M30.TXyDFGrxCNQDHulXQxSMNb7cOMXIBxEimXe7nnO-Gkc",
+  { auth: { flowType: "implicit" } }
 );
 
 /* ── TRANSLATIONS ─────────────────────────────────────────── */
