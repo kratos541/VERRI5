@@ -1743,14 +1743,21 @@ function UpgradeScreen({ lang, TH, onActivate, onBack }) {
 
 /* ── AUTH SCREEN ──────────────────────────────────────────── */
 function AuthScreen({ TH, lang, setLang, onSuccess, onSkip }) {
-  const [mode, setMode] = useState("login"); // login | signup | forgot
+  const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [gLoading, setGLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPass, setShowPass] = useState(false);
+
+  const handleGoogle = async () => {
+    setGLoading(true); setError("");
+    const { error } = await supabase.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: window.location.origin } });
+    if (error) { setError(error.message); setGLoading(false); }
+  };
 
   const handleSubmit = async () => {
     setError(""); setSuccess("");
@@ -1769,55 +1776,54 @@ function AuthScreen({ TH, lang, setLang, onSuccess, onSkip }) {
         if (data.user) onSuccess(data.user);
         else setSuccess("Check your email to confirm your account, then log in.");
       } else if (mode === "forgot") {
-        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo:"https://verri-5.vercel.app" });
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: window.location.origin });
         if (error) { setError(error.message); } else { setSuccess("Password reset email sent. Check your inbox."); }
       }
     } catch(e) { setError("Something went wrong. Check your internet."); }
     setLoading(false);
   };
 
-  const inp = { width:"100%", padding:"13px 14px", borderRadius:10, border:`0.5px solid ${error?TH.red:TH.border}`, background:TH.bg, color:TH.text, fontSize:14, fontFamily:"inherit", outline:"none", marginBottom:12 };
+  const inp = { width:"100%", padding:"13px 14px", borderRadius:10, border:`1px solid ${TH.border}`, background:TH.bg, color:TH.text, fontSize:14, fontFamily:"inherit", outline:"none", marginBottom:12 };
+  const Spinner = () => <div style={{width:18,height:18,border:"2px solid rgba(0,0,0,.2)",borderTopColor:"currentColor",borderRadius:"50%",animation:"spin .7s linear infinite"}}/>;
 
   return (
     <div style={{height:"100vh",overflowY:"auto",background:TH.bg,fontFamily:"inherit"}}>
-      <div style={{padding:"50px 24px 40px",maxWidth:"100%"}}>
+      <div style={{padding:"48px 24px 40px"}}>
 
         {/* Logo */}
-        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:36}}>
-          <div style={{width:44,height:44,borderRadius:12,border:`1px solid ${TH.border2}`,background:TH.goldFaint,display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <svg width="24" height="24" viewBox="0 0 22 22" fill="none">
-              <line x1="11" y1="2" x2="11" y2="20" stroke={TH.gold} strokeWidth="1.5"/>
-              <line x1="4" y1="6" x2="18" y2="6" stroke={TH.gold} strokeWidth="1.5"/>
-              <line x1="4" y1="6" x2="1" y2="13" stroke={TH.gold} strokeWidth="1"/>
-              <line x1="18" y1="6" x2="21" y2="13" stroke={TH.gold} strokeWidth="1"/>
-              <path d="M0 13 Q1 17 2 13" fill="none" stroke={TH.gold} strokeWidth="1"/>
-              <path d="M20 13 Q21 17 22 13" fill="none" stroke={TH.gold} strokeWidth="1"/>
-              <line x1="8" y1="20" x2="14" y2="20" stroke={TH.gold} strokeWidth="1.5"/>
+        <div style={{textAlign:"center",marginBottom:36}}>
+          <div style={{width:56,height:56,borderRadius:16,background:`linear-gradient(135deg,${TH.gold},${TH.goldFaint})`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px"}}>
+            <svg width="28" height="28" viewBox="0 0 22 22" fill="none">
+              <line x1="11" y1="2" x2="11" y2="20" stroke="#fff" strokeWidth="1.8"/>
+              <line x1="4" y1="6" x2="18" y2="6" stroke="#fff" strokeWidth="1.8"/>
+              <line x1="4" y1="6" x2="1" y2="13" stroke="#fff" strokeWidth="1.2"/>
+              <line x1="18" y1="6" x2="21" y2="13" stroke="#fff" strokeWidth="1.2"/>
+              <path d="M0 13 Q1 17 2 13" fill="none" stroke="#fff" strokeWidth="1.2"/>
+              <path d="M20 13 Q21 17 22 13" fill="none" stroke="#fff" strokeWidth="1.2"/>
+              <line x1="8" y1="20" x2="14" y2="20" stroke="#fff" strokeWidth="1.8"/>
             </svg>
           </div>
-          <div>
-            <div style={{fontSize:22,fontWeight:500,color:TH.gold,letterSpacing:".5px"}}>Paaband</div>
-            <div style={{fontSize:10,color:TH.text3,letterSpacing:".15em",textTransform:"uppercase"}}>پابند · قانون</div>
-          </div>
+          <div style={{fontSize:24,fontWeight:700,color:TH.text,letterSpacing:"-.5px"}}>Paaband</div>
+          <div style={{fontSize:11,color:TH.text3,marginTop:2}}>Pakistan Business Compliance</div>
         </div>
 
-        {/* Title */}
-        <div style={{fontSize:24,fontWeight:500,color:TH.text,marginBottom:6}}>
-          {mode==="login"?"Welcome back":mode==="signup"?"Create account":"Reset password"}
+        {/* Google button */}
+        <button onClick={handleGoogle} disabled={gLoading} style={{width:"100%",padding:"14px",borderRadius:12,border:`1px solid ${TH.border}`,background:TH.bg,color:TH.text,fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:10,marginBottom:16,boxShadow:`0 1px 3px rgba(0,0,0,.08)`}}>
+          {gLoading ? <Spinner/> : <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>}
+          {gLoading ? "Signing in…" : "Continue with Google"}
+        </button>
+
+        {/* Divider */}
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+          <div style={{flex:1,height:"1px",background:TH.border}}/>
+          <span style={{fontSize:12,color:TH.text3}}>or use email</span>
+          <div style={{flex:1,height:"1px",background:TH.border}}/>
         </div>
-        <div style={{fontSize:13,color:TH.text3,marginBottom:28,lineHeight:1.7}}>
-          {mode==="login"?"Sign in to access your compliance dashboard.":mode==="signup"?"Create a free account to save your profile and laws.":"Enter your email and we will send a reset link."}
-        </div>
 
-        {/* Form */}
-        <div style={{background:TH.bg2,border:`0.5px solid ${TH.border}`,borderRadius:16,padding:"22px 18px"}}>
-
-          {mode==="signup" && (
-            <input value={name} onChange={e=>{setName(e.target.value);setError("");}} placeholder="Your full name" style={inp}/>
-          )}
-
+        {/* Email form */}
+        <div style={{background:TH.bg2,border:`1px solid ${TH.border}`,borderRadius:16,padding:"20px 16px",marginBottom:16}}>
+          {mode==="signup" && <input value={name} onChange={e=>{setName(e.target.value);setError("");}} placeholder="Your full name" style={inp}/>}
           <input value={email} onChange={e=>{setEmail(e.target.value);setError("");}} placeholder="Email address" type="email" style={inp}/>
-
           {mode !== "forgot" && (
             <div style={{position:"relative",marginBottom:12}}>
               <input value={password} onChange={e=>{setPassword(e.target.value);setError("");}} placeholder="Password" type={showPass?"text":"password"} style={{...inp,marginBottom:0,paddingRight:46}}/>
@@ -1826,50 +1832,25 @@ function AuthScreen({ TH, lang, setLang, onSuccess, onSkip }) {
               </button>
             </div>
           )}
-
-          {error && <div style={{fontSize:12,color:TH.red,marginBottom:10,padding:"8px 12px",background:TH.redFaint,border:`0.5px solid ${TH.redBorder}`,borderRadius:8}}>
-            <i className="ti ti-alert-circle" style={{fontSize:13,marginRight:5,verticalAlign:"-1px"}}/>{error}
-          </div>}
-
-          {success && <div style={{fontSize:12,color:"#059669",marginBottom:10,padding:"8px 12px",background:"rgba(5,150,105,.08)",border:"0.5px solid rgba(5,150,105,.2)",borderRadius:8}}>
-            <i className="ti ti-circle-check" style={{fontSize:13,marginRight:5,verticalAlign:"-1px"}}/>{success}
-          </div>}
-
-          <button onClick={handleSubmit} disabled={loading} style={{width:"100%",padding:"14px",borderRadius:12,border:"none",background:`linear-gradient(135deg,${TH.gold},${TH.goldFaint})`,color:"#000",fontSize:15,fontWeight:600,cursor:loading?"not-allowed":"pointer",fontFamily:"inherit",marginTop:4,display:"flex",alignItems:"center",justifyContent:"center",gap:8,opacity:loading?.7:1}}>
-            {loading ? <><div style={{width:18,height:18,border:"2px solid rgba(0,0,0,.3)",borderTopColor:"#000",borderRadius:"50%",animation:"spin .7s linear infinite"}}/> Please wait...</> :
-              mode==="login"?"Sign In":mode==="signup"?"Create Account":"Send Reset Link"}
+          {error && <div style={{fontSize:12,color:TH.red,marginBottom:10,padding:"8px 12px",background:TH.redFaint,border:`1px solid ${TH.redBorder}`,borderRadius:8}}>{error}</div>}
+          {success && <div style={{fontSize:12,color:"#1a7a4a",marginBottom:10,padding:"8px 12px",background:"rgba(26,122,74,.08)",border:"1px solid rgba(26,122,74,.2)",borderRadius:8}}>{success}</div>}
+          <button onClick={handleSubmit} disabled={loading} style={{width:"100%",padding:"14px",borderRadius:12,border:"none",background:`linear-gradient(135deg,${TH.gold},${TH.goldFaint})`,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8,opacity:loading?.7:1}}>
+            {loading ? <><Spinner/> Please wait…</> : mode==="login"?"Sign In":mode==="signup"?"Create Account":"Send Reset Link"}
           </button>
         </div>
 
-        {/* Switch mode links */}
-        <div style={{textAlign:"center",marginTop:20}}>
+        {/* Mode switcher */}
+        <div style={{textAlign:"center"}}>
           {mode==="login" && <>
             <button onClick={()=>{setMode("forgot");setError("");setSuccess("");}} style={{background:"none",border:"none",color:TH.gold,fontSize:13,cursor:"pointer",fontFamily:"inherit",display:"block",width:"100%",marginBottom:10}}>Forgot password?</button>
-            <button onClick={()=>{setMode("signup");setError("");setSuccess("");}} style={{background:"none",border:"none",color:TH.text3,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>Don't have an account? <span style={{color:TH.gold,fontWeight:500}}>Sign up free</span></button>
+            <button onClick={()=>{setMode("signup");setError("");setSuccess("");}} style={{background:"none",border:"none",color:TH.text3,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>No account? <span style={{color:TH.gold,fontWeight:600}}>Sign up free</span></button>
           </>}
-          {mode==="signup" && (
-            <button onClick={()=>{setMode("login");setError("");setSuccess("");}} style={{background:"none",border:"none",color:TH.text3,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>Already have an account? <span style={{color:TH.gold,fontWeight:500}}>Sign in</span></button>
-          )}
-          {mode==="forgot" && (
-            <button onClick={()=>{setMode("login");setError("");setSuccess("");}} style={{background:"none",border:"none",color:TH.text3,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}><span style={{color:TH.gold,fontWeight:500}}>← Back to sign in</span></button>
-          )}
+          {mode==="signup" && <button onClick={()=>{setMode("login");setError("");setSuccess("");}} style={{background:"none",border:"none",color:TH.text3,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>Already registered? <span style={{color:TH.gold,fontWeight:600}}>Sign in</span></button>}
+          {mode==="forgot" && <button onClick={()=>{setMode("login");setError("");setSuccess("");}} style={{background:"none",border:"none",color:TH.gold,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>← Back to sign in</button>}
         </div>
 
-        {/* Divider */}
-        <div style={{display:"flex",alignItems:"center",gap:10,margin:"20px 0"}}>
-          <div style={{flex:1,height:"0.5px",background:TH.border}}/>
-          <span style={{fontSize:11,color:TH.text3}}>or</span>
-          <div style={{flex:1,height:"0.5px",background:TH.border}}/>
-        </div>
-
-        {/* Skip */}
-        <button onClick={onSkip} style={{width:"100%",padding:"12px",borderRadius:12,border:`0.5px solid ${TH.border}`,background:"transparent",color:TH.text3,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>
-          Continue without account
-        </button>
-
-        <div style={{textAlign:"center",marginTop:16,fontSize:11,color:TH.text3,lineHeight:1.8}}>
-          🔒 Your data is never sold or shared<br/>
-          No bank details collected
+        <div style={{textAlign:"center",marginTop:24,fontSize:11,color:TH.text3,lineHeight:1.8}}>
+          🔒 Your data is never sold or shared
         </div>
       </div>
     </div>
